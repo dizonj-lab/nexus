@@ -5,6 +5,33 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.16] — 2026-10-31
+
+Natural-language design in the Systems Architect Console.
+
+### Added
+- **Conversation memory**: the model sees the last six turns, so follow-ups
+  ("now make it multi-region", "add caching to that") work. The console header
+  shows how much context is kept; "new conversation" clears it.
+- **Clarifying questions**: for ambiguous requests the model asks up to three
+  short questions instead of guessing; the next answer goes straight back to it.
+- **Plans are editable checklists**: every step can be unticked; impossible
+  steps are shown with the reason and cannot be ticked; the effect of the
+  selection (findings resolved, new critical findings, errors) updates as you
+  tick. "Review and apply" goes through the Action Guard; "Ask to revise" and
+  "revise PL-03: <change>" send feedback to the model.
+- **Self-repair**: before a plan is shown, impossible steps and new critical
+  findings are sent back to the model once for a corrected plan, labelled
+  "revised after validation".
+- **Strict output**: the model is asked for the exact plan JSON schema
+  (structured output); servers that do not support it fall back to JSON mode.
+- **Design patterns** as deterministic building blocks for people and models:
+  cache-aside, event-driven (outbox + Kafka), CQRS, saga, BFF, egress control,
+  zero trust, high availability. "patterns" lists them; "apply cqrs to SVC1".
+- **eval console**: scores the console model on eight fixed requests against
+  the current design (valid JSON, usable plans, problems left, repairs,
+  latency). Nothing is applied.
+
 ## [0.1.15] — 2026-10-31
 
 ### Changed
@@ -365,7 +392,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.15...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.16...HEAD
+[0.1.16]: https://github.com/dizonj-lab/nexus/compare/v0.1.15...v0.1.16
 [0.1.15]: https://github.com/dizonj-lab/nexus/compare/v0.1.14...v0.1.15
 [0.1.14]: https://github.com/dizonj-lab/nexus/compare/v0.1.13...v0.1.14
 [0.1.13]: https://github.com/dizonj-lab/nexus/compare/v0.1.12...v0.1.13

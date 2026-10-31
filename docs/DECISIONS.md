@@ -125,3 +125,11 @@ MANAGED flag; their capacity is a configured limit or quota; scaling them is a
 configuration change that is shown on the canvas and recorded in History.
 Resiliency follows the service's scope: zonal (one per zone), regional (the
 provider covers zones; plan cross-region DR to the RTO) or global.
+
+## D25 — Natural-language design is a conversation that ends in a checklist
+The console keeps short conversation memory, lets the model ask before
+guessing, and turns every model answer into a plan the architect can edit
+step by step. Plans are validated and repaired once before they are shown.
+Recurring structures are deterministic patterns the model can call, so the
+model chooses and the rules build. A fixed eval set measures model quality
+on the architect's own design.
