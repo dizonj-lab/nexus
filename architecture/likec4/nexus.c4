@@ -1,0 +1,210 @@
+// NEXUS · target architecture (agentic, MCP-based)
+specification {
+  element actor {
+    style {
+      shape person
+      color green
+    }
+  }
+  element system
+  element external {
+    style {
+      color muted
+    }
+  }
+  element webapp {
+    style {
+      shape browser
+    }
+  }
+  element container
+  element agent {
+    style {
+      color amber
+    }
+  }
+  element mcpserver {
+    style {
+      color indigo
+    }
+  }
+  element store {
+    style {
+      shape storage
+      color secondary
+    }
+  }
+  element queue {
+    style {
+      shape queue
+      color secondary
+    }
+  }
+
+  relationship mcp {
+    color indigo
+    line dashed
+  }
+  relationship async {
+    line dotted
+  }
+}
+
+model {
+  architect = actor 'Systems Architect' {
+    description 'Designs, runs what-ifs, accepts or rejects agent changesets'
+  }
+  reviewer = actor 'Reviewer / Stakeholder' {
+    description 'Views shared designs and comments by component ID'
+  }
+  extAgent = external 'External AI clients' {
+    description 'Claude Desktop / Claude Code, IDE agents'
+  }
+  llm = external 'LLM provider' {
+    description 'Escalation only, by explicit setting'
+  }
+  thirdParty = external 'Third-party MCP servers' {
+    description 'Cost (Infracost), CMDB, cloud inventory'
+  }
+
+  nexus = system 'NEXUS' {
+    description 'Interactive, agentic architecture workbench'
+
+    web = webapp 'Workbench UI' {
+      technology 'Next.js 16, React 19, Canvas'
+      description 'Canvas, floating cards, console, governance panes'
+    }
+    api = container 'NEXUS API' {
+      technology 'FastAPI, Python 3.11'
+      description 'Projects, versions, component IDs, sharing, WebSocket updates'
+    }
+    gateway = container 'MCP gateway' {
+      technology 'MCP Streamable HTTP, OAuth 2.1'
+      description 'Exposes NEXUS tools to external agents; tool registry and audit'
+    }
+    orchestrator = agent 'Advisor orchestrator' {
+      technology 'Python, MCP client'
+      description 'Plans, calls tools, proposes changesets; never applies them'
+    }
+    router = container 'Model router' {
+      technology 'LiteLLM'
+      description 'SLM first, LLM on escalation; logs every call'
+    }
+    slm = container 'SLM runtime' {
+      technology 'Ollama / vLLM: Phi-4-mini, Qwen2.5 3B'
+    }
+
+    mcpModel = mcpserver 'nexus-model' {
+      technology 'FastMCP'
+      description 'Design CRUD: add, connect, scale, sub-designs, versions'
+    }
+    mcpSim = mcpserver 'nexus-simulator' {
+      technology 'FastMCP, SimPy'
+      description 'What-if load and failure, bottleneck detection'
+    }
+    mcpGov = mcpserver 'nexus-governance' {
+      technology 'FastMCP, OPA/Rego'
+      description 'Capabilities, EA principles, ground truth; findings with basis'
+    }
+    mcpKnow = mcpserver 'nexus-knowledge' {
+      technology 'FastMCP, Docling, OCR'
+      description 'Ingest PDF/DOCX/JPG/PNG, extract clauses, semantic search'
+    }
+    mcpThreat = mcpserver 'nexus-threat' {
+      technology 'FastMCP, ATT&CK STIX'
+      description 'Map components and flows to MITRE ATT&CK techniques'
+    }
+    mcpIac = mcpserver 'nexus-iac' {
+      technology 'FastMCP, Terraform, tflint, checkov'
+      description 'Generate and validate IaC for AWS, Azure, GCP, VMware'
+    }
+    mcpC4 = mcpserver 'nexus-c4' {
+      technology 'FastMCP, LikeC4 CLI'
+      description 'Generate and validate LikeC4 models and views'
+    }
+
+    db = store 'Design store' {
+      technology 'PostgreSQL 16 + pgvector'
+      description 'Event log, snapshots, governance, embeddings, AI log'
+    }
+    blobs = store 'Artifact store' {
+      technology 'S3-compatible'
+      description 'Uploaded standards and reference designs'
+    }
+    jobs = queue 'Job queue' {
+      technology 'Redis Streams'
+      description 'Simulation runs and document ingestion'
+    }
+  }
+
+  // people and clients
+  architect -> nexus.web 'designs, asks in plain language'
+  reviewer -> nexus.web 'views, comments'
+  extAgent -[mcp]-> nexus.gateway 'calls NEXUS tools'
+
+  // core
+  nexus.web -> nexus.api 'REST + WebSocket'
+  nexus.api -> nexus.db 'reads / appends events'
+  nexus.api -> nexus.orchestrator 'console intents, review requests'
+  nexus.orchestrator -> nexus.router 'prompts'
+  nexus.router -> nexus.slm 'default'
+  nexus.router -> llm 'escalation'
+  nexus.gateway -[mcp]-> nexus.mcpModel 'proxies'
+  nexus.gateway -[mcp]-> nexus.mcpSim 'proxies'
+  nexus.gateway -[mcp]-> nexus.mcpGov 'proxies'
+
+  // orchestrator uses tools over MCP
+  nexus.orchestrator -[mcp]-> nexus.mcpModel 'proposes changesets'
+  nexus.orchestrator -[mcp]-> nexus.mcpSim 'what-if'
+  nexus.orchestrator -[mcp]-> nexus.mcpGov 'evaluate design'
+  nexus.orchestrator -[mcp]-> nexus.mcpKnow 'find standards'
+  nexus.orchestrator -[mcp]-> nexus.mcpThreat 'map threats'
+  nexus.orchestrator -[mcp]-> nexus.mcpIac 'generate IaC'
+  nexus.orchestrator -[mcp]-> nexus.mcpC4 'generate C4'
+  nexus.orchestrator -[mcp]-> thirdParty 'extensions'
+
+  // servers to data
+  nexus.mcpModel -> nexus.db 'design events'
+  nexus.mcpGov -> nexus.db 'rules, findings'
+  nexus.mcpSim -[async]-> nexus.jobs 'enqueue runs'
+  nexus.mcpKnow -[async]-> nexus.jobs 'enqueue ingestion'
+  nexus.mcpKnow -> nexus.blobs 'raw files'
+  nexus.mcpKnow -> nexus.db 'clauses, embeddings'
+  nexus.mcpKnow -> nexus.router 'extraction, tagging'
+  nexus.mcpModel -> nexus.router 'entity enrichment'
+}
+
+views {
+  view index {
+    title 'NEXUS · System context'
+    include architect, reviewer, extAgent, llm, thirdParty, nexus
+  }
+
+  view containers of nexus {
+    title 'NEXUS · Containers'
+    include *
+    include architect, extAgent, llm, thirdParty
+  }
+
+  view mcp {
+    title 'NEXUS · MCP tool layer'
+    include
+      nexus.orchestrator,
+      nexus.gateway,
+      extAgent,
+      thirdParty,
+      element.kind = mcpserver
+  }
+
+  dynamic view whatIf {
+    title 'What-if: "what if load 3x"'
+    architect -> nexus.web 'types in console'
+    nexus.web -> nexus.api 'intent'
+    nexus.api -> nexus.orchestrator 'plan'
+    nexus.orchestrator -> nexus.mcpSim 'run what_if(load=3x)'
+    nexus.orchestrator -> nexus.mcpGov 'evaluate(design, results)'
+    nexus.orchestrator -> nexus.router 'explain findings'
+    nexus.orchestrator -> nexus.mcpModel 'propose changeset: scale DB1'
+    nexus.api -> nexus.web 'diff on canvas, awaiting approval'
+  }
+}

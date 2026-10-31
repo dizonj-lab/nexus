@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}</style>
+<title>Project NEXUS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one-screen workbench. Canvas is the ground; tool cards float over it; four governance panes form the base. */
+:root{
+  --bg:#e9edf1; --surface:#fbfcfd; --surface-2:#f1f4f7; --ink:#16202c; --muted:#5d6979; --line:#d0d7e0;
+  --accent:#2a49cf; --accent-soft:#e3e8fb;
+  --ok:#1d9152; --warn:#cf7a1f; --crit:#d1314a;
+  --grid:rgba(22,32,44,.06);
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e131a; --surface:#161d27; --surface-2:#1c2531; --ink:#e3e9f0; --muted:#8b97a7; --line:#2a3544;
+  --accent:#8199ff; --accent-soft:#232c4a; --ok:#3cbd72; --warn:#eea24b; --crit:#f2596e; --grid:rgba(227,233,240,.05); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e131a; --surface:#161d27; --surface-2:#1c2531; --ink:#e3e9f0; --muted:#8b97a7; --line:#2a3544;
+  --accent:#8199ff; --accent-soft:#232c4a; --ok:#3cbd72; --warn:#eea24b; --crit:#f2596e; --grid:rgba(227,233,240,.05); color-scheme:dark}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:13px;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr auto}
+
+/* header */
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:7px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--surface)}
+.brand{font-family:var(--f-display);font-weight:700;letter-spacing:.14em;font-size:15px}
+.brand small{font-weight:500;letter-spacing:.04em;color:var(--muted);font-size:11px;margin-left:6px}
+#projName{border:1px solid transparent;background:transparent;padding:3px 6px;border-radius:4px;font-weight:600;width:140px}
+#projName:hover,#projName:focus{border-color:var(--line);background:var(--surface-2)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:4px 9px;font-size:12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.ctl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.ctl select{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 5px;font-size:12px}
+#mult{width:90px;accent-color:var(--accent)}
+.kpis{display:flex;gap:14px;margin-left:auto;font-family:var(--f-mono);font-size:11.5px;font-variant-numeric:tabular-nums}
+.kpi b{display:block;font-family:var(--f-display);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:4px 10px;font-size:12px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--surface)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.crit{color:var(--crit)}
+
+/* canvas */
+.stage{position:relative;overflow:hidden;min-height:0}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.crumb{position:absolute;left:58px;top:10px;display:flex;gap:4px;align-items:center;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:3px 8px;z-index:3}
+.crumb button{border:0;background:none;padding:0 2px;color:var(--accent)}
+.crumb span{color:var(--muted)}
+.palette{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:3px;z-index:3;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px}
+.palette button{width:38px;height:24px;border:0;border-radius:4px;background:transparent;font-family:var(--f-mono);font-size:10px;font-weight:600;color:var(--muted)}
+.palette button:hover{background:var(--accent-soft);color:var(--accent)}
+.palette hr{border:0;border-top:1px solid var(--line);margin:2px 0}
+.hint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:2px 10px;white-space:nowrap;z-index:2;opacity:.85}
+
+/* floating cards */
+.panel{position:absolute;width:340px;max-width:calc(100% - 20px);background:var(--surface);border:1px solid var(--line);border-radius:7px;box-shadow:0 6px 24px rgba(10,20,40,.10);z-index:5;display:flex;flex-direction:column}
+.panel[data-border="none"]{border-color:transparent;box-shadow:none}
+.panel[data-border="strong"]{border:2px solid var(--accent)}
+.panel>header{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 10px;cursor:grab;user-select:none;border-bottom:1px solid var(--line)}
+.panel.collapsed>header{border-bottom:0}
+.panel>header:active{cursor:grabbing}
+.ttl{font-family:var(--f-display);font-weight:600;font-size:12.5px;letter-spacing:.03em}
+.tag{white-space:nowrap;font-family:var(--f-mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 4px}
+.panel header .sp{flex:1}
+.ib{border:0;background:transparent;width:22px;height:20px;border-radius:4px;color:var(--muted);font-size:13px;line-height:1}
+.ib:hover{background:var(--surface-2);color:var(--ink)}
+.tune{display:flex;gap:10px;align-items:center;padding:6px 10px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line)}
+.tune input{width:90px;accent-color:var(--accent)}
+.tune select{font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px}
+.pbody{overflow:auto;min-height:0}
+.panel.collapsed .pbody,.panel.collapsed .tune{display:none}
+pre.code{margin:0;padding:8px 10px;font-family:var(--f-mono);font-size:11px;line-height:1.5;white-space:pre;tab-size:2}
+.code .c{color:var(--muted)}.code .s{color:var(--accent)}.code .k{font-weight:600}
+.bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 10px;border-bottom:1px solid var(--line);font-size:11px}
+.chk{font-family:var(--f-mono);font-size:10px;padding:1px 5px;border-radius:3px;border:1px solid currentColor}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;background:transparent;padding:5px;font-size:11.5px;color:var(--muted);border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+
+/* advisor findings */
+.fd{padding:8px 10px;border-bottom:1px solid var(--line);display:grid;gap:4px}
+.fd .h{display:flex;gap:6px;align-items:baseline}
+.pill{font-family:var(--f-mono);font-size:10px;font-weight:600;padding:0 5px;border-radius:3px;color:var(--surface)}
+.pill.crit{background:var(--crit)}.pill.warn{background:var(--warn)}.pill.ok{background:var(--ok)}.pill.info{background:var(--muted)}
+.fd .t{font-weight:600;font-size:12px}
+.fd .why{color:var(--muted);font-size:11.5px;line-height:1.4}
+.basis{display:flex;gap:4px;flex-wrap:wrap}
+.basis span{font-family:var(--f-mono);font-size:9.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:3px;padding:0 4px}
+.idref{font-family:var(--f-mono);font-weight:600;color:var(--accent);background:none;border:0;padding:0;font-size:inherit}
+.fd .act{display:flex;gap:6px}
+.fd .act .btn{padding:2px 8px;font-size:11px}
+.adr{font-family:var(--f-mono);font-size:10.5px;white-space:pre-wrap;background:var(--surface-2);border-radius:4px;padding:6px;line-height:1.45}
+.empty{padding:14px 10px;color:var(--muted);font-size:12px}
+.insp{padding:8px 10px;display:grid;gap:7px}
+.insp label{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+.insp input,.insp select{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:2px 5px;min-width:0}
+.just{background:var(--surface-2);border-radius:5px;padding:7px 8px;font-size:11.5px;line-height:1.5}
+.just b{font-family:var(--f-mono)}
+.logi{padding:6px 10px;border-bottom:1px solid var(--line);font-size:11px;line-height:1.4}
+.logi .m{font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+
+/* tree */
+#treeSvg{display:block}
+#treeSvg text{font-family:var(--f-mono);font-size:10.5px;fill:var(--ink);cursor:pointer}
+#treeSvg text.n{font-family:var(--f-body);fill:var(--muted)}
+#treeSvg g.row{transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+#treeSvg g.row:hover rect{fill:var(--accent-soft)}
+#treeSvg .pulse{animation:pulse 1.2s ease-in-out infinite}
+#treeSvg g.new{animation:fadein .6s ease-out}
+@keyframes pulse{50%{opacity:.35}}
+@keyframes fadein{from{opacity:0}}
+
+/* dock */
+.dock{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;border-top:1px solid var(--line);background:var(--surface);height:236px;min-height:0}
+.pane{display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid var(--line)}
+.pane:last-child{border-right:0}
+.pane>header{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--line)}
+.pane .list{overflow:auto;flex:1;min-height:0}
+.dtabs{display:none}
+.row{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;border-bottom:1px solid var(--line);font-size:12px;line-height:1.35}
+.row .id{font-family:var(--f-mono);font-size:10.5px;font-weight:600;color:var(--accent);min-width:34px}
+.row input[type=checkbox]{margin-top:2px;accent-color:var(--accent)}
+.row .sub{color:var(--muted);font-size:11px}
+.row .x{margin-left:auto;border:0;background:none;color:var(--muted);padding:0 2px}
+.adder{display:flex;gap:6px;padding:6px 10px;border-top:1px solid var(--line)}
+.adder input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:4px 7px;font-size:12px}
+#conOut{flex:1;overflow:auto;padding:6px 10px;font-family:var(--f-mono);font-size:11.5px;line-height:1.5;min-height:0}
+#conOut .u{color:var(--accent)}
+#conOut .s{color:var(--muted)}
+#conOut .q{color:var(--ink);font-weight:600}
+#conIn{font-family:var(--f-mono)}
+.upload{font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center;padding:5px 10px;border-top:1px solid var(--line)}
+.upload label{border:1px dashed var(--line);border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--ink)}
+.upload input{display:none}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(10,15,25,.45);z-index:50;display:grid;place-items:center;padding:16px}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(480px,100%);max-height:90%;overflow:auto;padding:16px;display:grid;gap:12px}
+.modal h2{margin:0;font-family:var(--f-display);font-size:17px;text-wrap:balance}
+.modal label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.modal select{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:5px}
+.modal p{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
+
+@media (max-width:900px){
+  .kpis{margin-left:0;width:100%;justify-content:space-between}
+  .dock{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:250px}
+  .dtabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+  .dtabs button{border:0;background:none;padding:6px 10px;font-size:12px;color:var(--muted);white-space:nowrap;border-bottom:2px solid transparent}
+  .dtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+  .pane{display:none;border-right:0}
+  .pane.on{display:flex}
+  .hint{display:none}
+  #mult{width:80px}
+}
+@media (prefers-reduced-motion:reduce){#treeSvg .pulse,#treeSvg g.new{animation:none}#treeSvg g.row{transition:none}}
+</style>
+
+<div class="app">
+  <div class="top">
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.0</small></span>
+    <input id="projName" aria-label="Project name" value="Customer Portal">
+    <span class="seg" id="viewSeg" role="group" aria-label="View">
+      <button data-v="flow" aria-pressed="true">Flow</button><button data-v="flat" aria-pressed="false">Flat</button><button data-v="iso" aria-pressed="false">3D</button><button data-v="rel" aria-pressed="false">Relations</button>
+    </span>
+    <label class="ctl">Deploy
+      <select id="deploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">GCP</option><option value="vmware">Datacenter (active/passive)</option><option value="hybrid">Hybrid cloud</option><option value="local">Local</option></select>
+    </label>
+    <label class="ctl">What-if load <input id="mult" type="range" min="0.25" max="5" step="0.25" value="1"><span id="multV" style="font-family:var(--f-mono);min-width:34px">1.0×</span></label>
+    <div class="kpis" id="kpis"></div>
+    <button class="btn" id="modelsBtn">Models</button>
+    <button class="btn primary" id="saveBtn">Save version</button>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="cv" aria-label="System design canvas"></canvas>
+    <div class="palette" id="palette" aria-label="Add component"></div>
+    <div class="crumb" id="crumb"></div>
+    <div class="hint">Drag to move · Shift-drag node→node to connect · Double-click to open sub-design · Scroll to zoom</div>
+
+    <section class="panel" id="pAdv" data-k="adv">
+      <header><span class="ttl">Design Advisor</span><span class="tag" id="advCount"></span><span class="sp"></span><button class="ib tuneB" title="Opacity and border" aria-label="Opacity and border">◐</button><button class="ib colB" title="Collapse" aria-label="Collapse">–</button></header>
+      <div class="tune" hidden></div>
+      <div class="tabs" role="tablist"><button role="tab" data-t="find" aria-selected="true">Findings</button><button role="tab" data-t="insp" aria-selected="false">Inspector</button><button role="tab" data-t="log" aria-selected="false">AI log</button></div>
+      <div class="pbody" id="advBody" style="max-height:230px"></div>
+    </section>
+
+    <section class="panel" id="pIac" data-k="iac">
+      <header><span class="ttl">Infrastructure as Code</span><span class="tag" id="iacTag">terraform</span><span class="sp"></span><button class="ib" id="iacCopy" title="Copy code" aria-label="Copy Terraform">⧉</button><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
+      <div class="tune" hidden></div>
+      <div class="bar"><select id="iacTarget" aria-label="IaC target" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">GCP</option><option value="vmware">VMware</option></select><span id="iacChecks" style="display:flex;gap:4px;flex-wrap:wrap"></span></div>
+      <div class="pbody" style="max-height:170px"><pre class="code" id="iacCode"></pre></div>
+    </section>
+
+    <section class="panel" id="pC4" data-k="c4">
+      <header><span class="ttl">C4 · LikeC4</span><span class="tag">.c4</span><span class="sp"></span><button class="ib" id="c4Copy" title="Copy code" aria-label="Copy LikeC4">⧉</button><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
+      <div class="tune" hidden></div>
+      <div class="pbody" style="max-height:140px"><pre class="code" id="c4Code"></pre></div>
+    </section>
+
+    <section class="panel" id="pTree" data-k="tree">
+      <header><span class="ttl">Design Tree</span><span class="tag" id="treeTag"></span><span class="sp"></span><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
+      <div class="tune" hidden></div>
+      <div class="bar">Magnify <input id="treeZoom" type="range" min="0.7" max="1.8" step="0.1" value="1" style="width:100px;accent-color:var(--accent)" aria-label="Tree magnification"><span style="color:var(--muted)">Click a node to focus the canvas</span></div>
+      <div class="pbody" style="max-height:150px"><svg id="treeSvg" aria-label="Design tree"></svg></div>
+    </section>
+  </div>
+
+  <div class="dock" id="dock">
+    <div class="dtabs" role="tablist" id="dtabs"><button data-p="con" aria-selected="true">Console</button><button data-p="cap" aria-selected="false">Capabilities</button><button data-p="ea" aria-selected="false">EA Principles</button><button data-p="gt" aria-selected="false">Ground Truth</button></div>
+    <div class="pane on" id="pane-con">
+      <header><span class="ttl">Systems Architect Console</span><span class="tag" id="verTag"></span><span class="sp"></span><button class="btn" id="discBtn" style="padding:2px 8px;font-size:11px">Start discovery</button></header>
+      <div id="conOut" aria-live="polite"></div>
+      <form class="adder" id="conForm"><input id="conIn" placeholder="e.g. add redis cache between SVC1 and DB1 · what if load 3x · scale SVC2 to 3" autocomplete="off"><button class="btn primary">Run</button></form>
+    </div>
+    <div class="pane" id="pane-cap">
+      <header><span class="ttl">Technical Capabilities</span><span class="tag" id="capVer"></span></header>
+      <div class="list" id="capList"></div>
+      <form class="adder" data-add="cap"><input id="capIn" placeholder="Add capability, e.g. Kafka 3.7 event streaming"><button class="btn">Add</button></form>
+    </div>
+    <div class="pane" id="pane-ea">
+      <header><span class="ttl">Enterprise Architecture Principles</span><span class="tag" id="eaVer"></span></header>
+      <div class="list" id="eaList"></div>
+      <form class="adder" data-add="ea"><input id="eaIn" placeholder="State a principle in plain language"><button class="btn">Add</button></form>
+    </div>
+    <div class="pane" id="pane-gt">
+      <header><span class="ttl">Ground Truth</span><span class="tag" id="gtVer"></span><span class="sp"></span><span class="tag" style="color:var(--crit);border-color:currentColor">non-negotiable</span></header>
+      <div class="list" id="gtList"></div>
+      <div class="upload"><label for="gtFile">Ingest PDF, DOCX, JPG, PNG</label><input id="gtFile" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><span id="gtFiles"></span></div>
+      <form class="adder" data-add="gt"><input id="gtIn" placeholder="Add a standard or policy-as-code rule"><button class="btn">Add</button></form>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h2 id="mTitle">AI and ML models</h2>
+    <p>NEXUS starts with a small language model for entity enrichment and advice, plus an ML model for load forecasting. An LLM can be switched on for deeper reasoning. Every model call is written to the AI log with its explanation.</p>
+    <label>Small language model (enrichment, advisor)
+      <select id="mSlm"><option>Phi-4-mini (3.8B) · local</option><option>Llama 3.2 3B Instruct · local</option><option>Qwen2.5 3B Instruct · local</option></select></label>
+    <label>ML model (traffic forecasting, anomaly detection)
+      <select id="mMl"><option>Gradient-boosted regressor · capacity</option><option>Isolation forest · anomaly</option><option>Prophet · seasonal load</option></select></label>
+    <label>LLM escalation
+      <select id="mLlm"><option value="off">Off · SLM only</option><option value="claude">Claude (Anthropic API)</option><option value="azure">Azure OpenAI (private endpoint)</option><option value="local">Self-hosted 70B</option></select></label>
+    <p>In this prototype the advisor runs as a deterministic rules engine standing in for the SLM. Explanations in the AI log show exactly which rule fired and why.</p>
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn primary" id="mClose">Done</button></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>isFinite(n)?Math.round(n).toLocaleString('en-US'):'∞';
+const pct=u=>isFinite(u)?Math.round(u*100)+'%':'—';
+
+/* ---------- component catalog ---------- */
+const T={
+ user:{p:'U',label:'Users',cap:Infinity,zone:'internet',route:1,lat:0},
+ ext:{p:'X',label:'External system',cap:1200,zone:'internet',lat:120},
+ cdn:{p:'CDN',label:'CDN',cap:25000,zone:'edge',route:1,pass:.4,lat:2,cap_:'cdn',pro:'Cuts origin load ~60%; global PoPs',con:'New vendor; cache invalidation; TLS keys at edge'},
+ waf:{p:'WAF',label:'WAF',cap:8000,zone:'edge',route:1,lat:2,pro:'Blocks OWASP Top 10 at the perimeter',con:'Rule tuning; false positives'},
+ lb:{p:'LB',label:'Load balancer',cap:12000,zone:'edge',route:1,lat:1,pro:'Health-checked distribution',con:'Another hop to secure'},
+ gw:{p:'GW',label:'API gateway',cap:5000,zone:'dmz',route:1,lat:5,pro:'Central authn/z, rate limits, versioning',con:'Can become a choke point'},
+ idp:{p:'IDP',label:'Identity provider',cap:3000,zone:'dmz',lat:12,pro:'Strong identity, MFA, token issuance',con:'Tier-0 dependency'},
+ svc:{p:'SVC',label:'Service (container)',cap:800,zone:'app',lat:22,pro:'Independent scaling and deploys',con:'Operational overhead per service'},
+ vm:{p:'VM',label:'Virtual server',cap:600,zone:'app',lat:28,pro:'Fits legacy and licensed software',con:'Slower scaling; patching burden'},
+ fn:{p:'FN',label:'Function',cap:2500,zone:'app',lat:35,pro:'Scale-to-zero; pay per call',con:'Cold starts; vendor lock-in'},
+ api:{p:'EP',label:'API endpoint',cap:1500,zone:'app',lat:4},
+ adp:{p:'ADP',label:'Adapter',cap:1200,zone:'app',lat:6,pro:'Isolates third-party contract changes',con:'Extra translation layer'},
+ queue:{p:'Q',label:'Queue',cap:15000,zone:'data',route:1,lat:3,pro:'Absorbs bursts; decouples writers',con:'Eventual consistency'},
+ cache:{p:'C',label:'Cache',cap:20000,zone:'data',pass:.25,lat:1,pro:'Sub-ms reads; offloads database',con:'Staleness; invalidation logic'},
+ db:{p:'DB',label:'Database',cap:1500,zone:'data',lat:9,pro:'Durable transactional store',con:'Hardest tier to scale out'},
+ obj:{p:'OS',label:'Object store',cap:6000,zone:'data',lat:18,pro:'Cheap durable blobs',con:'Public exposure risk'}
+};
+const ZONES={internet:'UNTRUSTED · INTERNET',edge:'EDGE PERIMETER',dmz:'DMZ · INGRESS',app:'APP TIER · mTLS',data:'DATA TIER · PRIVATE'};
+const ZX={internet:60,edge:260,dmz:460,app:690,data:920};
+const PORT={HTTPS:443,mTLS:443,'SQL/TLS':5432,'RESP/TLS':6380,AMQPS:5671,HTTP:80};
+const defProto=t=>({db:'SQL/TLS',cache:'RESP/TLS',queue:'AMQPS',svc:'mTLS',api:'mTLS',adp:'mTLS',vm:'mTLS',fn:'mTLS'}[t]||'HTTPS');
+const SYN=[['cdn',/\bcdn\b|edge cache|cloudfront|front ?door/],['waf',/\bwaf\b|firewall/],['lb',/load ?balancer|\blb\b/],['gw',/gateway|\bapim\b|\bkong\b/],['idp',/identity|\bidp\b|\bsso\b|keycloak|entra|okta/],['cache',/cache|redis|memcache/],['queue',/queue|kafka|service bus|\bsqs\b|pub ?sub|rabbit/],['obj',/object|bucket|\bblob|\bs3\b/],['db',/database|\bdb\b|postgres|\bsql\b|mysql|mongo|oracle/],['fn',/function|lambda|serverless/],['vm',/\bvm\b|virtual (server|machine)/],['api',/endpoint|route/],['adp',/adapter/],['ext',/external|third.party|partner|saas|provider/],['user',/users?\b|customers?|clients?|actor|staff/],['svc',/service|microservice|container|\bapi\b|\bapp\b/]];
+const typeOf=s=>{for(const [t,r] of SYN) if(r.test(s)) return t; return null};
+
+/* ---------- state ---------- */
+let S, F={}, EF=new Map(), KPI={}, findings=[], seenF=new Set();
+const V={x:0,y:0,k:1,mode:'flow',scope:'root',sel:null,hover:null};
+function seed(){
+ const n=(id,type,name,x,y,o={})=>({id,type,name,x,y,parent:'root',rep:1,cap:T[type].cap,standby:false,failed:false,enrich:enrichOf(type),...o});
+ const nodes=[
+  n('U1','user','Customers',60,250,{rps:1200}),
+  n('WAF1','waf','Perimeter WAF',260,250),
+  n('GW1','gw','API gateway',460,250),
+  n('IDP1','idp','Identity (OIDC)',460,410),
+  n('SVC1','svc','Orders API',690,170,{rep:2}),
+  n('SVC2','svc','Catalog API',690,330),
+  n('C1','cache','Session cache',920,90),
+  n('DB1','db','Orders DB',920,250),
+  n('OS1','obj','Product images',920,410),
+  n('EP1','api','POST /orders',150,140,{parent:'SVC1'}),
+  n('EP2','api','GET /orders/{id}',150,300,{parent:'SVC1'}),
+  n('ADP1','adp','Payments adapter',420,140,{parent:'SVC1'}),
+  n('X1','ext','Payment provider',680,140,{parent:'SVC1'}),
+  n('ADP2','adp','Orders DB adapter',420,300,{parent:'SVC1'})
+ ];
+ const e=(from,to,proto)=>({from,to,proto:proto||defProto(nodes.find(x=>x.id===to).type)});
+ S={project:'Customer Portal',deploy:'aws',target:'aws',mult:1,
+  nodes:Object.fromEntries(nodes.map(x=>[x.id,x])),
+  edges:[e('U1','WAF1','HTTPS'),e('WAF1','GW1','HTTPS'),e('GW1','SVC1'),e('GW1','SVC2'),e('GW1','IDP1','HTTPS'),e('SVC1','DB1'),e('SVC1','C1'),e('SVC2','DB1'),e('SVC2','OS1','HTTP'),
+   e('EP1','ADP1'),e('ADP1','X1','HTTPS'),e('EP2','ADP2')],
+  caps:[
+   {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp'],on:true},
+   {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
+   {id:'TC3',name:'Redis 7 cache',types:['cache'],on:true},
+   {id:'TC4',name:'Kong API gateway',types:['gw'],on:true},
+   {id:'TC5',name:'WAF (cloud-native or F5 Advanced WAF)',types:['waf'],on:true},
+   {id:'TC6',name:'L7 load balancer',types:['lb'],on:true},
+   {id:'TC7',name:'S3-compatible object storage',types:['obj'],on:true},
+   {id:'TC8',name:'Entra ID / Keycloak OIDC',types:['idp'],on:true},
+   {id:'TC9',name:'VMware vSphere 8 virtual servers',types:['vm'],on:true},
+   {id:'TC10',name:'Kafka 3.7 event streaming',types:['queue'],on:false},
+   {id:'TC11',name:'Serverless functions',types:['fn'],on:false},
+   {id:'TC12',name:'Global CDN',types:['cdn'],on:false},
+   {id:'TC13',name:'Third-party integrations via adapter',types:['ext'],on:true},
+   {id:'TC14',name:'Public users over internet',types:['user'],on:true}],
+  ea:[
+   {id:'P1',t:'Zero trust. Never trust the network; authenticate and authorize every hop with mTLS and short-lived tokens.'},
+   {id:'P2',t:'Design for failure. No single point of failure on tier-1 paths; data stores run active/passive at minimum.'},
+   {id:'P3',t:'Reuse before buy before build. Prefer catalogued capabilities; new platforms need an ADR.'},
+   {id:'P4',t:'Design for 60% steady-state utilization so the system absorbs a 1.6× burst.'},
+   {id:'P5',t:'Segment by trust zone. Each perimeter is default-deny with an explicit flow allow-list.'}],
+  gt:[
+   {id:'GT1',t:'TLS 1.2+ on every flow, including east-west.',src:'Security Standard SS-04 §3'},
+   {id:'GT2',t:'No public object storage.',src:'OPA policy deny_public_bucket.rego'},
+   {id:'GT3',t:'Internet-facing endpoints sit behind a WAF.',src:'CIS Controls v8 · 13.10'},
+   {id:'GT4',t:'Data stores are encrypted at rest with customer-managed keys.',src:'Data Protection Policy DP-2'}],
+  files:[],ver:{caps:3,ea:5,gt:2},versions:[],log:[],settings:{slm:0,ml:0,llm:'off'}};
+}
+function enrichOf(type){
+ const t=T[type];
+ const base={zone:t.zone,encryptRest:['db','obj','cache','queue'].includes(type),classification:['db','obj'].includes(type)?'Confidential (PII)':'Internal',owner:'tbd',rto:['db','gw','idp'].includes(type)?'15 min':'1 h'};
+ if(type==='svc') Object.assign(base,{runtime:'container · distroless',cpu:'0.5 vCPU / 1 GiB per replica'});
+ if(type==='vm') Object.assign(base,{os:'RHEL 9 CIS L1',size:'4 vCPU / 16 GiB'});
+ if(type==='db') Object.assign(base,{engine:'PostgreSQL 16',backup:'PITR 7 days'});
+ return base;
+}
+
+/* ---------- persistence ---------- */
+const KEY='nexus.workbench.v1';
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);return true}}catch(e){}return false}
+
+/* ---------- simulation ---------- */
+const kids=pid=>Object.values(S.nodes).filter(n=>n.parent===pid);
+const edgesIn=pid=>S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent===pid&&S.nodes[e.to].parent===pid);
+const capOf=n=>T[n.type].cap===Infinity?Infinity:n.cap*n.rep;
+const st=u=>!isFinite(u)?'crit':u>=.85?'crit':u>=.6?'warn':'ok';
+function flowScope(pid,entryIn){
+ const ns=kids(pid),es=edgesIn(pid),inn={},deg={};
+ ns.forEach(n=>{inn[n.id]=0;deg[n.id]=0});es.forEach(e=>deg[e.to]++);
+ ns.forEach(n=>{if(n.type==='user')inn[n.id]=(n.rps||0)*S.mult});
+ const entries=ns.filter(n=>deg[n.id]===0&&n.type!=='user');
+ if(entryIn!=null&&entries.length)entries.forEach(n=>inn[n.id]+=entryIn/entries.length);
+ const d={...deg},q=ns.filter(n=>d[n.id]===0).map(n=>n.id),order=[],lat={};
+ while(q.length){const id=q.shift();order.push(id);es.filter(e=>e.from===id).forEach(e=>{if(--d[e.to]===0)q.push(e.to)})}
+ ns.forEach(n=>{if(!order.includes(n.id))order.push(n.id)});
+ for(const id of order){
+  const n=S.nodes[id],t=T[n.type],i=inn[id],c=capOf(n);
+  const served=n.failed?0:Math.min(i,c);
+  const util=n.type==='user'?0:n.failed?Infinity:c>0?i/c:Infinity;
+  const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
+  lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95));
+  F[id]={in:i,served,util,drop:Math.max(0,i-served),lat:lat[id]};
+  const outs=es.filter(e=>e.from===id),pass=served*(t.pass??1);
+  outs.forEach(e=>{const f=t.route?pass/outs.length:pass;EF.set(e,f);inn[e.to]+=f});
+ }
+ ns.forEach(n=>{if(kids(n.id).length)flowScope(n.id,F[n.id].served)});
+}
+function simulate(){
+ F={};EF=new Map();flowScope('root',null);
+ const root=kids('root'),users=root.filter(n=>n.type==='user');
+ const offered=users.reduce((a,n)=>a+(n.rps||0)*S.mult,0);
+ let worst=null,err=0,lat=0;
+ root.forEach(n=>{if(n.type==='user')return;const f=F[n.id];if(!worst||f.util>F[worst.id].util)worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
+ KPI={offered,err:Math.min(1,err),served:offered*(1-Math.min(1,err)),lat,worst};
+}
+
+/* ---------- advisor (rules engine standing in for the SLM) ---------- */
+function analyze(){
+ const out=[],capTypes=new Set(S.caps.filter(c=>c.on).flatMap(c=>c.types)),N=S.nodes;
+ const add=(sev,key,target,title,why,basis,fix,adr)=>out.push({sev,key,target,title,why,basis,fix,adr});
+ S.edges.forEach((e,i)=>{
+  const a=N[e.from],b=N[e.to];if(!a||!b)return;
+  if(a.type==='user'&&!['waf','cdn'].includes(b.type))add('crit','direct:'+e.from+e.to,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(EF.get(e)||0)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['EA-P1','GT3','ATT&CK T1190'],{k:'waf',e:i});
+  if(['user','ext'].includes(a.type)&&['db','obj','cache'].includes(b.type))add('crit','expose:'+e.from+e.to,b.id,`Data store ${b.id} is reachable from outside`,`Direct path ${a.id} → ${b.id} bypasses every perimeter.`,['EA-P5','GT2','ATT&CK T1530'],null);
+  if(e.proto==='HTTP')add('crit','tls:'+e.from+e.to,b.id,`Plaintext flow ${a.id} → ${b.id}`,`${fmt(EF.get(e)||0)} rps cross the ${T[b.type].zone} perimeter unencrypted.`,['GT1','EA-P1','ATT&CK T1040'],{k:'tls',e:i});
+ });
+ Object.values(N).forEach(n=>{
+  if(n.type==='user')return;const f=F[n.id];if(!f)return;
+  if(n.failed){add('crit','fail:'+n.id,n.id,`${n.id} is down (what-if)`,`${fmt(f.in)} rps arrive and fail. ${n.standby?'Standby would take over in practice.':'There is no standby to fail over to.'}`,['EA-P2'],{k:'restore',n:n.id});return}
+  const need=Math.ceil(f.in/(n.cap*.6));
+  if(f.util>=.85&&isFinite(T[n.type].cap))add('crit','hot:'+n.id,n.id,`${n.id} is a bottleneck at ${pct(f.util)}`,`${fmt(f.in)} rps against ${fmt(capOf(n))} rps capacity. ${need} replicas bring it to ≤60% (P4).`,['EA-P4','ML forecast'],{k:'scale',n:n.id,to:need});
+  else if(f.util>=.6&&isFinite(T[n.type].cap))add('warn','warm:'+n.id,n.id,`${n.id} runs at ${pct(f.util)}`,`Headroom is ${fmt(capOf(n)-f.in)} rps. A ${(1/f.util).toFixed(1)}× burst saturates it.`,['EA-P4'],{k:'scale',n:n.id,to:need});
+  if(n.parent==='root'&&['db','gw','svc','idp','vm'].includes(n.type)&&n.rep<2&&!n.standby)add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,`One instance carries ${fmt(f.in)} rps. ${n.type==='db'?'Add a passive standby (RPO ≈ 0 with sync replication).':'Run 2+ replicas across zones.'}`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
+  if(!capTypes.has(n.type))add('warn','cap:'+n.id,n.id,`${T[n.type].label} is not in Technical Capabilities`,`Recommended platform. Needs an architecture decision before build.`,['EA-P3','TC catalog v'+S.ver.caps],{k:'cap',t:n.type},
+   `ADR-${n.id}: Adopt ${T[n.type].label.toLowerCase()} for ${S.project}\nStatus: Proposed\nContext: ${n.id} "${n.name}" carries ${fmt(f.in)} rps; no catalogued capability covers it.\nConstraints: security review; must meet GT1–GT4; operated by platform team.\nTradeoffs: + ${T[n.type].pro||'fills a gap'}\n           − ${T[n.type].con||'new operational surface'}\nDecision: Pending architecture board.`);
+  if(['db','obj','cache','queue'].includes(n.type)&&n.enrich&&n.enrich.encryptRest===false)add('crit','enc:'+n.id,n.id,`${n.id} stores data unencrypted at rest`,`Classification is ${n.enrich.classification}.`,['GT4','EA-P1'],{k:'enc',n:n.id});
+ });
+ const root=kids('root');
+ if(root.some(n=>n.type==='user')&&!root.some(n=>n.type==='idp'))add('warn','noidp',null,'No identity provider in the design','Zero trust needs a token issuer for every hop.',['EA-P1','ATT&CK T1078'],{k:'idp'});
+ const ord={crit:0,warn:1,info:2};out.sort((a,b)=>ord[a.sev]-ord[b.sev]);
+ out.forEach((f,i)=>f.id='F'+(i+1));
+ out.forEach(f=>{if(!seenF.has(f.key)){seenF.add(f.key);logAI('Advisor',`${f.sev.toUpperCase()} ${f.title}`,`Rule ${f.key.split(':')[0]} fired on ${f.target||'design'} · basis ${f.basis.join(', ')}`,f.sev==='crit'?.96:.82,true)}});
+ [...seenF].forEach(k=>{if(!out.some(f=>f.key===k))seenF.delete(k)});
+ findings=out;
+}
+function applyFix(f){
+ const x=f.fix,N=S.nodes;if(!x)return;
+ if(x.k==='waf'){const e=S.edges[x.e];const b=N[e.to];const w=addNode('waf',null,b.parent,{x:(N[e.from].x+b.x)/2,y:N[e.from].y+70});S.edges.splice(x.e,1,{from:e.from,to:w.id,proto:'HTTPS'},{from:w.id,to:e.to,proto:'HTTPS'});}
+ if(x.k==='tls')S.edges[x.e].proto='HTTPS';
+ if(x.k==='scale')N[x.n].rep=Math.max(N[x.n].rep,x.to);
+ if(x.k==='standby')N[x.n].standby=true;
+ if(x.k==='restore')N[x.n].failed=false;
+ if(x.k==='enc')N[x.n].enrich.encryptRest=true;
+ if(x.k==='idp'){const gw=kids('root').find(n=>n.type==='gw')||kids('root').find(n=>n.type!=='user');const i=addNode('idp',null,'root',{x:ZX.dmz,y:(gw?gw.y:250)+160});if(gw)S.edges.push({from:gw.id,to:i.id,proto:'HTTPS'})}
+ if(x.k==='cap'){const c=S.caps.find(c=>c.types.includes(x.t));if(c)c.on=true;else S.caps.push({id:'TC'+(S.caps.length+1),name:T[x.t].label+' (proposed via ADR)',types:[x.t],on:true});S.ver.caps++}
+ logAI('Advisor',`Applied ${f.id}: ${f.title}`,`Fix "${x.k}" accepted by architect`,1);
+ say(`Applied ${f.id}. ${f.title}.`,'s');changed();
+}
+
+/* ---------- model mutations ---------- */
+function nextId(type){const p=T[type].p;let i=1;while(S.nodes[p+i])i++;return p+i}
+function addNode(type,name,parent,pos={}){
+ parent=parent||V.scope;const t=T[type],id=nextId(type);
+ const col=kids(parent).filter(n=>Math.abs(n.x-ZX[t.zone])<60);
+ const y=col.length?Math.max(...col.map(n=>n.y))+120:250;
+ const n={id,type,name:name||t.label,x:pos.x??ZX[t.zone],y:pos.y??y,parent,rep:1,cap:t.cap,standby:false,failed:false,enrich:enrichOf(type)};
+ if(type==='user')n.rps=500;
+ S.nodes[id]=n;
+ logAI('SLM enrichment',`Enriched ${id} (${t.label})`,'Filled '+Object.keys(n.enrich).join(', ')+' from catalog defaults and zone policy',.88);
+ return n;
+}
+function removeNode(id){const all=[id];for(let i=0;i<all.length;i++)kids(all[i]).forEach(k=>all.push(k.id));all.forEach(x=>delete S.nodes[x]);S.edges=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]);if(V.sel&&!S.nodes[V.sel])V.sel=null}
+function connect(a,b,proto){if(!S.nodes[a]||!S.nodes[b]||a===b)return false;if(S.nodes[a].parent!==S.nodes[b].parent)return false;if(S.edges.some(e=>e.from===a&&e.to===b))return true;S.edges.push({from:a,to:b,proto:proto||defProto(S.nodes[b].type)});return true}
+function drill(id){
+ const n=S.nodes[id];if(!n)return;
+ if(!kids(id).length){
+  const tpl={svc:[['api','GET /health'],['api','POST /'+n.name.split(' ')[0].toLowerCase()],['adp','Data adapter']],vm:[['svc','App runtime'],['adp','Agent / sidecar']],db:[['db','Primary'],['db','Replica (passive)']],gw:[['api','Route /v1/*'],['adp','Auth plugin']],idp:[['api','/token'],['api','/authorize']]}[n.type]||[['svc','Component A'],['svc','Component B']];
+  const made=tpl.map(([t,nm],i)=>addNode(t,nm,id,{x:200+i*260,y:250}));
+  if(made.length>=2&&n.type!=='db'){connect(made[made.length-2].id,made[made.length-1].id)}
+  if(n.type==='db')made[1].enrich.role='hot standby';
+  say(`Created starter sub-design for ${id}: ${made.map(m=>m.id).join(', ')}.`,'s');
+ }
+ V.scope=id;V.sel=null;fit();changed(true);
+}
+
+/* ---------- code generators ---------- */
+const slug=n=>n.id.toLowerCase();
+const hcl=(rt,name,lines)=>`resource "${rt}" "${name}" {\n${lines.filter(Boolean).map(l=>l.split('\n').map(x=>'  '+x).join('\n')).join('\n')}\n}`;
+const tags=n=>`tags = { nexus_id = "${n.id}", zone = "${T[n.type].zone}" }`;
+const RES={
+ aws:{
+  waf:n=>[['aws_wafv2_web_acl',[`name  = "${slug(n)}"`,'scope = "REGIONAL"','default_action {\n  allow {}\n}','# managed rule groups: CommonRuleSet, KnownBadInputs, SQLi',tags(n)]]],
+  lb:n=>[['aws_lb',[`name               = "${slug(n)}"`,'load_balancer_type = "application"','internal           = false','subnets            = [aws_subnet.edge.id]','drop_invalid_header_fields = true',tags(n)]]],
+  gw:n=>[['aws_apigatewayv2_api',[`name          = "${slug(n)}"`,'protocol_type = "HTTP"',tags(n)]]],
+  idp:n=>[['aws_cognito_user_pool',[`name              = "${slug(n)}"`,'mfa_configuration = "ON"',tags(n)]]],
+  svc:n=>[['aws_ecs_service',[`name            = "${slug(n)}"`,'cluster         = aws_ecs_cluster.main.id',`desired_count   = ${n.rep}`,'launch_type     = "FARGATE"','network_configuration {\n  subnets          = [aws_subnet.app.id]\n  assign_public_ip = false\n}',tags(n)]]],
+  vm:n=>[['aws_instance',[`count         = ${n.rep}`,'ami           = var.hardened_ami','instance_type = "m6i.large"','subnet_id     = aws_subnet.app.id','metadata_options {\n  http_tokens = "required"\n}',tags(n)]]],
+  fn:n=>[['aws_lambda_function',[`function_name = "${slug(n)}"`,'runtime       = "nodejs20.x"','handler       = "index.handler"','role          = var.lambda_role_arn',tags(n)]]],
+  db:n=>[['aws_db_instance',[`identifier          = "${slug(n)}"`,'engine              = "postgres"','engine_version      = "16.4"','instance_class      = "db.r6g.large"',`multi_az            = ${!!n.standby}`,`storage_encrypted   = ${n.enrich.encryptRest!==false}`,'kms_key_id          = var.cmk_arn','publicly_accessible = false','db_subnet_group_name = aws_db_subnet_group.data.name',tags(n)]]],
+  cache:n=>[['aws_elasticache_replication_group',[`replication_group_id       = "${slug(n)}"`,`description                = "${n.name}"`,'node_type                  = "cache.r7g.large"',`num_cache_clusters         = ${Math.max(1,n.rep)}`,'transit_encryption_enabled = true','at_rest_encryption_enabled = true',tags(n)]]],
+  obj:n=>[['aws_s3_bucket',[`bucket = "${slug(n)}-${S.project.toLowerCase().replace(/\W+/g,'-')}"`,tags(n)]],['aws_s3_bucket_public_access_block',[`bucket                  = aws_s3_bucket.${slug(n)}.id`,'block_public_acls       = true','block_public_policy     = true','restrict_public_buckets = true']]],
+  queue:n=>[['aws_sqs_queue',[`name                    = "${slug(n)}"`,'sqs_managed_sse_enabled = true',tags(n)]]],
+  cdn:n=>[['aws_cloudfront_distribution',['enabled = true','# origin -> edge WAF; viewer TLSv1.2_2021',tags(n)]]],
+  api:n=>[['aws_apigatewayv2_route',['api_id    = var.api_id',`route_key = "${n.name}"`]]]
+ },
+ azure:{
+  waf:n=>[['azurerm_web_application_firewall_policy',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','location            = var.location','policy_settings {\n  mode = "Prevention"\n}','managed_rules {\n  managed_rule_set {\n    type    = "OWASP"\n    version = "3.2"\n  }\n}']]],
+  lb:n=>[['azurerm_lb',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','location            = var.location','sku                 = "Standard"']]],
+  gw:n=>[['azurerm_api_management',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','location            = var.location','publisher_name      = var.org','publisher_email     = var.owner_email','sku_name            = "Premium_1"','virtual_network_type = "Internal"']]],
+  idp:n=>[['azuread_application',[`display_name = "${n.name}"`,'sign_in_audience = "AzureADMyOrg"']]],
+  svc:n=>[['azurerm_container_app',[`name                         = "${slug(n)}"`,'container_app_environment_id = azurerm_container_app_environment.main.id','resource_group_name          = azurerm_resource_group.main.name','revision_mode                = "Single"',`template {\n  min_replicas = ${n.rep}\n  max_replicas = ${n.rep*3}\n}`]]],
+  vm:n=>[['azurerm_linux_virtual_machine',[`count               = ${n.rep}`,`name                = "${slug(n)}-\${count.index}"`,'resource_group_name = azurerm_resource_group.main.name','size                = "Standard_D4s_v5"','encryption_at_host_enabled = true']]],
+  fn:n=>[['azurerm_linux_function_app',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','https_only          = true']]],
+  db:n=>[['azurerm_postgresql_flexible_server',[`name                          = "${slug(n)}"`,'resource_group_name           = azurerm_resource_group.main.name','version                       = "16"','sku_name                      = "GP_Standard_D4ds_v5"','public_network_access_enabled = false','customer_managed_key {\n  key_vault_key_id = var.cmk_id\n}',n.standby?'high_availability {\n  mode = "ZoneRedundant"\n}':'# high_availability: not set (single instance)']]],
+  cache:n=>[['azurerm_redis_cache',[`name                          = "${slug(n)}"`,'sku_name                      = "Premium"','family                        = "P"','capacity                      = 1','minimum_tls_version           = "1.2"','public_network_access_enabled = false']]],
+  obj:n=>[['azurerm_storage_account',[`name                            = "${slug(n)}sa"`,'account_tier                    = "Standard"','account_replication_type        = "ZRS"','min_tls_version                 = "TLS1_2"','allow_nested_items_to_be_public = false','public_network_access_enabled   = false']]],
+  queue:n=>[['azurerm_servicebus_namespace',[`name = "${slug(n)}"`,'sku  = "Premium"','minimum_tls_version = "1.2"']]],
+  cdn:n=>[['azurerm_cdn_frontdoor_profile',[`name     = "${slug(n)}"`,'sku_name = "Premium_AzureFrontDoor"']]],
+  api:n=>[['azurerm_api_management_api_operation',[`operation_id = "${slug(n)}"`,`method       = "${n.name.split(' ')[0]}"`,`url_template = "${n.name.split(' ')[1]||'/'}"`]]]
+ },
+ gcp:{
+  waf:n=>[['google_compute_security_policy',[`name = "${slug(n)}"`,'# Cloud Armor preconfigured WAF rules: sqli-v33, xss-v33']]],
+  lb:n=>[['google_compute_url_map',[`name            = "${slug(n)}"`,'default_service = var.backend_service']]],
+  gw:n=>[['google_api_gateway_api',['provider = google-beta',`api_id   = "${slug(n)}"`]]],
+  idp:n=>[['google_identity_platform_config',['project = var.project','mfa {\n  state = "ENABLED"\n}']]],
+  svc:n=>[['google_cloud_run_v2_service',[`name     = "${slug(n)}"`,'location = var.region','ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"',`template {\n  scaling {\n    min_instance_count = ${n.rep}\n  }\n}`]]],
+  vm:n=>[['google_compute_instance',[`count        = ${n.rep}`,`name         = "${slug(n)}-\${count.index}"`,'machine_type = "n2-standard-4"','shielded_instance_config {\n  enable_secure_boot = true\n}']]],
+  fn:n=>[['google_cloudfunctions2_function',[`name     = "${slug(n)}"`,'location = var.region']]],
+  db:n=>[['google_sql_database_instance',[`name             = "${slug(n)}"`,'database_version = "POSTGRES_16"','encryption_key_name = var.cmk',`settings {\n  tier              = "db-custom-4-16384"\n  availability_type = "${n.standby?'REGIONAL':'ZONAL'}"\n  ip_configuration {\n    ipv4_enabled = false\n    ssl_mode     = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"\n  }\n}`]]],
+  cache:n=>[['google_redis_instance',[`name                    = "${slug(n)}"`,'tier                    = "STANDARD_HA"','memory_size_gb          = 4','transit_encryption_mode = "SERVER_AUTHENTICATION"']]],
+  obj:n=>[['google_storage_bucket',[`name                        = "${slug(n)}"`,'location                    = var.region','uniform_bucket_level_access = true','public_access_prevention    = "enforced"']]],
+  queue:n=>[['google_pubsub_topic',[`name = "${slug(n)}"`,'kms_key_name = var.cmk']]],
+  cdn:n=>[['google_compute_backend_bucket',[`name        = "${slug(n)}"`,'bucket_name = var.static_bucket','enable_cdn  = true']]]
+ },
+ vmware:{
+  waf:n=>[['avi_wafpolicy',[`name = "${slug(n)}"`,'mode = "WAF_MODE_ENFORCEMENT"']]],
+  lb:n=>[['nsxt_policy_lb_service',[`display_name = "${slug(n)}"`,'size         = "MEDIUM"']]],
+  db:n=>[['vsphere_virtual_machine',[`count    = ${n.standby?2:1} # ${n.standby?'active site-a / passive site-b':'single site'}`,`name     = "${slug(n)}-\${count.index}"`,'num_cpus = 8','memory   = 32768','guest_id = "rhel9_64Guest"','datastore_id = data.vsphere_datastore.encrypted.id','network_interface {\n  network_id = nsxt_policy_segment.data.path\n}']]],
+  _:n=>[['vsphere_virtual_machine',[`count    = ${n.rep}`,`name     = "${slug(n)}-\${count.index}"`,'num_cpus = 4','memory   = 16384',`network_interface {\n  network_id = nsxt_policy_segment.${T[n.type].zone==='data'?'data':T[n.type].zone==='app'?'app':'edge'}.path\n}`]]]
+ }
+};
+const PROV={aws:'terraform {\n  required_providers {\n    aws = { source = "hashicorp/aws", version = "~> 5.60" }\n  }\n}\nprovider "aws" { region = var.region }',
+ azure:'terraform {\n  required_providers {\n    azurerm = { source = "hashicorp/azurerm", version = "~> 4.0" }\n  }\n}\nprovider "azurerm" { features {} }',
+ gcp:'terraform {\n  required_providers {\n    google = { source = "hashicorp/google", version = "~> 6.0" }\n  }\n}\nprovider "google" { region = var.region }',
+ vmware:'terraform {\n  required_providers {\n    vsphere = { source = "hashicorp/vsphere", version = "~> 2.8" }\n    nsxt    = { source = "vmware/nsxt", version = "~> 3.6" }\n  }\n}'};
+function genTF(tg){
+ const all=Object.values(S.nodes),out=[`# ${S.project} · generated by NEXUS · ${tg.toUpperCase()}`,`# Every change on the canvas regenerates this file. Run terraform validate before apply.`,PROV[tg]];
+ const zones=[...new Set(kids('root').map(n=>T[n.type].zone))].filter(z=>z!=='internet');
+ out.push('\n# ---- network perimeter: one segment per trust zone, default deny ----');
+ zones.forEach(z=>{
+  if(tg==='aws')out.push(hcl('aws_subnet',z,['vpc_id     = aws_vpc.main.id',`cidr_block = var.cidr_${z}`,`map_public_ip_on_launch = ${z==='edge'}`]));
+  if(tg==='azure')out.push(hcl('azurerm_subnet',z,['virtual_network_name = azurerm_virtual_network.main.name','resource_group_name  = azurerm_resource_group.main.name',`address_prefixes     = [var.cidr_${z}]`]));
+  if(tg==='gcp')out.push(hcl('google_compute_subnetwork',z,[`name          = "${z}"`,'network       = google_compute_network.main.id',`ip_cidr_range = var.cidr_${z}`,'private_ip_google_access = true']));
+  if(tg==='vmware')out.push(hcl('nsxt_policy_segment',z,[`display_name        = "${z}"`,'transport_zone_path = data.nsxt_policy_transport_zone.overlay.path']));
+ });
+ const flows=edgesIn('root').filter(e=>S.nodes[e.from].type!=='user');
+ if(tg==='vmware'){out.push(hcl('nsxt_policy_security_policy','zero_trust',['display_name = "nexus-zt"','category     = "Application"',...flows.map(e=>`rule {\n  display_name = "${e.from}-to-${e.to}"\n  action       = "ALLOW"\n  services     = [var.svc_tcp_${PORT[e.proto]}]\n}`),'rule {\n  display_name = "default-deny"\n  action       = "DROP"\n}']))}
+ else{out.push('# zero-trust allow-list (everything else denied):');flows.forEach(e=>out.push(`#   ${e.from} -> ${e.to}  tcp/${PORT[e.proto]}  ${e.proto}${e.proto==='HTTP'?'   !! violates GT1':''}`))}
+ out.push('\n# ---- components ----');
+ all.forEach(n=>{
+  if(['user','ext'].includes(n.type))return;
+  if(n.type==='adp'){out.push(`# ${n.id} "${n.name}" ships as a sidecar inside ${n.parent}`);return}
+  const f=RES[tg][n.type]||RES[tg]._;
+  if(!f){out.push(`# ${n.id} ${T[n.type].label}: no native mapping on ${tg}; see ADR`);return}
+  f(n).forEach(([rt,lines],i)=>out.push(`# ${n.id} · ${n.name}${n.parent!=='root'?' (in '+n.parent+')':''}\n`+hcl(rt,slug(n)+(i?'_'+i:''),lines)));
+ });
+ return out.join('\n');
+}
+function tfChecks(){
+ const N=Object.values(S.nodes);
+ return [
+  ['TLS everywhere',!S.edges.some(e=>e.proto==='HTTP')],
+  ['Encrypted at rest',!N.some(n=>['db','obj','cache','queue'].includes(n.type)&&n.enrich&&n.enrich.encryptRest===false)],
+  ['Ingress via WAF',!S.edges.some(e=>S.nodes[e.from]?.type==='user'&&!['waf','cdn'].includes(S.nodes[e.to]?.type))],
+  ['Data tier HA',!N.some(n=>n.type==='db'&&n.parent==='root'&&!n.standby&&n.rep<2)]
+ ];
+}
+function genC4(){
+ const st_=n=>{const f=F[n.id];return f?st(f.util):'ok'};
+ const kind=n=>n.type==='user'?'actor':n.type==='ext'?'external':['db','obj','cache','queue'].includes(n.type)?'store':n.parent==='root'?'container':'component';
+ const fq=n=>{const p=[];let c=n;while(c){p.unshift(c.id.toLowerCase());c=S.nodes[c.parent]}return (['user','ext'].includes(n.type)&&n.parent==='root')?p.join('.'):'sys.'+p.join('.')};
+ const el=(n,ind)=>{const k=kids(n.id),f=F[n.id];const pad=' '.repeat(ind);
+  return `${pad}${n.id.toLowerCase()} = ${kind(n)} '${n.name.replace(/'/g,'')}' {\n${pad}  #${st_(n)}\n${pad}  technology '${T[n.type].label}${n.rep>1?' ×'+n.rep:''}${n.standby?' +standby':''}'\n${pad}  description '${f?fmt(f.in)+' rps · '+pct(f.util)+' util':''}'`+(k.length?'\n'+k.map(c=>el(c,ind+2)).join('\n'):'')+`\n${pad}}`};
+ const root=kids('root'),outside=root.filter(n=>['user','ext'].includes(n.type)),inside=root.filter(n=>!['user','ext'].includes(n.type));
+ const rels=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]).map(e=>`  ${fq(S.nodes[e.from])} -> ${fq(S.nodes[e.to])} '${e.proto}'`);
+ const views=Object.values(S.nodes).filter(n=>kids(n.id).length).map(n=>`  view ${n.id.toLowerCase()} of ${fq(n)} {\n    include *\n  }`);
+ return `// ${S.project} · LikeC4 model generated by NEXUS\nspecification {\n  element actor\n  element external\n  element system\n  element container\n  element component\n  element store\n  tag ok\n  tag warn\n  tag crit\n}\n\nmodel {\n${outside.map(n=>el(n,2)).join('\n')}\n  sys = system '${S.project}' {\n${inside.map(n=>el(n,4)).join('\n')}\n  }\n\n${rels.join('\n')}\n}\n\nviews {\n  view index {\n    include *\n    style element.tag = #crit { color red }\n    style element.tag = #warn { color amber }\n  }\n${views.join('\n')}\n}`;
+}
+function hl(code,cm){
+ return code.split('\n').map(line=>{
+  let e=esc(line);const ci=line.indexOf(cm);
+  let body=ci>=0?esc(line.slice(0,ci)):e,com=ci>=0?`<span class="c">${esc(line.slice(ci))}</span>`:'';
+  body=body.replace(/(&quot;[^&]*?&quot;|'[^']*')/g,'<span class="s">$1</span>').replace(/^(\s*)(resource|provider|terraform|model|views|specification|view)\b/,'$1<span class="k">$2</span>');
+  return body+com}).join('\n');
+}
+
+/* ---------- canvas ---------- */
+const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
+let W=0,H=0,DPR=1,colors={};
+function readColors(){const cs=getComputedStyle(document.documentElement);['bg','surface','surface-2','ink','muted','line','accent','accent-soft','ok','warn','crit','grid'].forEach(k=>colors[k]=cs.getPropertyValue('--'+k).trim())}
+function resize(){const r=stage.getBoundingClientRect();W=r.width;H=r.height;DPR=window.devicePixelRatio||1;cv.width=W*DPR;cv.height=H*DPR;readColors()}
+new ResizeObserver(()=>{resize();placePanels(false)}).observe(stage);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readColors);
+new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+const NW=150,NH=58;
+function P(x,y){ // world -> screen
+ if(V.mode==='iso'){const ix=(x-y)*.72,iy=(x+y)*.36;return{x:ix*V.k+V.x,y:iy*V.k+V.y}}
+ return{x:x*V.k+V.x,y:y*V.k+V.y}}
+function invDelta(dx,dy){if(V.mode==='iso'){const a=dx/V.k/.72,b=dy/V.k/.36;return{x:(a+b)/2,y:(b-a)/2}}return{x:dx/V.k,y:dy/V.k}}
+function fit(){
+ const ns=kids(V.scope);if(!ns.length||!W){V.x=W/2;V.y=H/2;return}
+ V.k=1;const ps=ns.map(n=>{const p=P(n.x,n.y);return p});const save={x:V.x,y:V.y};V.x=0;V.y=0;
+ const qs=ns.map(n=>P(n.x,n.y));const minX=Math.min(...qs.map(p=>p.x))-NW,maxX=Math.max(...qs.map(p=>p.x))+NW,minY=Math.min(...qs.map(p=>p.y))-NH,maxY=Math.max(...qs.map(p=>p.y))+NH;
+ const adv=document.getElementById('pAdv'),leftPad=W>1150&&!adv.classList.contains('collapsed')&&!adv._moved?adv.offsetLeft+adv.offsetWidth+10:W>900?60:20,rightPad=W>900&&!document.getElementById('pIac').classList.contains('collapsed')?360:20;
+ const aw=Math.max(200,W-leftPad-rightPad),ah=Math.max(150,H-100);
+ V.k=Math.min(1.25,Math.max(.35,Math.min(aw/(maxX-minX),ah/(maxY-minY))));
+ V.x=leftPad+(aw-(maxX-minX)*V.k)/2-minX*V.k;V.y=50+(ah-(maxY-minY)*V.k)/2-minY*V.k;
+}
+function nodeAt(sx,sy){
+ const ns=kids(V.scope);
+ for(let i=ns.length-1;i>=0;i--){const n=ns[i],p=P(n.x,n.y);
+  if(V.mode==='iso'){if(Math.hypot(sx-p.x,sy-p.y)<44*V.k)return n}
+  else if(Math.abs(sx-p.x)<NW/2*V.k&&Math.abs(sy-p.y)<NH/2*V.k)return n}
+ return null}
+const colOf=n=>{const f=F[n.id];if(!f||n.type==='user')return colors.accent;return colors[st(f.util)]};
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+let particles=[],last=performance.now(),connecting=null,mouse={x:0,y:0};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+function frame(now){
+ const dt=Math.min(.05,(now-last)/1000);last=now;
+ ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=colors.bg;ctx.fillRect(0,0,W,H);
+ // grid
+ ctx.fillStyle=colors.grid;const g=40*V.k;if(g>12&&V.mode!=='iso'){for(let x=V.x%g;x<W;x+=g)for(let y=V.y%g;y<H;y+=g)ctx.fillRect(x-1,y-1,2,2)}
+ const ns=kids(V.scope),es=edgesIn(V.scope);
+ const rel=V.mode==='rel'&&V.sel?new Set([V.sel,...es.filter(e=>e.from===V.sel||e.to===V.sel).flatMap(e=>[e.from,e.to])]):null;
+ // zones
+ const byZ={};ns.forEach(n=>{const z=T[n.type].zone;(byZ[z]=byZ[z]||[]).push(P(n.x,n.y))});
+ ctx.font=`600 ${Math.max(9,10*V.k)}px ${getComputedStyle(document.body).getPropertyValue('--f-display')}`;
+ Object.entries(byZ).forEach(([z,ps])=>{
+  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
+  const x0=Math.min(...ps.map(p=>p.x))-hw,x1=Math.max(...ps.map(p=>p.x))+hw,y0=Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1=Math.max(...ps.map(p=>p.y))+hh;
+  ctx.setLineDash([4,4]);ctx.strokeStyle=z==='internet'?colors.crit:colors.muted;ctx.globalAlpha=.55;ctx.lineWidth=1;rr(x0,y0,x1-x0,y1-y0,8*V.k);ctx.stroke();ctx.setLineDash([]);
+  ctx.globalAlpha=.8;ctx.fillStyle=z==='internet'?colors.crit:colors.muted;ctx.fillText(ZONES[z],x0+8*V.k,y0+13*V.k);ctx.globalAlpha=1;
+ });
+ // edges
+ es.forEach(e=>{
+  const a=S.nodes[e.from],b=S.nodes[e.to],pa=P(a.x,a.y),pb=P(b.x,b.y),f=EF.get(e)||0,c=colOf(b);
+  const dx=pb.x-pa.x,dy=pb.y-pa.y,len=Math.hypot(dx,dy)||1;
+  const cut=V.mode==='iso'?40*V.k:Math.min(NW/2*V.k/Math.abs(dx/len||1e-9),NH/2*V.k/Math.abs(dy/len||1e-9));
+  const sx=pa.x+dx/len*cut,sy=pa.y+dy/len*cut,ex=pb.x-dx/len*(cut+3),ey=pb.y-dy/len*(cut+3);
+  e._g={sx,sy,ex,ey};
+  const dim=rel&&!(rel.has(e.from)&&rel.has(e.to)&&(e.from===V.sel||e.to===V.sel));
+  ctx.globalAlpha=dim?.12:.85;ctx.strokeStyle=c;ctx.lineWidth=Math.max(1,Math.min(6,1+Math.log10(1+f)*1.2))*Math.min(1,V.k+.2);
+  if(e.proto==='HTTP')ctx.setLineDash([3,4]);
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.setLineDash([]);
+  const an=Math.atan2(ey-sy,ex-sx),ah=7*Math.min(1.2,V.k+.2);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-ah*Math.cos(an-.45),ey-ah*Math.sin(an-.45));ctx.lineTo(ex-ah*Math.cos(an+.45),ey-ah*Math.sin(an+.45));ctx.closePath();ctx.fill();
+  if(V.k>.55){ctx.font=`500 ${10*Math.min(1.1,V.k)}px "IBM Plex Mono",monospace`;const mx=(sx+ex)/2,my=(sy+ey)/2;const lbl=`${e.proto} · ${fmt(f)}`;const tw=ctx.measureText(lbl).width;
+   ctx.fillStyle=colors.bg;ctx.fillRect(mx-tw/2-3,my-7,tw+6,13);ctx.fillStyle=e.proto==='HTTP'?colors.crit:colors.muted;ctx.textAlign='center';ctx.fillText(lbl,mx,my+3);ctx.textAlign='left'}
+  ctx.globalAlpha=1;
+  // particles spawn
+  if(V.mode!=='flat'&&!reduce.matches&&f>0){e._acc=(e._acc||0)+dt*Math.min(28,f/45);while(e._acc>1&&particles.length<900){e._acc-=1;particles.push({e,t:0})}}
+ });
+ // particles
+ if(V.mode!=='flat'){
+  particles=particles.filter(p=>p.e._g&&es.includes(p.e));
+  particles.forEach(p=>{const b=S.nodes[p.e.to],u=F[b.id]?F[b.id].util:0;const sp=.15+.55*(1-Math.min(1,isFinite(u)?u:1)*.8);p.t+=dt*sp;
+   const g=p.e._g;const x=g.sx+(g.ex-g.sx)*p.t,y=g.sy+(g.ey-g.sy)*p.t;ctx.fillStyle=colOf(b);ctx.globalAlpha=rel&&!(rel.has(p.e.from)&&rel.has(p.e.to))?.1:.9;ctx.beginPath();ctx.arc(x,y,2.2*Math.min(1.3,V.k+.3),0,7);ctx.fill()});
+  ctx.globalAlpha=1;particles=particles.filter(p=>p.t<1);
+ }
+ // connecting line
+ if(connecting){const p=P(connecting.x,connecting.y);ctx.strokeStyle=colors.accent;ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}
+ // nodes
+ const order=V.mode==='iso'?[...ns].sort((a,b)=>(a.x+a.y)-(b.x+b.y)):ns;
+ order.forEach(n=>drawNode(n,now,rel));
+ requestAnimationFrame(frame);
+}
+function drawNode(n,now,rel){
+ const p=P(n.x,n.y),k=V.k,f=F[n.id]||{in:0,util:0},c=colOf(n),sel=V.sel===n.id,hov=V.hover===n.id;
+ const crit=n.type!=='user'&&st(f.util)==='crit';
+ ctx.globalAlpha=rel&&!rel.has(n.id)?.18:1;
+ if(V.mode==='iso'){
+  const hw=56,hh=24,h=(14+Math.min(1.2,isFinite(f.util)?f.util:1.2)*46)*k;
+  const cs=[P(n.x-hw,n.y-hh),P(n.x+hw,n.y-hh),P(n.x+hw,n.y+hh),P(n.x-hw,n.y+hh)];
+  const poly=(pts,fill,stroke)=>{ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}};
+  const up=q=>({x:q.x,y:q.y-h});
+  ctx.globalAlpha*=.9;
+  poly([cs[3],cs[2],up(cs[2]),up(cs[3])],c,null);ctx.globalAlpha=(rel&&!rel.has(n.id)?.18:1)*.65;
+  poly([cs[1],cs[2],up(cs[2]),up(cs[1])],c,null);ctx.globalAlpha=rel&&!rel.has(n.id)?.18:1;
+  poly(cs.map(up),colors.surface,sel?colors.accent:c);
+  ctx.textAlign='center';ctx.fillStyle=colors.ink;ctx.font=`600 ${11*Math.max(.8,k)}px "IBM Plex Mono",monospace`;ctx.fillText(n.id,p.x,p.y-h-2);
+  if(k>.5){ctx.font=`${10*Math.max(.8,k)}px "IBM Plex Sans",sans-serif`;ctx.fillStyle=colors.muted;ctx.fillText(n.name,p.x,p.y-h+11*k)}
+  ctx.textAlign='left';ctx.globalAlpha=1;return;
+ }
+ const w=NW*k,h=NH*k,x=p.x-w/2,y=p.y-h/2;
+ if(crit&&!reduce.matches){const a=.25+.2*Math.sin(now/220);ctx.strokeStyle=colors.crit;ctx.globalAlpha*=a;ctx.lineWidth=6*k;rr(x-3*k,y-3*k,w+6*k,h+6*k,10*k);ctx.stroke();ctx.globalAlpha=rel&&!rel.has(n.id)?.18:1}
+ if(n.rep>1){ctx.fillStyle=colors.surface;ctx.strokeStyle=c;ctx.lineWidth=1;rr(x+4*k,y-4*k,w,h,7*k);ctx.fill();ctx.stroke()}
+ ctx.fillStyle=colors.surface;rr(x,y,w,h,7*k);ctx.fill();
+ ctx.lineWidth=sel?2.5:hov?2:1.5;ctx.strokeStyle=sel?colors.accent:c;if(n.failed)ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
+ // utilization meter along bottom
+ if(n.type!=='user'){const u=Math.min(1,isFinite(f.util)?f.util:1);ctx.fillStyle=c;ctx.globalAlpha*=.9;rr(x+8*k,y+h-7*k,(w-16*k)*u,3*k,1.5*k);ctx.fill();ctx.globalAlpha=rel&&!rel.has(n.id)?.18:1}
+ ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+12*k,y+15*k,4*k,0,7);ctx.fill();
+ ctx.fillStyle=colors.ink;ctx.font=`600 ${11.5*k}px "IBM Plex Mono",monospace`;ctx.fillText(n.id,x+21*k,y+19*k);
+ const idw=ctx.measureText(n.id).width;
+ ctx.font=`${11*k}px "IBM Plex Sans",sans-serif`;ctx.fillStyle=colors.ink;
+ let nm=n.name;const maxw=w-idw-34*k;while(ctx.measureText(nm).width>maxw&&nm.length>3)nm=nm.slice(0,-2)+'…';
+ ctx.fillText(nm,x+27*k+idw,y+19*k);
+ if(k>.5){ctx.font=`${10*k}px "IBM Plex Mono",monospace`;ctx.fillStyle=colors.muted;
+  const l2=n.type==='user'?`${fmt(f.in)} rps offered`:n.failed?'FAILED · what-if':`${fmt(f.in)}/${fmt(capOf(n))} rps · ${pct(f.util)}`;
+  ctx.fillText(l2,x+10*k,y+37*k);
+  const tags=[n.rep>1?'×'+n.rep:'',n.standby?'+SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
+  if(tags){ctx.textAlign='right';ctx.fillStyle=colors.accent;ctx.fillText(tags,x+w-8*k,y+37*k);ctx.textAlign='left'}}
+ ctx.globalAlpha=1;
+}
+// pointer
+let drag=null;
+cv.addEventListener('pointerdown',ev=>{
+ const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top,n=nodeAt(sx,sy);cv.setPointerCapture(ev.pointerId);
+ if(n&&ev.shiftKey){connecting=n;mouse={x:sx,y:sy};return}
+ if(n){V.sel=n.id;drag={n,sx,sy,ox:n.x,oy:n.y,moved:false};renderAdvisor();renderTree()}
+ else{drag={pan:true,sx,sy,ox:V.x,oy:V.y}}
+});
+cv.addEventListener('pointermove',ev=>{
+ const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top;mouse={x:sx,y:sy};
+ if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;cv.style.cursor=n?'pointer':'grab';return}
+ if(!drag)return;
+ if(drag.pan){V.x=drag.ox+sx-drag.sx;V.y=drag.oy+sy-drag.sy;cv.style.cursor='grabbing'}
+ else{const d=invDelta(sx-drag.sx,sy-drag.sy);drag.n.x=Math.round(drag.ox+d.x);drag.n.y=Math.round(drag.oy+d.y);drag.moved=true}
+});
+cv.addEventListener('pointerup',ev=>{
+ const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top;
+ if(connecting){const t=nodeAt(sx,sy);if(t&&t.id!==connecting.id){connect(connecting.id,t.id);say(`Connected ${connecting.id} → ${t.id}.`,'s');changed()}connecting=null;return}
+ if(drag&&!drag.pan&&drag.moved)persist();
+ if(drag&&drag.pan&&Math.abs(sx-drag.sx)<3&&Math.abs(sy-drag.sy)<3){V.sel=null;renderAdvisor();renderTree()}
+ drag=null;
+});
+cv.addEventListener('dblclick',ev=>{const r=cv.getBoundingClientRect(),n=nodeAt(ev.clientX-r.left,ev.clientY-r.top);if(n)drill(n.id)});
+cv.addEventListener('wheel',ev=>{ev.preventDefault();const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top,z=Math.exp(-ev.deltaY*.0015),nk=Math.min(2.5,Math.max(.25,V.k*z));V.x=sx-(sx-V.x)*nk/V.k;V.y=sy-(sy-V.y)*nk/V.k;V.k=nk},{passive:false});
+document.addEventListener('keydown',ev=>{if((ev.key==='Delete'||ev.key==='Backspace')&&V.sel&&document.activeElement===document.body){say(`Removed ${V.sel}.`,'s');removeNode(V.sel);changed()}});
+
+/* ---------- palette & crumb ---------- */
+const PAL=['user','cdn','waf','lb','gw','idp','svc','vm','fn','api','adp','queue','cache','db','obj','ext'];
+$('#palette').innerHTML=PAL.map((t,i)=>(i===6||i===11?'<hr>':'')+`<button data-t="${t}" title="Add ${T[t].label}" aria-label="Add ${T[t].label}">${T[t].p}</button>`).join('');
+$('#palette').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const n=addNode(b.dataset.t);V.sel=n.id;say(`Added ${n.id} (${T[n.type].label}). Shift-drag from another node to connect it.`,'s');changed()});
+function renderCrumb(){
+ const path=[];let c=S.nodes[V.scope];while(c){path.unshift(c);c=S.nodes[c.parent]}
+ $('#crumb').innerHTML=`<button data-s="root">${esc(S.project)}</button>`+path.map(n=>`<span>/</span><button data-s="${n.id}">${n.id} ${esc(n.name)}</button>`).join('');
+}
+$('#crumb').addEventListener('click',e=>{const b=e.target.closest('button');if(b){V.scope=b.dataset.s;V.sel=null;fit();changed(true)}});
+
+/* ---------- panels ---------- */
+const panels=['pAdv','pIac','pC4','pTree'].map(id=>document.getElementById(id));
+panels.forEach(p=>{
+ const tune=p.querySelector('.tune');
+ tune.innerHTML=`Opacity <input type="range" min="0.35" max="1" step="0.05" value="1" aria-label="Card opacity"> Border <select aria-label="Card border"><option value="hair">Hairline</option><option value="strong">Strong</option><option value="none">None</option></select>`;
+ tune.querySelector('input').oninput=e=>p.style.opacity=e.target.value;
+ tune.querySelector('select').onchange=e=>p.dataset.border=e.target.value;
+ p.querySelector('.tuneB').onclick=()=>tune.hidden=!tune.hidden;
+ p.querySelector('.colB').onclick=()=>{p.classList.toggle('collapsed');p.querySelector('.colB').textContent=p.classList.contains('collapsed')?'+':'–';clampPanel(p)};
+ const hd=p.querySelector('header');let d=null;
+ hd.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;d={x:e.clientX,y:e.clientY,l:p.offsetLeft,t:p.offsetTop};hd.setPointerCapture(e.pointerId);p.style.zIndex=6+Date.now()%1000});
+ hd.addEventListener('pointermove',e=>{if(!d)return;p.style.left=(d.l+e.clientX-d.x)+'px';p.style.top=(d.t+e.clientY-d.y)+'px';p._moved=true;clampPanel(p)});
+ hd.addEventListener('pointerup',()=>d=null);
+});
+function clampPanel(p){const x=Math.max(0,Math.min(W-60,p.offsetLeft)),y=Math.max(0,Math.min(H-32,p.offsetTop));p.style.left=x+'px';p.style.top=y+'px'}
+function placePanels(first){
+ if(!W)return;
+ const narrow=W<760;
+ if(first&&narrow)panels.forEach(p=>{p.classList.add('collapsed');p.querySelector('.colB').textContent='+'});
+ if(first&&!narrow&&H<720){const c=$('#pC4');c.classList.add('collapsed');c.querySelector('.colB').textContent='+'}
+ let y=10;const rx=Math.max(10,W-350);
+ ['pIac','pC4','pTree'].forEach(id=>{const p=document.getElementById(id);if(p._moved){clampPanel(p);return}p.style.left=(narrow?10:rx)+'px';p.style.top=(narrow?H-40*(['pIac','pC4','pTree'].indexOf(id)+2)+0:y)+'px';y+=p.offsetHeight+8});
+ const a=$('#pAdv');if(!a._moved){a.style.left=(narrow?10:58)+'px';a.style.top=narrow?(H-40)+'px':Math.max(50,H-a.offsetHeight-36)+'px'}else clampPanel(a);
+}
+
+/* ---------- advisor panel ---------- */
+let advTab='find';
+$('#pAdv .tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;advTab=b.dataset.t;$('#pAdv').querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));renderAdvisor()});
+const idBtn=id=>id?`<button class="idref" data-go="${id}">${id}</button>`:'';
+function renderAdvisor(){
+ const c=findings.filter(f=>f.sev==='crit').length,w=findings.filter(f=>f.sev==='warn').length;
+ $('#advCount').innerHTML=`<span class="crit">${c}</span> · <span class="warn">${w}</span>`;
+ const body=$('#advBody');
+ if(advTab==='find'){
+  body.innerHTML=findings.length?findings.map((f,i)=>`<div class="fd"><div class="h"><span class="pill ${f.sev}">${f.id}</span><span class="t">${esc(f.title)}</span></div><div class="why">${esc(f.why)}</div><div class="basis">${f.basis.map(b=>`<span>${esc(b)}</span>`).join('')}</div>${f.adr?`<details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Draft ADR, constraints and tradeoffs</summary><div class="adr">${esc(f.adr)}</div></details>`:''}<div class="act">${f.fix?`<button class="btn" data-fix="${i}">${fixLabel(f.fix)}</button>`:''}${f.target?`<button class="btn" data-go="${f.target}">Show ${f.target}</button>`:''}</div></div>`).join(''):`<div class="empty"><b class="ok">All clear.</b> The design meets every EA principle and ground-truth rule at ${S.mult}× load.</div>`;
+ }else if(advTab==='insp'){
+  const n=S.nodes[V.sel];
+  if(!n){body.innerHTML='<div class="empty">Select a component on the canvas to inspect it. Its ID is how you refer to it in reviews and in the console.</div>';return}
+  const f=F[n.id]||{in:0,util:0,served:0},tot=KPI.offered||1,inE=S.edges.filter(e=>e.to===n.id).length,outE=S.edges.filter(e=>e.from===n.id).length;
+  const just=n.type==='user'?`Source of <b>${fmt(f.in)}</b> rps.`:`Carries <b>${fmt(f.in)}</b> rps (${Math.round(f.in/tot*100)}% of offered load) at <b>${pct(f.util)}</b> utilization on ${n.rep} replica${n.rep>1?'s':''}. ${f.util<.6?`Headroom: ${fmt(capOf(n)-f.in)} rps.`:`Needs ${Math.ceil(f.in/(n.cap*.6))} replicas for 60% target.`} ${inE} inbound / ${outE} outbound flows; removing it breaks ${inE*Math.max(1,outE)} path${inE*Math.max(1,outE)===1?'':'s'}. Adds ≈${(T[n.type].lat||0)} ms base latency.`;
+  body.innerHTML=`<div class="insp"><div style="display:flex;gap:8px;align-items:baseline"><span class="pill ${n.type==='user'?'info':st(f.util)}">${n.id}</span><b>${esc(T[n.type].label)}</b><span style="color:var(--muted);font-size:11px">zone ${T[n.type].zone}</span></div>
+  <div class="just"><b>Justification</b><br>${just}</div>
+  <label>Name <input id="iName" value="${esc(n.name)}"></label>
+  ${n.type==='user'?`<label>Peak load (rps) <input id="iRps" type="number" min="0" step="100" value="${n.rps}"></label>`:`<label>Replicas <input id="iRep" type="number" min="1" max="50" value="${n.rep}"></label><label>Capacity / replica <input id="iCap" type="number" min="1" step="50" value="${n.cap}"></label>
+  <label>Standby <select id="iSb"><option value="0">None</option><option value="1" ${n.standby?'selected':''}>Active / passive</option></select></label>
+  <label>What-if <select id="iFail"><option value="0">Healthy</option><option value="1" ${n.failed?'selected':''}>Failed</option></select></label>`}
+  <div class="just" style="font-family:var(--f-mono);font-size:10.5px"><b style="font-family:var(--f-body)">SLM enrichment</b><br>${Object.entries(n.enrich||{}).map(([k,v])=>`${esc(k)}: ${esc(v)}`).join('<br>')}</div>
+  <div style="display:flex;gap:6px"><button class="btn" id="iOpen">Open sub-design${kids(n.id).length?' ('+kids(n.id).length+')':''}</button><button class="btn" id="iDel">Remove</button></div></div>`;
+  const on=(id,fn)=>{const el=document.getElementById(id);if(el)el.onchange=fn};
+  on('iName',e=>{n.name=e.target.value;changed()});on('iRps',e=>{n.rps=+e.target.value;changed()});on('iRep',e=>{n.rep=Math.max(1,+e.target.value);changed()});on('iCap',e=>{n.cap=Math.max(1,+e.target.value);changed()});on('iSb',e=>{n.standby=e.target.value==='1';changed()});on('iFail',e=>{n.failed=e.target.value==='1';changed()});
+  $('#iOpen').onclick=()=>drill(n.id);$('#iDel').onclick=()=>{say(`Removed ${n.id}.`,'s');removeNode(n.id);changed()};
+ }else{
+  body.innerHTML=S.log.length?S.log.slice().reverse().map(l=>`<div class="logi"><div class="m">${l.t} · ${esc(l.model)} · confidence ${Math.round(l.conf*100)}%</div><div><b>${esc(l.what)}</b></div><div style="color:var(--muted)">Why: ${esc(l.why)}</div></div>`).join(''):'<div class="empty">No model activity yet.</div>';
+ }
+}
+const fixLabel=x=>({waf:'Insert WAF',tls:'Enforce TLS',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability',enc:'Encrypt at rest'}[x.k]);
+$('#advBody').addEventListener('click',e=>{const f=e.target.closest('[data-fix]');if(f)return applyFix(findings[+f.dataset.fix]);const g=e.target.closest('[data-go]');if(g)focusNode(g.dataset.go)});
+function focusNode(id){const n=S.nodes[id];if(!n)return;if(V.scope!==n.parent){V.scope=n.parent;renderCrumb()}V.sel=id;const p=P(n.x,n.y);V.x+=W/2-p.x;V.y+=H/2-p.y;advTab='insp';$('#pAdv').querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x.dataset.t==='insp'));renderAdvisor();renderTree()}
+function logAI(model,what,why,conf,quiet){const m=model==='Advisor'||model==='SLM enrichment'?['Phi-4-mini','Llama 3.2 3B','Qwen2.5 3B'][S.settings.slm]+' · '+model:model;S.log.push({t:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}),model:m,what,why,conf});if(S.log.length>200)S.log.shift()}
+
+/* ---------- tree ---------- */
+let treeSeen=new Set();
+function renderTree(){
+ const rows=[];const walk=(pid,d)=>kids(pid).forEach(n=>{rows.push({n,d});walk(n.id,d+1)});
+ rows.push({n:{id:'root',name:S.project,type:'sys'},d:0});walk('root',1);
+ const z=+$('#treeZoom').value,rh=19*z,svg=$('#treeSvg');
+ $('#treeTag').textContent=(rows.length-1)+' nodes';
+ svg.setAttribute('width',300*z);svg.setAttribute('height',rows.length*rh+8);svg.setAttribute('viewBox',`0 0 300 ${(rows.length*rh+8)/z}`);
+ let h='';const pos={};
+ rows.forEach((r,i)=>{pos[r.n.id]={x:12+r.d*16,y:10+i*19}});
+ rows.forEach(r=>{if(r.n.id==='root')return;const p=pos[r.n.parent],c=pos[r.n.id];h+=`<path d="M${p.x} ${p.y+4}V${c.y}H${c.x-5}" fill="none" stroke="var(--line)" stroke-width="1"/>`});
+ rows.forEach(r=>{const c=pos[r.n.id],f=F[r.n.id],s=r.n.id==='root'?'accent':r.n.type==='user'?'accent':f?st(f.util):'ok',isNew=!treeSeen.has(r.n.id)&&treeSeen.size;
+  h+=`<g class="row${isNew?' new':''}" data-id="${r.n.id}" style="transform:translate(${c.x}px,${c.y}px)"><rect x="-8" y="-8" width="${290-c.x}" height="17" rx="3" fill="${V.sel===r.n.id?'var(--accent-soft)':'transparent'}"/><circle r="4" fill="var(--${s})" class="${s==='crit'?'pulse':''}"/><text x="9" y="4">${r.n.id==='root'?'':r.n.id}</text><text class="n" x="${r.n.id==='root'?9:13+r.n.id.length*6.6}" y="4">${esc(r.n.name)}${V.scope===r.n.id?'  ◂ in view':''}</text></g>`});
+ svg.innerHTML=h;treeSeen=new Set(rows.map(r=>r.n.id));
+}
+$('#treeSvg').addEventListener('click',e=>{const g=e.target.closest('g.row');if(!g)return;const id=g.dataset.id;if(id==='root'){V.scope='root';V.sel=null;fit();changed(true)}else focusNode(id)});
+$('#treeSvg').addEventListener('mouseover',e=>{const g=e.target.closest('g.row');V.hover=g?g.dataset.id:null});
+$('#treeZoom').oninput=renderTree;
+
+/* ---------- dock lists ---------- */
+function renderLists(){
+ $('#capVer').textContent='v'+S.ver.caps;$('#eaVer').textContent='v'+S.ver.ea;$('#gtVer').textContent='v'+S.ver.gt;
+ const used=new Set(Object.values(S.nodes).map(n=>n.type));
+ $('#capList').innerHTML=S.caps.map((c,i)=>`<label class="row"><input type="checkbox" data-cap="${i}" ${c.on?'checked':''}><span class="id">${c.id}</span><span>${esc(c.name)}<br><span class="sub">${c.types.map(t=>T[t].label).join(', ')}${c.types.some(t=>used.has(t))?' · in use':''}</span></span></label>`).join('');
+ $('#eaList').innerHTML=S.ea.map((p,i)=>`<div class="row"><span class="id">${p.id}</span><span>${esc(p.t)}</span><button class="x" data-del="ea:${i}" aria-label="Remove ${p.id}">×</button></div>`).join('');
+ $('#gtList').innerHTML=S.gt.map((p,i)=>`<div class="row"><span class="id">${p.id}</span><span>${esc(p.t)}<br><span class="sub">${esc(p.src||'')}</span></span><button class="x" data-del="gt:${i}" aria-label="Remove ${p.id}">×</button></div>`).join('');
+ $('#gtFiles').textContent=S.files.length?S.files.length+' artifact'+(S.files.length>1?'s':'')+' ingested':'';
+ $('#verTag').textContent=S.versions.length?'v'+S.versions.length+' saved':'unsaved';
+}
+$('#capList').addEventListener('change',e=>{const i=e.target.dataset.cap;if(i==null)return;S.caps[i].on=e.target.checked;S.ver.caps++;say(`Capability ${S.caps[i].id} ${e.target.checked?'enabled':'disabled'} · catalog v${S.ver.caps}.`,'s');changed()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const [k,i]=b.dataset.del.split(':');S[k].splice(+i,1);S.ver[k]++;changed()});
+document.querySelectorAll('form[data-add]').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();const k=f.dataset.add,inp=f.querySelector('input'),v=inp.value.trim();if(!v)return;addRule(k,v);inp.value=''}));
+function addRule(k,v){
+ if(k==='cap'){const t=typeOf(v.toLowerCase());S.caps.push({id:'TC'+(S.caps.length+1),name:v,types:t?[t]:['svc'],on:true});S.ver.caps++;logAI('SLM enrichment',`Classified capability "${v}"`,`Mapped to component type ${t||'svc (default)'} by keyword`,t?.86:.5)}
+ if(k==='ea'){S.ea.push({id:'P'+(S.ea.length+1),t:v});S.ver.ea++;logAI('SLM enrichment',`Parsed principle "${v.slice(0,40)}"`,'Stored as advisory text; tag it to rules for enforcement',.7)}
+ if(k==='gt'){S.gt.push({id:'GT'+(S.gt.length+1),t:v,src:'Added by architect'});S.ver.gt++}
+ changed();
+}
+$('#gtFile').addEventListener('change',e=>{
+ [...e.target.files].forEach(f=>{
+  const lc=f.name.toLowerCase(),tagsF=[];
+  if(/sec|cyber|mitre|attack|threat/.test(lc))tagsF.push('Cybersecurity · MITRE ATT&CK');if(/ea|principle|architect/.test(lc))tagsF.push('EA Principle');if(/policy|opa|rego/.test(lc))tagsF.push('Policy as Code');if(/web|server|design|diagram/.test(lc)||/image/.test(f.type))tagsF.push('Reference design');if(!tagsF.length)tagsF.push('Standard');
+  S.files.push({name:f.name,size:f.size,tags:tagsF});
+  S.gt.push({id:'GT'+(S.gt.length+1),t:`Ingested ${f.name}`,src:tagsF.join(' · ')+` · ${Math.round(f.size/1024)} KB · pending SLM extraction`});S.ver.gt++;
+  logAI('SLM enrichment',`Ingested ${f.name}`,`Tagged ${tagsF.join(', ')} from filename and type; clause extraction queued for the SLM`,.6);
+ });
+ e.target.value='';changed();
+});
+$('#dtabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#dtabs').querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',x===b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+b.dataset.p))});
+
+/* ---------- console ---------- */
+const out=$('#conOut');
+function say(t,cls=''){out.insertAdjacentHTML('beforeend',`<div class="${cls}">${esc(t)}</div>`);out.scrollTop=out.scrollHeight}
+let disc=null;
+const DQ=[
+ ['What are you designing? Give it a name.',a=>{S.project=a.trim()||S.project;$('#projName').value=S.project}],
+ ['Who uses it and at what peak load? e.g. "customers 2000 rps".',a=>{disc.rps=+((a.match(/(\d[\d,]*)/)||[0,'1000'])[1].replace(/,/g,''));disc.who=a.replace(/[\d,]+\s*(rps)?/i,'').trim()||'Users'}],
+ ['Where will it run? local, datacenter, hybrid, aws, azure or gcp.',a=>{const m=a.toLowerCase().match(/local|datacenter|data center|hybrid|aws|azure|gcp/);disc.where=m?m[0].replace(' ',''):'aws'}],
+ ['Does it store personal or regulated data? yes or no.',a=>{disc.pii=/^y/i.test(a.trim())}],
+ ['Mostly reads, mostly writes, or mixed?',a=>{disc.mix=/read/i.test(a)?'read':/write/i.test(a)?'write':'mixed'}]
+];
+function startDisc(){disc={i:0};say('Discovery: five questions, then I draft a baseline grounded in your principles and ground truth. Type "skip" to stop.','s');say(DQ[0][0],'q')}
+function discStep(a){
+ if(/^skip|^cancel/i.test(a)){disc=null;say('Discovery stopped.','s');return}
+ DQ[disc.i][1](a);disc.i++;
+ if(disc.i<DQ.length){say(DQ[disc.i][0],'q');return}
+ const d=disc;disc=null;buildBaseline(d);
+}
+function buildBaseline(d){
+ S.nodes={};S.edges=[];V.scope='root';V.sel=null;
+ const u=addNode('user',d.who.replace(/^\w/,c=>c.toUpperCase()).slice(0,24)||'Users','root',{x:ZX.internet,y:250});u.rps=d.rps;
+ const chain=[];
+ if(d.mix==='read'&&d.rps>3000)chain.push(addNode('cdn','Static edge cache','root',{x:ZX.edge-110,y:250}));
+ const w=addNode('waf','Perimeter WAF','root',{x:ZX.edge,y:250});
+ const lb=d.where==='datacenter'||d.where==='local'?addNode('lb','Site load balancer','root',{x:ZX.edge+100,y:390}):null;
+ const gw=addNode('gw','API gateway','root',{x:ZX.dmz,y:250});const idp=addNode('idp','Identity (OIDC)','root',{x:ZX.dmz,y:410});
+ const svc=addNode('svc','Core API','root',{x:ZX.app,y:250});svc.rep=Math.max(2,Math.ceil(d.rps/(800*.6)));
+ const db=addNode('db',d.pii?'Customer DB (PII)':'Primary DB','root',{x:ZX.data,y:250});db.standby=true;if(d.pii)db.enrich.classification='Confidential (PII)';
+ let prev=u;[...chain,w].forEach(n=>{connect(prev.id,n.id,'HTTPS');prev=n});
+ if(lb){connect(w.id,lb.id,'HTTPS');connect(lb.id,gw.id,'HTTPS')}else connect(w.id,gw.id,'HTTPS');
+ connect(gw.id,svc.id);connect(gw.id,idp.id,'HTTPS');connect(svc.id,db.id);
+ if(d.mix!=='write'&&d.rps>1000){const c=addNode('cache','Read cache','root',{x:ZX.data,y:90});connect(svc.id,c.id)}
+ if(d.mix==='write'||d.rps>4000){const q=addNode('queue','Write buffer','root',{x:ZX.data,y:410});connect(svc.id,q.id)}
+ const tg={aws:'aws',azure:'azure',gcp:'gcp',datacenter:'vmware',hybrid:'vmware',local:'vmware'}[d.where]||'aws';
+ S.deploy=d.where==='datacenter'?'vmware':d.where;S.target=tg;
+ logAI('Advisor','Drafted baseline from discovery',`${d.rps} rps, ${d.where}, ${d.pii?'PII':'no PII'}, ${d.mix} workload → WAF-fronted gateway, ${svc.rep} replicas for ≤60% (P4), standby DB (P2)${d.pii?', CMK encryption (GT4)':''}`,.9);
+ say(`Baseline drafted for ${S.project}: ${Object.keys(S.nodes).join(', ')}. Review the advisor findings, then save a version.`,'s');
+ fit();changed(true);
+}
+function run(raw){
+ const c=raw.trim();if(!c)return;say('› '+c,'u');
+ if(disc)return discStep(c);
+ const l=c.toLowerCase(),ids=(c.match(/\b[A-Za-z]{1,4}\d+\b/g)||[]).map(x=>x.toUpperCase()).filter(x=>S.nodes[x]);
+ let m;
+ if(/^(help|\?)$/.test(l)){say('Try: discover · add redis cache between SVC1 and DB1 · add queue named "Order events" · connect SVC2 to C1 · scale SVC2 to 3 · what if load 3x · what if DB1 fails · reset · load 4000 · open SVC1 · up · rename SVC2 to Search API · remove OS1 · target azure · principle: … · truth: … · capability: … · save "note" · versions · restore v1','s');return}
+ if(/^discover/.test(l))return startDisc();
+ if(m=c.match(/^(principle|truth|ground truth|capability)\s*:\s*(.+)/i)){addRule({principle:'ea',truth:'gt','ground truth':'gt',capability:'cap'}[m[1].toLowerCase()],m[2]);say('Added. Version bumped.','s');return}
+ if(/what if|what happens|simulate/.test(l)){
+  if(ids.length&&/fail|down|lost|outage|dies/.test(l)){ids.forEach(id=>S.nodes[id].failed=true);say(`Simulating failure of ${ids.join(', ')}. See the red paths and the advisor.`,'s');changed();return}
+  let x=null;if(m=l.match(/(\d+(?:\.\d+)?)\s*(x|×|times)/))x=+m[1];else if(/double/.test(l))x=2;else if(/triple/.test(l))x=3;else if(/half|halve/.test(l))x=.5;else if(m=l.match(/(\d[\d,]*)\s*rps/)){const r=+m[1].replace(/,/g,''),base=kids('root').filter(n=>n.type==='user').reduce((a,n)=>a+n.rps,0)||1;x=r/base}
+  if(x){setMult(x);say(`Load set to ${S.mult.toFixed(2)}× (${fmt(KPI.offered)} rps). Bottleneck: ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}.`,'s');return}
+ }
+ if(/^reset/.test(l)){setMult(1);Object.values(S.nodes).forEach(n=>n.failed=false);say('What-if cleared.','s');changed();return}
+ if(m=l.match(/^(?:fail|kill|take down)\b/)&&ids.length){ids.forEach(id=>S.nodes[id].failed=true);changed();say(`${ids.join(', ')} failed.`,'s');return}
+ if(/^(restore|recover|heal)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=false);changed();say(`${ids.join(', ')} restored.`,'s');return}
+ if(m=l.match(/^restore\s+v(\d+)/)){const v=S.versions[+m[1]-1];if(!v){say('No such version.','s');return}const keep={versions:S.versions,log:S.log};S={...JSON.parse(v.data),...keep};V.scope='root';fit();changed(true);say(`Restored v${m[1]} (${v.note}).`,'s');return}
+ if(m=l.match(/^(?:set\s+)?(?:load|traffic|peak)\D*(\d[\d,]*)/)){const u=kids('root').find(n=>n.type==='user');if(u){u.rps=+m[1].replace(/,/g,'');changed();say(`${u.id} peak load set to ${fmt(u.rps)} rps.`,'s')}return}
+ if(/^scale/.test(l)&&ids.length){const k=+((l.match(/(?:to|x|×)\s*(\d+)/)||[0,2])[1]);S.nodes[ids[0]].rep=Math.max(1,k);changed();say(`${ids[0]} scaled to ×${k}.`,'s');return}
+ if(/^(open|zoom|drill|enter)/.test(l)&&ids.length)return drill(ids[0]);
+ if(/^(up|back|exit)$/.test(l)){V.scope=S.nodes[V.scope]?S.nodes[V.scope].parent:'root';fit();changed(true);return}
+ if(/^(remove|delete|drop)/.test(l)&&ids.length){ids.forEach(removeNode);changed();say(`Removed ${ids.join(', ')}.`,'s');return}
+ if(/^rename/.test(l)&&ids.length&&(m=c.match(/\bto\s+(.+)$/i))){S.nodes[ids[0]].name=m[1].replace(/["']/g,'');changed();say(`${ids[0]} renamed.`,'s');return}
+ if(/^(connect|link)|->|→/.test(l)&&ids.length>=2){const pm=c.match(/(?:over|via|using)\s+(mtls|https|http|amqps)/i);const pr=pm?{mtls:'mTLS',https:'HTTPS',http:'HTTP',amqps:'AMQPS'}[pm[1].toLowerCase()]:null;const ok=connect(ids[0],ids[1],pr);say(ok?`Connected ${ids[0]} → ${ids[1]}.`:'Both components must be in the same design level.','s');changed();return}
+ if(m=l.match(/^target\s+(aws|azure|gcp|vmware)/)){S.target=m[1];changed();say(`IaC target set to ${m[1]}.`,'s');return}
+ if(/^save/.test(l)){saveVersion((c.match(/["“](.+?)["”]/)||[0,c.slice(4).trim()])[1]);return}
+ if(/^versions?$/.test(l)){say(S.versions.length?S.versions.map((v,i)=>`v${i+1} · ${v.at} · ${v.note}`).join('\n'):'No saved versions yet.','s');return}
+ if(/^(add|create|insert|put|need|i need|we need)/.test(l)){
+  const t=typeOf(l.replace(/\b(between|after|before|to|from)\b.*$/,''));if(!t){say('Which kind of component? e.g. add cache, add queue, add virtual server.','s');return}
+  const nm=(c.match(/(?:named|called)\s+["“]?([^"”]+)["”]?/i)||c.match(/["“]([^"”]+)["”]/)||[])[1];
+  const n=addNode(t,nm);
+  if(/between/.test(l)&&ids.length>=2){const i=S.edges.findIndex(e=>e.from===ids[0]&&e.to===ids[1]);if(i>=0)S.edges.splice(i,1);const a=S.nodes[ids[0]],b=S.nodes[ids[1]];n.parent=a.parent;n.x=(a.x+b.x)/2;n.y=(a.y+b.y)/2+(t==='cache'?-110:90);connect(ids[0],n.id);connect(n.id,ids[1])}
+  else if(/after|from|behind/.test(l)&&ids.length){n.parent=S.nodes[ids[0]].parent;connect(ids[0],n.id)}
+  else if(/\bto\b|before|in front/.test(l)&&ids.length){n.parent=S.nodes[ids[0]].parent;connect(n.id,ids[0])}
+  V.sel=n.id;changed();say(`Added ${n.id} (${T[t].label}).${S.caps.some(c=>c.on&&c.types.includes(t))?'':' Not in Technical Capabilities: see the advisor for an ADR.'}`,'s');return}
+ logAI('Console intent parser',`Could not resolve "${c.slice(0,40)}"`,'No intent pattern matched; an LLM escalation would handle free-form requests',.2);
+ say('I did not catch that. Type "help" for examples, or "discover" for guided setup.','s');
+}
+$('#conForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#conIn').value;$('#conIn').value='';run(v)});
+$('#discBtn').onclick=()=>{startDisc();$('#conIn').focus()};
+function saveVersion(note){
+ const snap={...S,versions:[],log:[]};S.versions.push({at:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),note:note||'checkpoint',data:JSON.stringify(snap)});
+ say(`Saved v${S.versions.length}: ${note||'checkpoint'}. Includes all sub-designs, capabilities v${S.ver.caps}, principles v${S.ver.ea}, ground truth v${S.ver.gt}.`,'s');changed();
+}
+$('#saveBtn').onclick=()=>saveVersion('');
+
+/* ---------- header ---------- */
+function setMult(x){S.mult=Math.max(.25,Math.min(5,x));$('#mult').value=S.mult;changed()}
+$('#mult').oninput=e=>{S.mult=+e.target.value;changed()};
+$('#projName').onchange=e=>{S.project=e.target.value||'Untitled';changed()};
+$('#deploy').onchange=e=>{S.deploy=e.target.value;S.target={hybrid:'vmware',local:'vmware'}[S.deploy]||S.deploy;say(`Deployment model: ${e.target.selectedOptions[0].text}. IaC target ${S.target}.`,'s');changed()};
+$('#iacTarget').onchange=e=>{S.target=e.target.value;changed()};
+$('#viewSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;V.mode=b.dataset.v;$('#viewSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));particles=[];fit()});
+const copy=(txt,btn)=>{const done=()=>{btn.textContent='✓';setTimeout(()=>btn.textContent='⧉',1200)};try{navigator.clipboard.writeText(txt).then(done,()=>{selectPre(btn)})}catch(e){selectPre(btn)}};
+const selectPre=btn=>{const pre=btn.closest('.panel').querySelector('pre');const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+$('#iacCopy').onclick=e=>copy(genTF(S.target),e.currentTarget);$('#c4Copy').onclick=e=>copy(genC4(),e.currentTarget);
+$('#modelsBtn').onclick=()=>{$('#mSlm').selectedIndex=S.settings.slm;$('#mMl').selectedIndex=S.settings.ml;$('#mLlm').value=S.settings.llm;$('#modal').hidden=false};
+$('#mClose').onclick=()=>{S.settings={slm:$('#mSlm').selectedIndex,ml:$('#mMl').selectedIndex,llm:$('#mLlm').value};$('#modal').hidden=true;logAI('Settings','Model configuration changed',`SLM ${$('#mSlm').value}; ML ${$('#mMl').value}; LLM ${$('#mLlm').value}`,1);changed()};
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#mClose').click()});
+
+/* ---------- render all ---------- */
+function renderKPI(){
+ const e=KPI.err,ec=e>.05?'crit':e>.005?'warn':'ok',w=KPI.worst,wu=w?F[w.id].util:0;
+ $('#kpis').innerHTML=`<span class="kpi"><b>Offered</b>${fmt(KPI.offered)} rps</span><span class="kpi"><b>Errors ≈</b><span class="${ec}">${(e*100).toFixed(1)}%</span></span><span class="kpi"><b>Latency est.</b>${fmt(KPI.lat)} ms</span><span class="kpi"><b>Bottleneck</b>${w?`<span class="${st(wu)}">${w.id} ${pct(wu)}</span>`:'—'}</span>`;
+ $('#multV').textContent=S.mult.toFixed(2).replace(/0$/,'')+'×';
+}
+function renderCode(){
+ $('#iacTarget').value=S.target;$('#iacTag').textContent='terraform · '+S.target;
+ $('#iacCode').innerHTML=hl(genTF(S.target),'#');
+ $('#iacChecks').innerHTML=tfChecks().map(([n,ok])=>`<span class="chk ${ok?'ok':'crit'}">${ok?'✓':'✗'} ${n}</span>`).join('');
+ $('#c4Code').innerHTML=hl(genC4(),'//');
+}
+function changed(scopeChange){
+ simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();
+ $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=S.mult;
+ persist();
+}
+
+/* ---------- boot ---------- */
+if(!load())seed();
+resize();
+changed();
+placePanels(true);
+fit();
+say('Welcome to NEXUS. This sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
+say('Type "discover" for guided systems discovery, or describe a change in plain language. "help" lists examples.','s');
+requestAnimationFrame(frame);
+})();
+</script>
