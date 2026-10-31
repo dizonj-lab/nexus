@@ -5,6 +5,21 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.15] — 2026-10-31
+
+### Changed
+- **Focus layout** (new default): the canvas gets the screen. Advisor, IaC,
+  LikeC4, Design Tree, Load, Legend, Capabilities, Principles and Ground Truth
+  live in one side panel with a slim icon rail; one opens at a time, clicking
+  the open one folds the panel away, and the diagram re-fits to the space. The
+  rail shows the number of critical findings.
+- The console is a slim bar at the bottom (⤢ for a taller one; it grows
+  automatically when there is a lot of output).
+- One-row toolbar: icon Undo/Redo and Settings, shorter labels, compact key
+  numbers.
+- "Free layout" in Settings brings back movable floating windows and the
+  bottom dock.
+
 ## [0.1.14] — 2026-10-31
 
 ### Added
@@ -350,7 +365,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.14...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.15...HEAD
+[0.1.15]: https://github.com/dizonj-lab/nexus/compare/v0.1.14...v0.1.15
 [0.1.14]: https://github.com/dizonj-lab/nexus/compare/v0.1.13...v0.1.14
 [0.1.13]: https://github.com/dizonj-lab/nexus/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/dizonj-lab/nexus/compare/v0.1.11...v0.1.12

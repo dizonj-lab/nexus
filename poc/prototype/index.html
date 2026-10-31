@@ -31,6 +31,41 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 .panel.collapsed>header .ttl{white-space:nowrap}
 #gSecondOut ul{margin:2px 0 4px;padding-left:16px}
 body[data-role="reviewer"] .palette{opacity:.4;pointer-events:none}
+
+/* Focus layout: canvas first, one side panel with a rail, slim console bar */
+.main{display:flex;min-height:0;min-width:0}
+.main>.stage{flex:1;min-width:0}
+.side{display:none;min-height:0;background:var(--surface);border-left:1px solid var(--line)}
+body.focus .side{display:flex}
+.rail{order:2;display:flex;flex-direction:column;gap:2px;padding:6px 4px;width:58px;border-left:1px solid var(--line);overflow-y:auto}
+.rail button{border:0;background:transparent;border-radius:6px;padding:6px 2px;font-size:10px;line-height:1.15;color:var(--muted);display:grid;justify-items:center;gap:2px}
+.rail button b{font-family:var(--f-mono);font-size:13px;font-weight:600}
+.rail button:hover{background:var(--surface-2);color:var(--ink)}
+.rail button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.rail hr{border:0;border-top:1px solid var(--line);margin:4px 2px;width:auto}
+.rail .cnt{font-family:var(--f-mono);font-size:9px;color:var(--crit)}
+.sidebody{order:1;width:390px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.side.closed .sidebody{display:none}
+.sidebody>.panel,.sidebody>.pane{position:static!important;width:auto!important;height:auto!important;max-width:none;min-width:0;flex:1;min-height:0;box-shadow:none;border:0;border-radius:0;resize:none;opacity:1!important;display:none!important}
+.sidebody>.panel.on,.sidebody>.pane.on{display:flex!important;flex-direction:column}
+.sidebody .panel>header{cursor:default}
+.sidebody .panel>header .colB,.sidebody .panel>header .tuneB{display:none}
+.sidebody .panel .tune{display:none!important}
+.sidebody .panel .pbody{max-height:none!important;flex:1 1 auto}
+.sidebody .panel.collapsed .pbody,.sidebody .panel.collapsed .bar,.sidebody .panel.collapsed .tabs{display:revert}
+body.focus .dock{display:none}
+.conbar{display:none;border-top:1px solid var(--line);background:var(--surface)}
+body.focus .conbar{display:block}
+.conbar>.pane{display:flex!important;flex-direction:column;height:var(--conH,128px);border:0}
+.conbar>.pane>header{padding:4px 10px}
+.conbar #conOut{font-size:11px}
+.btn.icon{padding:3px 8px;font-size:14px;line-height:1.1}
+body.focus .top{row-gap:4px;padding-block:5px}
+body.focus .kpis{gap:12px}
+body.focus .kpi b{font-size:9px}
+body.focus #legBtn{display:none}
+@media (max-width:1300px){.hide-sm{display:none}}
+@media (max-width:900px){body.focus .side{position:absolute;right:0;top:0;bottom:0;z-index:20}.sidebody{width:min(390px,calc(100vw - 70px))}}
 </style>
 <title>Project NEXUS</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -59,7 +94,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.app{height:100%;display:grid;grid-template-rows:auto 1fr auto}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr auto auto}
 
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:7px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--surface)}
 .brand{font-family:var(--f-display);font-weight:700;letter-spacing:.14em;font-size:15px}
@@ -248,21 +283,22 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.14</small></span>
+    <span class="brand" title="NEXUS architecture workbench v0.1.15">NEXUS<small>v0.1.15</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
-    <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange by trust zone and reduce crossings (undoable)">Tidy layout</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
+    <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange by trust zone and reduce crossings (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
       <button data-v="flow" aria-pressed="true">Flow</button><button data-v="flat" aria-pressed="false">Flat</button><button data-v="iso" aria-pressed="false">3D</button><button data-v="rel" aria-pressed="false">Relations</button>
     </span>
-    <label class="ctl">Deploy
-      <select id="deploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">GCP</option><option value="vmware">Datacenter (active/passive)</option><option value="hybrid">Hybrid cloud</option><option value="local">Local</option></select>
+    <label class="ctl"><span class="hide-sm">Deploy</span>
+      <select id="deploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">GCP</option><option value="vmware">Datacenter</option><option value="hybrid">Hybrid</option><option value="local">Local</option></select>
     </label>
-    <label class="ctl">What-if load <input id="mult" type="range" min="-0.6" max="3" step="0.02" value="0" aria-label="What-if load multiplier, 0.25× to 1000×"><span id="multV" style="font-family:var(--f-mono);min-width:34px">1×</span></label>
+    <label class="ctl" title="What-if load multiplier"><span class="hide-sm">Load</span> <input id="mult" type="range" min="-0.6" max="3" step="0.02" value="0" aria-label="What-if load multiplier, 0.25× to 1000×"><span id="multV" style="font-family:var(--f-mono);min-width:34px">1×</span></label>
     <div class="kpis" id="kpis"></div>
-    <button class="btn" id="modelsBtn">Settings</button>
-    <button class="btn primary" id="saveBtn">Save version</button>
+    <button class="btn icon" id="modelsBtn" title="Settings" aria-label="Settings">⚙</button>
+    <button class="btn primary" id="saveBtn" title="Save a named version">Save</button>
   </div>
 
+  <div class="main" id="main">
   <div class="stage" id="stage">
     <canvas id="cv" aria-label="System design canvas"></canvas>
     <div class="palette" id="palette" aria-label="Add component"></div>
@@ -335,11 +371,14 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <div class="pbody" style="max-height:150px"><svg id="treeSvg" aria-label="Design tree"></svg></div>
     </section>
   </div>
+  <aside class="side" id="side" aria-label="Side panel"><nav class="rail" id="rail" aria-label="Panels"></nav><div class="sidebody" id="sidebody"></div></aside>
+  </div>
+  <div class="conbar" id="conbar"></div>
 
   <div class="dock" id="dock">
     <div class="dtabs" role="tablist" id="dtabs"><button data-p="con" aria-selected="true">Console</button><button data-p="cap" aria-selected="false">Capabilities</button><button data-p="ea" aria-selected="false">EA Principles</button><button data-p="gt" aria-selected="false">Ground Truth</button></div>
     <div class="pane on" id="pane-con">
-      <header><span class="ttl">Systems Architect Console</span><span class="tag" id="verTag"></span><span class="tag" id="guardTag"></span><span class="sp"></span><button class="btn" id="discBtn" style="padding:2px 8px;font-size:11px">Start discovery</button></header>
+      <header><span class="ttl">Systems Architect Console</span><span class="tag" id="verTag"></span><span class="tag" id="guardTag"></span><span class="sp"></span><button class="btn" id="discBtn" style="padding:2px 8px;font-size:11px">Start discovery</button><button class="ib" id="conGrow" title="Taller console" aria-label="Taller console">⤢</button></header>
       <div id="conOut" aria-live="polite"></div>
       <form class="adder" id="conForm"><input id="conIn" placeholder="e.g. use aws managed kafka for microservice to microservice communication · rate limit GW1 2000 · undo" autocomplete="off"><button class="btn primary">Run</button></form>
     </div>
@@ -365,6 +404,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 <div class="scrim" id="modal" hidden>
   <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <h2 id="mTitle">Settings</h2>
+    <div class="msec"><h3>Layout</h3><label>Screen layout <select id="mLayout"><option value="focus">Focus · canvas first, one side panel, slim console (recommended)</option><option value="free">Free · movable floating windows and a bottom dock</option></select></label></div>
     <div class="msec"><h3>You</h3><label>Name (recorded on every change and decision) <input id="uName" placeholder="Your name"></label><p>Your role is set in the toolbar. Roles are simulated in this prototype; real sign-in and access control come with the backend.</p></div>
     <div class="msec"><h3>Architect console</h3>
       <label>Engine <select id="mEngine"><option value="auto">Auto · model on Buddy when reachable, rules otherwise</option><option value="slm">Model only</option><option value="rules">Rules only</option></select></label>
@@ -580,7 +620,7 @@ function seed(){
    {id:'GT5',t:'Traffic to third parties uses private connectivity or the egress gateway with an FQDN allow-list.',src:'Network Security Standard NS-07'}],
   files:[],ver:{caps:5,ea:7,gt:3},versions:[],log:[],adrs:[],settings:defaultSettings()};
 }
-function defaultSettings(){return {view:{lines:'ortho',deps:false},user:{name:'You',role:'architect'},escalation:{base:'',model:'gpt-oss:latest',key:'',auto:true},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
+function defaultSettings(){return {view:{lines:'ortho',deps:false,layout:'focus',side:'pAdv'},user:{name:'You',role:'architect'},escalation:{base:'',model:'gpt-oss:latest',key:'',auto:true},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
 function ensureSettings(){const d=defaultSettings();S.settings=S.settings||{};S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
 function defaultCaps(){return [
  {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
@@ -1254,8 +1294,8 @@ function fit(){
  const ns=kids(V.scope);if(!ns.length||!W){V.x=W/2;V.y=H/2;return}
  V.k=1;V.x=0;V.y=0;
  const qs=ns.map(n=>P(n.x,n.y));const minX=Math.min(...qs.map(p=>p.x))-NW,maxX=Math.max(...qs.map(p=>p.x))+NW,minY=Math.min(...qs.map(p=>p.y))-NH,maxY=Math.max(...qs.map(p=>p.y))+NH+40;
- const adv=$('#pAdv'),leftPad=W>1150&&!adv.classList.contains('collapsed')&&!adv._moved?adv.offsetLeft+adv.offsetWidth+10:W>900?60:20;
- const rightPad=W>900&&['#pIac','#pTree','#pLeg'].some(id=>{const el=$(id);return el&&!el.hidden&&!el.classList.contains('collapsed')&&el.offsetLeft>W/2})?370:20;
+ const adv=$('#pAdv'),leftPad=document.body.classList.contains('focus')?60:W>1150&&!adv.classList.contains('collapsed')&&!adv._moved?adv.offsetLeft+adv.offsetWidth+10:W>900?60:20;
+ const rightPad=document.body.classList.contains('focus')?24:W>900&&['#pIac','#pTree','#pLeg'].some(id=>{const el=$(id);return el&&!el.hidden&&!el.classList.contains('collapsed')&&el.offsetLeft>W/2})?370:20;
  const aw=Math.max(200,W-leftPad-rightPad),ah=Math.max(150,H-90);
  V.k=Math.min(1.25,Math.max(.35,Math.min(aw/(maxX-minX),ah/(maxY-minY))));
  V.x=leftPad+(aw-(maxX-minX)*V.k)/2-minX*V.k;V.y=46+(ah-(maxY-minY)*V.k)/2-minY*V.k;
@@ -1610,7 +1650,7 @@ panels.forEach(p=>{
 panels.forEach(p=>new ResizeObserver(()=>{if(p.style.height&&!p.classList.contains('collapsed'))p.classList.add('sized')}).observe(p));
 function clampPanel(p){const x=Math.max(0,Math.min(W-60,p.offsetLeft)),y=Math.max(0,Math.min(H-32,p.offsetTop));p.style.left=x+'px';p.style.top=y+'px'}
 function placePanels(first){
- if(!W)return;
+ if(!W||document.body.classList.contains('focus'))return;
  const narrow=W<760;
  if(first&&narrow)panels.forEach(p=>{p.classList.add('collapsed');p.querySelector('.colB').textContent='+'});
  if(first&&!narrow&&H<720){const c=$('#pC4');c.classList.add('collapsed');c.querySelector('.colB').textContent='+'}
@@ -1624,7 +1664,7 @@ function placePanels(first){
 
 /* ---------- advisor panel ---------- */
 let advTab='find';
-function showTab(t){advTab=t;$('#pAdv').querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x.dataset.t===t));if($('#pAdv').classList.contains('collapsed'))$('#pAdv .colB').click();renderAdvisor();renderTree()}
+function showTab(t){if(document.body.classList.contains('focus'))openSide('pAdv',true);advTab=t;$('#pAdv').querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x.dataset.t===t));if($('#pAdv').classList.contains('collapsed'))$('#pAdv .colB').click();renderAdvisor();renderTree()}
 $('#pAdv .tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)showTab(b.dataset.t)});
 function renderAdvisor(){
  const c=findings.filter(f=>f.sev==='crit').length,w=findings.filter(f=>f.sev==='warn').length;
@@ -2108,7 +2148,7 @@ function renderPriceTable(){
  $('#pNote').textContent=`Monthly list-price estimates in USD for ${pk().name}, per instance plus per million requests. Override any line with your negotiated or internal rates. Not a quote.`;
  $('#priceTable').innerHTML=`<tr><th>Component</th><th>${esc(pk().name)} service</th><th>$ / instance / month</th><th>$ / million requests</th></tr>`+types.map(t=>{const p=price(t);return `<tr><td>${esc(T[t].label)}</td><td>${esc(pk().svc[t]||'')}</td><td><input data-pt="${t}" data-pk="inst" type="number" min="0" step="1" value="${+p.inst.toFixed(2)}"></td><td><input data-pt="${t}" data-pk="perM" type="number" min="0" step=".05" value="${+p.perM.toFixed(2)}"></td></tr>`}).join('');
 }
-$('#modelsBtn').onclick=()=>{const st=S.settings,a=st.autoscale;$('#uName').value=who().name;$('#eBase').value=(st.escalation||{}).base||'';$('#eAuto').checked=(st.escalation||{}).auto!==false;$('#eModel').value=(st.escalation||{}).model||'';$('#eKey').value=(st.escalation||{}).key||'';
+$('#modelsBtn').onclick=()=>{const st=S.settings,a=st.autoscale;$('#mLayout').value=(st.view&&st.view.layout)||'focus';$('#uName').value=who().name;$('#eBase').value=(st.escalation||{}).base||'';$('#eAuto').checked=(st.escalation||{}).auto!==false;$('#eModel').value=(st.escalation||{}).model||'';$('#eKey').value=(st.escalation||{}).key||'';
  $('#mGuard').value=st.guard||'enforce';$('#mSlm').selectedIndex=st.slm;$('#mMl').selectedIndex=st.ml;$('#mLlm').value=st.llm;
  $('#mEngine').value=st.engine;$('#mBase').value=st.llmApi.base;$('#mModel').value=st.llmApi.model;$('#mKey').value=st.llmApi.key||'';$('#mStatus').textContent='';
  $('#aOn').checked=!!a.on;$('#aMin').value=a.min;$('#aMax').value=a.max;$('#aTgt').value=a.target;$('#aOut').value=a.outDelay;$('#aIn').value=a.inCool;
@@ -2124,7 +2164,7 @@ $('#mClose').onclick=()=>{const st=S.settings;
  const mn=Math.max(1,+$('#aMin').value||1);st.autoscale={on:$('#aOn').checked,min:mn,max:Math.max(mn,+$('#aMax').value||mn),target:Math.min(95,Math.max(20,+$('#aTgt').value||60)),outDelay:Math.max(0,+$('#aOut').value||0),inCool:Math.max(1,+$('#aIn').value||10)};
  document.querySelectorAll('#priceTable input').forEach(i=>{const t=i.dataset.pt,k=i.dataset.pk;const base=PRICE_BASE[t],m=PRICE_MULT[prov()];const def=+(base[k]*m).toFixed(2);if(+i.value!==def||(st.price[t])){st.price[t]=st.price[t]||{inst:+(base.inst*m).toFixed(2),perM:+(base.perM*m).toFixed(2)};st.price[t][k]=+i.value}});
  st.user={...(st.user||{}),name:$('#uName').value.trim()||'You',role:who().role};st.escalation={base:$('#eBase').value.trim(),model:$('#eModel').value.trim()||'gpt-oss:latest',key:$('#eKey').value,auto:$('#eAuto').checked};
- MODEL.failedAt=0;
+ MODEL.failedAt=0;const lay=$('#mLayout').value;if(lay!==st.view.layout){st.view.layout=lay;setLayout(lay)}
  $('#modal').hidden=true;logAI('Settings','Configuration changed',`Console ${st.engine} (${st.llmApi.model} at ${st.llmApi.base}); autoscale ${st.autoscale.on?`${st.autoscale.min}–${st.autoscale.max} at ${st.autoscale.target}%`:'off'}; guard ${st.guard}`,1);changed()};
 
 /* ---------- architect console: description reader (rules) and model planner ---------- */
@@ -2347,7 +2387,35 @@ function renderLegendCtl(){const v=S.settings.view;const a=$('#lgLines'),b=$('#l
 $('#lgLines').onchange=e=>{S.settings.view.lines=e.target.value;persist()};
 $('#lgDeps').onchange=e=>{S.settings.view.deps=e.target.checked;persist()};
 $('#lgTidy').onclick=tidyLayout;$('#tidyBtn').onclick=tidyLayout;
-$('#legBtn').onclick=()=>{const l=$('#pLeg');l.hidden=!l.hidden;$('#legBtn').setAttribute('aria-pressed',!l.hidden);if(!l.hidden)placePanels(false)};
+$('#legBtn').onclick=()=>{if(document.body.classList.contains('focus')){openSide('pLeg');return}const l=$('#pLeg');l.hidden=!l.hidden;$('#legBtn').setAttribute('aria-pressed',!l.hidden);if(!l.hidden)placePanels(false)};
+
+/* ---------- focus layout: one side panel with a rail, slim console bar ---------- */
+const SIDE=[['pAdv','◎','Advisor'],['pIac','{ }','IaC'],['pC4','C4','LikeC4'],['pTree','⌥','Tree'],['pDem','∿','Load'],['pLeg','≡','Legend'],null,['pane-cap','TC','Capab.'],['pane-ea','EA','Principles'],['pane-gt','GT','Truth']];
+const HOME={};
+function setLayout(mode){
+ const focus=mode==='focus',sb=$('#sidebody'),stage=$('#stage'),dock=$('#dock'),bar=$('#conbar');
+ SIDE.filter(Boolean).forEach(([id])=>{const el=document.getElementById(id);if(!HOME[id])HOME[id]={parent:el.parentElement,next:el.nextElementSibling};
+  if(focus){sb.appendChild(el);el.classList.remove('collapsed');el.hidden=false;const cb=el.querySelector('.colB');if(cb)cb.textContent='–'}
+  else{el.classList.remove('on');HOME[id].parent.insertBefore(el,HOME[id].next&&HOME[id].next.parentElement===HOME[id].parent?HOME[id].next:null)}});
+ const con=$('#pane-con');if(!HOME.con)HOME.con={parent:con.parentElement,next:con.nextElementSibling};
+ if(focus)bar.appendChild(con);else{HOME.con.parent.insertBefore(con,HOME.con.next);con.classList.add('on')}
+ document.body.classList.toggle('focus',focus);
+ if(focus){const v=S.settings.view;openSide(v.side||'pAdv',true,!v.sideOpen&&v.sideOpen!==undefined)}else{document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-con'));placePanels(true)}
+ setTimeout(()=>{resize();fit()},30);
+}
+function renderRail(){const v=S.settings.view,open=!$('#side').classList.contains('closed'),c=findings.filter(f=>f.sev==='crit').length;
+ $('#rail').innerHTML=SIDE.map(x=>x?`<button data-side="${x[0]}" aria-pressed="${open&&v.side===x[0]}" title="${x[2]}"><b>${x[1]}</b>${x[2]}${x[0]==='pAdv'&&c?`<span class="cnt">${c} crit</span>`:''}</button>`:'<hr>').join('')}
+function openSide(id,force,closed){
+ const v=S.settings.view,side=$('#side'),wasOpen=!side.classList.contains('closed');
+ if(!force&&wasOpen&&v.side===id){side.classList.add('closed');v.sideOpen=false}
+ else{side.classList.toggle('closed',!!closed);v.side=id;v.sideOpen=!closed;
+  document.querySelectorAll('#sidebody>.panel,#sidebody>.pane').forEach(el=>el.classList.toggle('on',el.id===id));
+  if(id==='pDem')renderDem();if(id==='pTree')renderTree()}
+ renderRail();persist();const was=side.classList.contains('closed');setTimeout(()=>{resize();if(!force||was!==!wasOpen)fit()},30);
+}
+$('#rail').addEventListener('click',e=>{const b=e.target.closest('button[data-side]');if(b)openSide(b.dataset.side)});
+$('#conGrow').onclick=()=>{const tall=document.documentElement.style.getPropertyValue('--conH')!=='45vh';document.documentElement.style.setProperty('--conH',tall?'45vh':'128px');$('#conGrow').textContent=tall?'⤡':'⤢';setTimeout(()=>{resize();$('#conOut').scrollTop=1e9},30)};
+$('#conIn').addEventListener('focus',()=>{if(document.body.classList.contains('focus')&&$('#conOut').scrollHeight>$('#conOut').clientHeight*3&&document.documentElement.style.getPropertyValue('--conH')!=='45vh')$('#conGrow').click()});
 
 /* ---------- render all ---------- */
 function renderKPI(fast){
@@ -2388,7 +2456,7 @@ function flushLedger(){
 const CFG_FLASH={};
 function changed(){
  flushLedger();
- renderLegendCtl();simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
+ renderLegendCtl();simulate();analyze();if(document.body.classList.contains('focus'))renderRail();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
  $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=Math.log10(S.mult);
  persist();
 }
@@ -2398,6 +2466,7 @@ if(!load()){seed();ensureSettings()}
 resize();
 changed();
 placePanels(true);
+setLayout(S.settings.view.layout||'focus');
 fit();
 say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
 if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
