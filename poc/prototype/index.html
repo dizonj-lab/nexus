@@ -197,7 +197,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.3</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.4</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -301,7 +301,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
     <label id="gJustWrap">Justification (recorded as an exception decision)
       <textarea id="gJust" rows="2" placeholder="Why this exception is acceptable, who approved it, and until when"></textarea></label>
     <p id="gNote"></p>
-    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" id="gCancel">Cancel</button><button class="btn primary" id="gApply">Apply</button></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" id="gCancel">Cancel</button><button class="btn" id="gAlt" hidden>Insert a service between</button><button class="btn primary" id="gApply">Apply</button></div>
   </div>
 </div>
 
@@ -461,7 +461,8 @@ function seed(){
    {id:'P4',t:'Design for 60% steady-state utilization so the system absorbs a 1.6× burst.'},
    {id:'P5',t:'Segment by trust zone. Each perimeter is default-deny; flows only move one zone at a time.'},
    {id:'P6',t:'Scale the simplest way first: cache, then scale up, then read replicas, and shard only when nothing else fits.'},
-   {id:'P7',t:'Protect before you scale. Rate-limit at the edge so one client or a burst cannot take the platform down.'}],
+   {id:'P7',t:'Protect before you scale. Rate-limit at the edge so one client or a burst cannot take the platform down.'},
+   {id:'P8',t:'Each service owns its data. Other services use its API or its events, never its database.'}],
   gt:[
    {id:'GT1',t:'TLS 1.2+ on every flow, including east-west.',src:'Security Standard SS-04 §3'},
    {id:'GT2',t:'No public object storage.',src:'OPA policy deny_public_bucket.rego'},
@@ -507,11 +508,12 @@ function migrate(){
  S.adrs=S.adrs||[];S.settings.guard=S.settings.guard||'enforce';
  S.schema=3;
 }
+function ensureP8(){if(!S.ea.some(g=>g.id==='P8')){S.ea.push({id:'P8',t:'Each service owns its data. Other services use its API or its events, never its database.'});S.ver.ea++}}
 
 /* ---------- persistence and undo ---------- */
 const KEY='nexus.workbench.v1';
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();return true}}catch(e){}return false}
+function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();return true}}catch(e){}return false}
 const UNDO=[],REDO=[];
 const snap=()=>JSON.stringify({...S,log:[],versions:[]});
 function pushUndo(desc,data){UNDO.push({desc,data:data||snap()});if(UNDO.length>80)UNDO.shift();REDO.length=0;renderUR()}
@@ -594,6 +596,35 @@ function addDeps(ids){
 }
 
 /* ---------- advisor rules (stand-in for the SLM; rules decide, model explains) ---------- */
+/* ---------- technical constraints: what each component can actually call ---------- */
+const COMPUTE=['svc','vm','fn','api','adp','part'];
+const CAN={user:['cdn','waf','lb','gw','svc','vm','fn','idp','obj','db','cache','api'],ext:['cdn','waf','lb','gw'],saas:['cdn','waf','lb','gw'],
+ cdn:['waf','lb','gw','obj','svc','vm','fn'],waf:['lb','gw','svc','vm','fn','idp','cdn'],lb:['lb','gw','svc','vm','fn','idp','api'],
+ gw:['svc','vm','fn','idp','lb','api','queue','obj'],idp:['ext','saas','idp'],egw:['ext','saas'],
+ queue:['svc','vm','fn','api','adp','queue'],db:['db'],cache:[],obj:['queue','fn']};
+function canConnect(A,B){
+ if(A.type==='part'||B.type==='part')return {ok:true};
+ if(B.type==='user')return {ok:false,why:'Nothing calls end users; flows start from them.'};
+ if(COMPUTE.includes(A.type))return {ok:true};
+ const allow=CAN[A.type];if(!allow||allow.includes(B.type))return {ok:true};
+ const P=pk(),pv=prov(),bl=T[B.type].label.toLowerCase();
+ const gwNote={aws:'API Gateway integrations are HTTP, Lambda, VPC Link (to an NLB/ALB) or AWS-service actions such as SQS and S3. There is no database integration: use API Gateway → Lambda or ECS → RDS (or the RDS Data API from Lambda).',azure:'API Management backends are HTTP(S) services, Functions and Logic Apps; it cannot query a database.',gcp:'API Gateway backends are Cloud Run, Cloud Functions and App Engine; it cannot query a database.',vmware:'Kong proxies HTTP and gRPC upstreams; it does not pool or run database queries.'}[pv];
+ const why={
+  gw:`${P.svc.gw} forwards HTTP(S)/gRPC requests to a backend; it cannot hold connections to a ${bl}, pool them or run queries. ${gwNote}`,
+  waf:`${P.svc.waf} inspects HTTP traffic in front of a CDN, load balancer or gateway. It does not route to a ${bl}.`,
+  lb:`${P.svc.lb} distributes requests to services and gateways. Exposing a ${bl} behind it bypasses the application tier.`,
+  cdn:`${P.svc.cdn} serves from origins (object storage, load balancers, gateways). A ${bl} is not a valid origin.`,
+  idp:`${P.svc.idp} issues tokens and federates to other identity providers; it does not call a ${bl}.`,
+  egw:`The egress gateway only forwards outbound traffic to external endpoints.`,
+  queue:`Only services and functions consume from a ${T[A.type].label.toLowerCase()}; a ${bl} cannot pull messages.`,
+  db:`A database does not call other components; it only replicates to other databases.`,
+  cache:`A cache answers requests; it never initiates calls.`,
+  obj:`Object storage can only emit event notifications to a queue or function.`,
+  ext:`External callers enter through the edge (WAF, CDN, load balancer or gateway).`,saas:`SaaS webhooks enter through the edge (WAF or gateway).`,
+  user:`Users reach the system through the edge, not a ${bl}.`}[A.type]||`${T[A.type].label} cannot call a ${bl}.`;
+ const alt=['gw','waf','lb','cdn'].includes(A.type)&&['db','cache','queue','obj'].includes(B.type);
+ return {ok:false,why,alt};
+}
 const ZONE_OK={internet:['edge'],edge:['edge','dmz'],dmz:['dmz','app'],app:['app','data','dmz'],data:['data'],platform:[]};
 function analyze(log=true){
  const out=[],capTypes=new Set(S.caps.filter(c=>c.on).flatMap(c=>c.types)),N=S.nodes;
@@ -601,7 +632,8 @@ function analyze(log=true){
  S.edges.forEach(e=>{
   const a=N[e.from],b=N[e.to];if(!a||!b||!isFlow(e))return;
   const za=zoneOf(a),zb=zoneOf(b),f=EF.get(e)||0,ek=e.from+'>'+e.to;
-  if(a.type==='user'&&!['waf','cdn'].includes(b.type))add('crit','direct:'+ek,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(f)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['GT3','EA-P1','ATT&CK T1190'],{k:'waf',from:e.from,to:e.to});
+  const cc=canConnect(a,b);if(!cc.ok)add('crit','compat:'+ek,b.id,`${a.id} → ${b.id} is not technically possible`,cc.why,['Technical constraint','EA-P5'],cc.alt?{k:'between',from:e.from,to:e.to}:{k:'unlink',from:e.from,to:e.to});
+  if(a.type==='user'&&!['waf','cdn'].includes(b.type)&&!['db','cache','obj'].includes(b.type))add('crit','direct:'+ek,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(f)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['GT3','EA-P1','ATT&CK T1190'],{k:'waf',from:e.from,to:e.to});
   if(EXTERNAL.includes(a.type)&&['db','obj','cache'].includes(b.type))add('crit','expose:'+ek,b.id,`Data store ${b.id} is reachable from outside`,`Direct path ${a.id} → ${b.id} bypasses every perimeter.`,['GT2','EA-P5','ATT&CK T1530'],{k:'unlink',from:e.from,to:e.to});
   const egress=EXTERNAL.includes(b.type)&&!EXTERNAL.includes(a.type);
   if(egress){
@@ -638,6 +670,8 @@ function analyze(log=true){
   const fan=S.edges.filter(e=>e.from===n.id&&isFlow(e)).length;
   if(fan>6)add('warn','fan:'+n.id,n.id,`${n.id} calls ${fan} dependencies`,`High fan-out couples deploys and multiplies failure paths. Consider an event bus or a facade.`,['EA-P2'],null);
  });
+ kids('root').filter(n=>n.type==='db').forEach(n=>{const owners=[...new Set(S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>S.nodes[e.from]).filter(x=>x&&['svc','vm','fn'].includes(x.type)).map(x=>x.id))];
+  if(owners.length>1)add('warn','shareddb:'+n.id+':'+owners.join(','),n.id,`${n.id} is shared by ${owners.join(', ')}`,`A shared database couples services: a schema change for one breaks the others, and they cannot deploy or scale independently. Give each service its own schema or database; ${owners.slice(1).join(', ')} should use ${owners[0]}'s API or events instead.`,['EA-P8','EA-P2'],null)});
  const miss=kids('root').map(n=>({n,m:missingDeps(n)})).filter(x=>x.m.length);
  if(miss.length)add('warn','deps:'+miss.map(x=>x.n.id+'='+x.m.join('+')).join(','),null,`${miss.length} component${miss.length>1?'s are':' is'} missing platform dependencies`,miss.map(x=>`${x.n.id} (${svcName(x.n)}) needs ${x.m.map(d=>`${pk().svc[d]} for ${depWhy(x.n.type,d)}`).join(', ')}.`).join(' '),['Platform','EA-P3',...(miss.some(x=>x.m.includes('kms'))?['GT4']:[])],{k:'deps'});
  const root=kids('root');
@@ -744,10 +778,11 @@ function fixFn(x){
   enc:()=>{N()[x.n].enrich.encryptRest=true},
   deps:()=>addDeps(x.n?[x.n]:null),
   idp:()=>{const gw=kids('root').find(n=>n.type==='gw')||kids('root').find(n=>!EXTERNAL.includes(n.type));const i=addNode('idp',null,'root',{x:ZX.dmz,y:(gw?gw.y:250)+170});if(gw)connect(gw.id,i.id,'HTTPS')},
+  between:()=>insertServiceBetween(x.from,x.to),
   cap:()=>{const c=S.caps.find(c=>c.types.includes(x.t));if(c)c.on=true;else S.caps.push({id:'TC'+(S.caps.length+1),name:T[x.t].label+' (proposed via ADR)',types:[x.t],on:true});S.ver.caps++}
  }[x.k];
 }
-const fixLabel=x=>({waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
+const fixLabel=x=>({between:'Insert a service between',waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
 function applyFix(f){
  const x=f.fix;if(!x)return;
  if(x.k==='decide'){focusNode(x.n);return}
@@ -769,10 +804,11 @@ function addNode(type,name,parent,pos={}){
  logAI('SLM enrichment',`Enriched ${id} (${t.label})`,'Filled '+Object.keys(n.enrich).join(', ')+' from catalog defaults and zone policy',.88);
  return n;
 }
+function insertServiceBetween(a,b){const A=S.nodes[a],B=S.nodes[b];removeEdge(a,b);const t=prov()==='aws'&&A.type==='gw'?'fn':'svc';const s=addNode(t,`${B.name} ${t==='fn'?'function':'service'}`,A.parent,{x:ZX.app,y:(A.y+B.y)/2+120});connect(a,s.id);connect(s.id,b);return s}
 function removeNode(id){const all=[id];for(let i=0;i<all.length;i++)kids(all[i]).forEach(k=>all.push(k.id));all.forEach(x=>delete S.nodes[x]);S.edges=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to])}
 const findEdge=(a,b)=>S.edges.find(e=>e.from===a&&e.to===b&&isFlow(e));
 function removeEdge(a,b){S.edges=S.edges.filter(e=>!(e.from===a&&e.to===b))}
-function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||defVia(A.type,B.type)});return true}
+function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(!PLATFORM.includes(B.type)){const cc=canConnect(A,B);if(!cc.ok){const er=new Error(`${a} → ${b} is not technically possible. ${cc.why}`);er.alt=cc.alt?{from:a,to:b}:null;throw er}}if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||defVia(A.type,B.type)});return true}
 const TEMPLATES={
  svc:n=>[['api','GET /health'],['api','POST /'+n.name.split(' ')[0].toLowerCase()],['adp','Data adapter']],
  vm:()=>[['part','App runtime'],['part','Agent / sidecar']],
@@ -806,12 +842,12 @@ function drill(id){
 }
 
 /* ---------- Action Guard: dry-run every change before it happens ---------- */
-const CHECKS=[['Zero-trust path','EA-P5'],['Ground truth','GT'],['Capabilities','EA-P3'],['Resilience','EA-P2'],['Capacity','EA-P4'],['Threat exposure','ATT&CK'],['Platform dependencies','Platform']];
+const CHECKS=[['Technically supported','Technical'],['Zero-trust path','EA-P5'],['Ground truth','GT'],['Capabilities','EA-P3'],['Resilience','EA-P2'],['Capacity','EA-P4'],['Threat exposure','ATT&CK'],['Platform dependencies','Platform']];
 const RANK={ok:0,review:1,risk:2,block:3};
 function preview(fn,opts={}){
  const keep={S,F,EF,findings,KPI};const before={find:findings.slice(),kpi:{...KPI},F:{...F}};
  S=clone(keep.S);let error=null;
- try{fn();simulate();analyze(false)}catch(e){error=e.message}
+ let alt=null;try{fn();simulate();analyze(false)}catch(e){error=e.message;alt=e.alt||null}
  const after={find:findings,kpi:{...KPI},F:{...F},nodes:clone(S.nodes),edges:clone(S.edges)};
  S=keep.S;F=keep.F;EF=keep.EF;findings=keep.findings;KPI=keep.KPI;
  const bk=new Set(before.find.map(f=>f.key)),ak=new Set(after.find.map(f=>f.key));
@@ -829,11 +865,11 @@ function preview(fn,opts={}){
  if(after.kpi.err>before.kpi.err+.005)cons.push(`Errors rise from ${(before.kpi.err*100).toFixed(1)}% to ${(after.kpi.err*100).toFixed(1)}%.`);
  if(after.kpi.thr>before.kpi.thr+.005)cons.push(`${(after.kpi.thr*100).toFixed(1)}% of requests are throttled (429).`);
  const gt=added.some(f=>f.sev==='crit'&&f.basis.some(b=>/^GT/.test(b)));
- let verdict=error?'block':gt?'block':added.some(f=>f.sev==='crit')?'risk':added.length?'review':'ok';
+ let verdict=error?'invalid':gt?'block':added.some(f=>f.sev==='crit')?'risk':added.length?'review':'ok';
  if(opts.remove&&RANK[verdict]<RANK.review)verdict='review';
  if(gone.some(id=>['waf','idp','egw','kms','sec'].includes(S.nodes[id].type))&&RANK[verdict]<RANK.risk)verdict='risk';
- const checks=CHECKS.map(([n,p])=>{const bad=added.filter(f=>f.basis.some(b=>b.startsWith(p)));return {n,p,ok:!bad.length,bad}});
- return {verdict,added,resolved,before:before.kpi,after:after.kpi,afterF:after.F,checks,cons,error};
+ const checks=CHECKS.map(([n,p])=>{const bad=added.filter(f=>f.basis.some(b=>b.startsWith(p)));return {n,p,ok:!bad.length&&!(p==='Technical'&&error),bad}});
+ return {verdict,added,resolved,before:before.kpi,after:after.kpi,afterF:after.F,checks,cons,error,alt};
 }
 let pending=null;
 function act(desc,fn,opts={}){
@@ -856,9 +892,9 @@ function commit(desc,fn,opts,r,just){
 function addADR(a){S.adrs.push({id:'ADR-'+String(S.adrs.length+1).padStart(3,'0'),at:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),...a})}
 function showGuard(){
  const {desc,opts,r}=pending,mode=S.settings.guard;
- const V2={ok:['ok','ALLOWED','No new risks.'],review:['warn','REVIEW','Check the consequences before applying.'],risk:['crit','HIGH RISK','This change removes protection or introduces critical findings.'],block:['crit','BLOCKED BY GROUND TRUTH','This change violates a non-negotiable standard.']}[r.verdict];
+ const V2={ok:['ok','ALLOWED','No new risks.'],review:['warn','REVIEW','Check the consequences before applying.'],risk:['crit','HIGH RISK','This change removes protection or introduces critical findings.'],block:['crit','BLOCKED BY GROUND TRUTH','This change violates a non-negotiable standard.'],invalid:['crit','NOT SUPPORTED','']}[r.verdict];
  $('#gTitle').textContent='Action Guard · '+desc;
- $('#gVerdict').innerHTML=`<span class="pill ${V2[0]}">${V2[1]}</span><span>${esc(r.error?'Could not dry-run this change: '+r.error:V2[2])}</span>`;
+ $('#gVerdict').innerHTML=`<span class="pill ${V2[0]}">${V2[1]}</span><span>${esc(r.error||V2[2])}</span>`;
  $('#gChecks').innerHTML=r.checks.map(c=>`<span class="${c.ok?'ok':'crit'}">${c.ok?'✓':'✗'} ${c.n} <span style="color:var(--muted);font-family:var(--f-mono);font-size:10px">${c.p}</span></span>`).join('');
  const row=(l,a,b,f)=>`<tr><td>${l}</td><td class="num">${f(a)}</td><td class="num">→ ${f(b)}</td></tr>`;
  $('#gImpact').innerHTML=`<tr><th></th><th>Now</th><th>After</th></tr>`+row('Errors ≈',r.before.err,r.after.err,v=>(v*100).toFixed(1)+'%')+row('Throttled',r.before.thr,r.after.thr,v=>(v*100).toFixed(1)+'%')+row('Latency est.',r.before.lat,r.after.lat,v=>fmt(v)+' ms')+row('Bottleneck',r.before.worst,r.after.worst,w=>w?`${w.id}`:'—');
@@ -871,10 +907,12 @@ function showGuard(){
  $('#gJustWrap').hidden=r.verdict!=='block'&&r.verdict!=='risk';$('#gJust').value='';
  $('#gNote').textContent=needJ?'Enforce mode: a written justification of at least 20 characters is required. It is recorded as an exception decision.':opts.adr?'Applying records an architecture decision with these tradeoffs. You can undo it.':'Reviewed by the Guardian rules engine (stand-in for the SLM). Every outcome is written to the AI log. You can undo it.';
  $('#gApply').textContent=r.verdict==='ok'?'Apply':needJ?'Apply with exception':'Apply anyway';
+ const inv=r.verdict==='invalid';$('#gApply').hidden=inv;$('#gAlt').hidden=!r.alt;if(inv){$('#gJustWrap').hidden=true;$('#gNote').textContent='This is a technical constraint of the platform, not a policy, so no exception can override it.'+(r.alt?' Insert a service between them instead.':'');['#gImpactWrap'].forEach(s=>$(s).hidden=true)}else $('#gImpactWrap').hidden=false;
  $('#gApply').className='btn '+(r.verdict==='ok'||r.verdict==='review'?'primary':'danger');
  const upd=()=>{$('#gApply').disabled=needJ&&$('#gJust').value.trim().length<20};$('#gJust').oninput=upd;upd();
  $('#guard').hidden=false;$('#gCancel').focus();
 }
+$('#gAlt').onclick=()=>{if(!pending||!pending.r.alt)return;const {from,to}=pending.r.alt;pending=null;$('#guard').hidden=true;act(`Insert a service between ${from} and ${to}`,()=>insertServiceBetween(from,to),{tradeoffs:['+ The service owns the data access: connection pooling, queries, validation and authorization','+ The gateway keeps doing what it does well: routing, auth and rate limits','− One more component to build, deploy and scale']})};
 $('#gCancel').onclick=()=>{if(pending){logAI('Guardian',`Cancelled: ${pending.desc}`,`Architect declined after review (${pending.r.verdict})`,1);say(`Cancelled: ${pending.desc}.`,'g')}pending=null;$('#guard').hidden=true};
 $('#gApply').onclick=()=>{if(!pending)return;const p=pending;pending=null;$('#guard').hidden=true;const j=$('#gJust').value.trim();commit(p.desc,p.fn,p.opts,p.r,(p.r.verdict==='block'||p.r.verdict==='risk')&&j?j:null)};
 $('#guard').addEventListener('click',e=>{if(e.target.id==='guard')$('#gCancel').click()});
@@ -1189,12 +1227,14 @@ function drawNode(n,now,rel){
  ctx.fillStyle=sel||hov?colors.accent:colors.muted;ctx.font=`${9*k}px sans-serif`;ctx.textAlign='center';ctx.fillText('▾',cx+cs_/2,cy+cs_*.75);ctx.textAlign='left';ctx.globalAlpha=baseA;
  chipHits.push({x:cx-3,y:cy-3,w:cs_+6,h:cs_+6,node:n.id});
  if(k>.5){
-  ctx.font=`${9.5*k}px "IBM Plex Sans",sans-serif`;ctx.fillStyle=colors.accent;let sv=svcName(n);while(ctx.measureText(sv).width>w-18*k&&sv.length>3)sv=sv.slice(0,-2)+'…';ctx.fillText(sv,x+10*k,y+33*k);
-  ctx.font=`${10*k}px "IBM Plex Mono",monospace`;ctx.fillStyle=f.noRoute?colors.crit:colors.muted;
-  const l2=n.type==='user'?(f.noRoute?`NO ROUTE · ${fmt(f.in)} rps failing`:`${fmt(f.in)} rps offered`):EXTERNAL.includes(n.type)?`${fmt(f.in)} rps · external`:PLATFORM.includes(n.type)?`shared · ${S.edges.filter(e=>e.kind==='dep'&&e.to===n.id).length} users`:n.type==='part'?`${fmt(f.in)} rps`:n.failed?'FAILED · what-if':`${fmt(f.in)}/${fmt(capEff(n))} rps · ${pct(f.util)}`;
-  ctx.fillText(l2,x+10*k,y+48*k);
   const tg=[cnt>1?'×'+cnt:'',n.auto?'AUTO':'',n.rateLimit?'RL':'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.type==='queue'&&n.flavor==='kafka'?`${n.partitions}P`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
-  if(tg){ctx.textAlign='right';ctx.fillStyle=colors.accent;ctx.fillText(tg,x+w-8*k,y+48*k);ctx.textAlign='left'}
+  ctx.font=`600 ${9*k}px "IBM Plex Mono",monospace`;const tgw=tg?ctx.measureText(tg).width+6*k:0;
+  if(tg){ctx.textAlign='right';ctx.fillStyle=colors.accent;ctx.fillText(tg,x+w-8*k,y+33*k);ctx.textAlign='left'}
+  ctx.font=`${9.5*k}px "IBM Plex Sans",sans-serif`;ctx.fillStyle=colors.accent;let sv=svcName(n);while(ctx.measureText(sv).width>w-18*k-tgw&&sv.length>3)sv=sv.slice(0,-2)+'…';ctx.fillText(sv,x+10*k,y+33*k);
+  ctx.font=`${10*k}px "IBM Plex Mono",monospace`;ctx.fillStyle=f.noRoute?colors.crit:colors.muted;
+  let l2=n.type==='user'?(f.noRoute?`NO ROUTE · ${fmt(f.in)} rps failing`:`${fmt(f.in)} rps offered`):EXTERNAL.includes(n.type)?`${fmt(f.in)} rps · external`:PLATFORM.includes(n.type)?`shared · ${S.edges.filter(e=>e.kind==='dep'&&e.to===n.id).length} users`:n.type==='part'?`${fmt(f.in)} rps`:n.failed?'FAILED · what-if':`${fmt(f.in)}/${fmt(capEff(n))} rps · ${pct(f.util)}`;
+  if(ctx.measureText(l2).width>w-18*k)l2=l2.replace(' rps','');while(ctx.measureText(l2).width>w-18*k&&l2.length>3)l2=l2.slice(0,-2)+'…';
+  ctx.fillText(l2,x+10*k,y+48*k);
  }
  let below=y+h;
  if(inst){

@@ -75,3 +75,11 @@ flags gaps and adds shared services. Dependency links carry no traffic.
 ## D16 — Every change is undoable
 The workbench keeps an undo/redo history of design snapshots. Decisions and the
 AI log are audit records and stay even when a change is undone.
+
+## D17 — Technical constraints are separate from policy
+Policy (ground truth, EA principles) can be overridden with a recorded
+exception. Technical constraints cannot: if a provider or a component type
+cannot make a connection (API gateway → database, WAF → database, database →
+service), the Action Guard refuses it outright and offers a valid alternative.
+The constraint table lives in the provider packs so each provider's real
+integration options are used.

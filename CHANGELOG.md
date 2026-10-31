@@ -5,6 +5,25 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-10-31
+
+### Added
+- **Technical constraints**: each component type now knows what it can
+  actually call (e.g. an API gateway forwards HTTP/gRPC to services,
+  functions or AWS-service integrations; a WAF only fronts CDNs, load
+  balancers and gateways; databases and caches never initiate calls). An
+  impossible flow is refused as NOT SUPPORTED with the provider's own reason;
+  unlike policy findings, no exception can override it. The Guard offers
+  "Insert a service between" (on AWS a Lambda for API Gateway → RDS).
+- Impossible flows already in a saved design are flagged with the same fix.
+- New principle P8 "Each service owns its data" and a finding when one
+  database is shared by several services.
+
+### Fixed
+- An API gateway could be connected straight to a database.
+- Card text overlapped (load, replica count and sub-design count); badges
+  moved to the service line and the load line now truncates.
+
 ## [0.1.3] — 2026-10-31
 
 Second round of feedback from testing on Buddy.
@@ -131,7 +150,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/dizonj-lab/nexus/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/dizonj-lab/nexus/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/dizonj-lab/nexus/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/dizonj-lab/nexus/compare/v0.1.0...v0.1.1
