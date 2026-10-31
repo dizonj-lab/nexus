@@ -5,6 +5,23 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.5] — 2026-10-31
+
+### Fixed
+- Red rows in the Design Tree that could not be found among the instances:
+  they were placeholder "Component A / B" services inside a load balancer's
+  sub-design (created by v0.1.1–0.1.2). As services they had their own 800 rps
+  capacity but carried all the traffic passing through the load balancer, so
+  they showed over 300%. They are converted to parts on load, with a note in
+  the console and the AI log.
+- The Design Tree now labels "instances (n)" and "sub-design (n)" separately
+  under a component.
+
+### Added
+- A component shows when something inside its sub-design is warm or hot: its
+  ▸ badge turns orange or red, and its tree row names the hot part.
+- Findings for components inside a sub-design name their parent.
+
 ## [0.1.4] — 2026-10-31
 
 ### Added
@@ -150,7 +167,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/dizonj-lab/nexus/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/dizonj-lab/nexus/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/dizonj-lab/nexus/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/dizonj-lab/nexus/compare/v0.1.1...v0.1.2

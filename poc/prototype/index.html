@@ -197,7 +197,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.4</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.5</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -508,16 +508,19 @@ function migrate(){
  S.adrs=S.adrs||[];S.settings.guard=S.settings.guard||'enforce';
  S.schema=3;
 }
+function normalizeParts(){const fixed=[];Object.values(S.nodes).forEach(n=>{const p=S.nodes[n.parent];if(p&&!['svc','vm','fn','api','adp'].includes(p.type)&&['svc','vm','api','adp','obj','fn'].includes(n.type)&&!kids(n.id).length){n.type='part';n.cap=Infinity;n.rep=1;n.auto=null;fixed.push(`${n.id} in ${p.id}`)}});
+ if(fixed.length){S.edges=S.edges.filter(e=>!(e.kind==='dep'&&S.nodes[e.from]&&S.nodes[e.from].type==='part'));logAI('Workbench',`Converted ${fixed.length} placeholder component(s) to parts`,`${fixed.join(', ')} were modelled as services with their own capacity inside a non-service component; parts carry the parent's traffic without a separate limit`,1)}return fixed}
 function ensureP8(){if(!S.ea.some(g=>g.id==='P8')){S.ea.push({id:'P8',t:'Each service owns its data. Other services use its API or its events, never its database.'});S.ver.ea++}}
 
 /* ---------- persistence and undo ---------- */
 const KEY='nexus.workbench.v1';
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();return true}}catch(e){}return false}
+let normalized=[];
+function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();normalized=normalizeParts();return true}}catch(e){}return false}
 const UNDO=[],REDO=[];
 const snap=()=>JSON.stringify({...S,log:[],versions:[]});
 function pushUndo(desc,data){UNDO.push({desc,data:data||snap()});if(UNDO.length>80)UNDO.shift();REDO.length=0;renderUR()}
-function restoreSnap(data){const keep={log:S.log,versions:S.versions};S={...JSON.parse(data),...keep};if(V.sel&&!S.nodes[V.sel])V.sel=null;if(V.selE&&!findEdge(V.selE.from,V.selE.to))V.selE=null;if(V.scope!=='root'&&!S.nodes[V.scope])V.scope='root'}
+function restoreSnap(data){const keep={log:S.log,versions:S.versions};S={...JSON.parse(data),...keep};normalizeParts();if(V.sel&&!S.nodes[V.sel])V.sel=null;if(V.selE&&!findEdge(V.selE.from,V.selE.to))V.selE=null;if(V.scope!=='root'&&!S.nodes[V.scope])V.scope='root'}
 function undo(){const u=UNDO.pop();if(!u)return;REDO.push({desc:u.desc,data:snap()});restoreSnap(u.data);logAI('Workbench',`Undo: ${u.desc}`,'Restored the design to the state before this change',1);say(`Undid: ${u.desc}.`,'s');changed()}
 function redo(){const r=REDO.pop();if(!r)return;UNDO.push({desc:r.desc,data:snap()});restoreSnap(r.data);logAI('Workbench',`Redo: ${r.desc}`,'Re-applied the change',1);say(`Redid: ${r.desc}.`,'s');changed()}
 function renderUR(){const u=$('#undoBtn'),r=$('#redoBtn');u.disabled=!UNDO.length;r.disabled=!REDO.length;u.title=UNDO.length?`Undo: ${UNDO[UNDO.length-1].desc} (Ctrl+Z)`:'Nothing to undo';r.title=REDO.length?`Redo: ${REDO[REDO.length-1].desc} (Ctrl+Shift+Z)`:'Nothing to redo'}
@@ -546,6 +549,7 @@ function queueLoad(n,i){
  const ub=isFinite(brokerCap)?i/brokerCap:0,uc=consCap>0?i/consCap:Infinity;
  return {util:Math.max(ub,uc),ub,uc,consCap,brokerCap,idle:kafka?Math.max(0,c-p):0,active};
 }
+function innerWorst(id){let w=null;const go=pid=>kids(pid).forEach(c=>{if(!EXTERNAL.includes(c.type)&&!PLATFORM.includes(c.type)&&c.type!=='part'&&F[c.id]&&(!w||F[c.id].util>w.util))w={id:c.id,util:F[c.id].util};go(c.id)});go(id);return w}
 const capEff=n=>{if(n.type==='db')return 1/Math.max(1e-9,dbLoad(n,1).util);if(n.type==='queue'){const q=queueLoad(n,1);return Math.min(q.brokerCap,q.consCap)}return T[n.type].cap===Infinity?Infinity:n.cap*repOf(n)*scaleOf(n)};
 const st=u=>!isFinite(u)?'crit':u>=.85?'crit':u>=.6?'warn':'ok';
 function flowScope(pid,entryIn){
@@ -660,7 +664,7 @@ function analyze(log=true){
    const d=f.db,opts=dbOptions(n);const rec=opts.find(o=>o.rec);
    add(f.util>=.85?'crit':'warn','hot:'+n.id,n.id,`${n.id} is ${f.util>=.85?'a bottleneck':'running warm'} at ${pct(f.util)} (${d.bound}-bound)`,`${fmt(d.r)} reads/s + ${fmt(d.w)} writes/s. Recommended: ${rec?rec.name:'review options'}.`,['EA-P4','EA-P6','ML forecast'],{k:'decide',n:n.id});
   }else if(n.type!=='db'&&n.type!=='queue'&&isFinite(T[n.type].cap)){
-   if(f.util>=.85)add('crit','hot:'+n.id,n.id,`${n.id} is a bottleneck at ${pct(f.util)}`,`${fmt(f.in-f.thr)} rps against ${fmt(capEff(n))} rps capacity. Options: scale out, autoscale, scale up, rate limit${['svc','vm','fn'].includes(n.type)?', async via queue':''}.`,['EA-P4','EA-P7','ML forecast'],{k:'decide',n:n.id});
+   if(f.util>=.85)add('crit','hot:'+n.id,n.id,`${n.id}${n.parent!=='root'?` (inside ${n.parent})`:''} is a bottleneck at ${pct(f.util)}`,`${fmt(f.in-f.thr)} rps against ${fmt(capEff(n))} rps capacity. Options: scale out, autoscale, scale up, rate limit${['svc','vm','fn'].includes(n.type)?', async via queue':''}.`,['EA-P4','EA-P7','ML forecast'],{k:'decide',n:n.id});
    else if(f.util>=.6)add('warn','warm:'+n.id,n.id,`${n.id} runs at ${pct(f.util)}`,`Headroom is ${fmt(capEff(n)-f.in)} rps. A ${(1/f.util).toFixed(1)}× burst saturates it.`,['EA-P4'],{k:'decide',n:n.id});
   }
   if(n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(n.auto?n.auto.min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
@@ -1229,7 +1233,8 @@ function drawNode(n,now,rel){
  if(k>.5){
   const tg=[cnt>1?'×'+cnt:'',n.auto?'AUTO':'',n.rateLimit?'RL':'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.type==='queue'&&n.flavor==='kafka'?`${n.partitions}P`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
   ctx.font=`600 ${9*k}px "IBM Plex Mono",monospace`;const tgw=tg?ctx.measureText(tg).width+6*k:0;
-  if(tg){ctx.textAlign='right';ctx.fillStyle=colors.accent;ctx.fillText(tg,x+w-8*k,y+33*k);ctx.textAlign='left'}
+  const iw=kids(n.id).length?innerWorst(n.id):null,ist=iw?st(iw.util):'ok';
+  if(tg){ctx.textAlign='right';ctx.fillStyle=ist!=='ok'?colors[ist]:colors.accent;ctx.fillText(tg+(ist!=='ok'?' !':''),x+w-8*k,y+33*k);ctx.textAlign='left'}
   ctx.font=`${9.5*k}px "IBM Plex Sans",sans-serif`;ctx.fillStyle=colors.accent;let sv=svcName(n);while(ctx.measureText(sv).width>w-18*k-tgw&&sv.length>3)sv=sv.slice(0,-2)+'…';ctx.fillText(sv,x+10*k,y+33*k);
   ctx.font=`${10*k}px "IBM Plex Mono",monospace`;ctx.fillStyle=f.noRoute?colors.crit:colors.muted;
   let l2=n.type==='user'?(f.noRoute?`NO ROUTE · ${fmt(f.in)} rps failing`:`${fmt(f.in)} rps offered`):EXTERNAL.includes(n.type)?`${fmt(f.in)} rps · external`:PLATFORM.includes(n.type)?`shared · ${S.edges.filter(e=>e.kind==='dep'&&e.to===n.id).length} users`:n.type==='part'?`${fmt(f.in)} rps`:n.failed?'FAILED · what-if':`${fmt(f.in)}/${fmt(capEff(n))} rps · ${pct(f.util)}`;
@@ -1496,18 +1501,25 @@ function logAI(model,what,why,conf){const slm=['Phi-4-mini','Llama 3.2 3B','Qwen
 /* ---------- tree (components, sub-designs and every instance) ---------- */
 let treeSeen=new Set();
 function renderTree(){
- const rows=[];const walk=(pid,d)=>kids(pid).forEach(n=>{rows.push({n,d});if((V.allInst||n.expanded)&&instancesOf(n).length>1&&!EXTERNAL.includes(n.type))instancesOf(n).forEach(m=>rows.push({inst:m,n:{id:m.id,parent:n.id,name:m.role},d:d+1,owner:n}));walk(n.id,d+1)});
- rows.push({n:{id:'root',name:S.project,type:'sys'},d:0});walk('root',1);
+ const rows=[];
+ const walk=(pid,d,pkey)=>kids(pid).forEach(n=>{rows.push({n,d,pk:pkey});
+  const list=instancesOf(n),ch=kids(n.id),showI=(V.allInst||n.expanded)&&list.length>1&&!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)&&n.type!=='part',both=showI&&ch.length>0;
+  if(showI){let par=n.id,dd=d+1;if(both){rows.push({hdr:`instances (${list.length})`,owner:n,n:{id:n.id+'#i'},d:d+1,pk:n.id});par=n.id+'#i';dd=d+2}
+   list.forEach(m=>rows.push({inst:m,n:{id:m.id,name:m.role},d:dd,pk:par,owner:n}))}
+  if(ch.length){if(both){rows.push({hdr:`sub-design (${ch.length})`,owner:n,n:{id:n.id+'#s'},d:d+1,pk:n.id});walk(n.id,d+2,n.id+'#s')}else walk(n.id,d+1,n.id)}
+ });
+ rows.push({n:{id:'root',name:S.project,type:'sys'},d:0});walk('root',1,'root');
  const z=+$('#treeZoom').value,rh=19*z,svg=$('#treeSvg');
- $('#treeTag').textContent=(rows.filter(r=>!r.inst).length-1)+' nodes'+(rows.some(r=>r.inst)?` · ${rows.filter(r=>r.inst).length} instances`:'');
+ $('#treeTag').textContent=(rows.filter(r=>!r.inst&&!r.hdr).length-1)+' nodes'+(rows.some(r=>r.inst)?` · ${rows.filter(r=>r.inst).length} instances`:'');
  svg.setAttribute('width',320*z);svg.setAttribute('height',rows.length*rh+8);svg.setAttribute('viewBox',`0 0 320 ${(rows.length*rh+8)/z}`);
  let h='';const pos={};
  rows.forEach((r,i)=>{pos[r.n.id]={x:12+r.d*16,y:10+i*19}});
- rows.forEach(r=>{if(r.n.id==='root')return;const p=pos[r.n.parent],c=pos[r.n.id];if(p)h+=`<path d="M${p.x} ${p.y+4}V${c.y}H${c.x-5}" fill="none" stroke="var(--line)" stroke-width="1" ${r.inst?'stroke-dasharray="2 2"':''}/>`});
+ rows.forEach(r=>{if(r.n.id==='root')return;const p=pos[r.pk],c=pos[r.n.id];if(p)h+=`<path d="M${p.x} ${p.y+4}V${c.y}H${c.x-5}" fill="none" stroke="var(--line)" stroke-width="1" ${r.inst?'stroke-dasharray="2 2"':''}/>`});
  rows.forEach(r=>{const c=pos[r.n.id];
+  if(r.hdr){h+=`<g class="row" data-id="${r.owner.id}" style="transform:translate(${c.x}px,${c.y}px)"><text class="i" x="-4" y="4" font-style="italic">${r.hdr}</text></g>`;return}
   if(r.inst){const s=r.inst.idle?'muted':st(r.inst.util);h+=`<g class="row" data-id="${r.owner.id}" data-inst="${r.inst.id}" style="transform:translate(${c.x}px,${c.y}px)"><rect x="-8" y="-8" width="${310-c.x}" height="17" rx="3" fill="${V.selInst===r.inst.id?'var(--accent-soft)':'transparent'}"/><rect x="-3" y="-3" width="6" height="6" fill="var(--${s})"/><text x="9" y="4">${r.inst.id}</text><text class="i" x="${13+r.inst.id.length*6.6}" y="4">${esc(r.inst.role)}${r.inst.idle?'':' · '+pct(r.inst.util)}</text></g>`;return}
-  const f=F[r.n.id],s=r.n.id==='root'||r.n.type==='user'?(f&&f.noRoute?'crit':'accent'):EXTERNAL.includes(r.n.type)||PLATFORM.includes(r.n.type)||r.n.type==='part'?'muted':f?st(f.util):'ok',isNew=!treeSeen.has(r.n.id)&&treeSeen.size,cnt=r.n.id==='root'?1:instCount(r.n);
-  h+=`<g class="row${isNew?' new':''}" data-id="${r.n.id}" style="transform:translate(${c.x}px,${c.y}px)"><rect x="-8" y="-8" width="${310-c.x}" height="17" rx="3" fill="${V.sel===r.n.id?'var(--accent-soft)':'transparent'}"/><circle r="4" fill="var(--${s})" class="${s==='crit'?'pulse':''}"/><text x="9" y="4">${r.n.id==='root'?'':r.n.id}</text><text class="n" x="${r.n.id==='root'?9:13+r.n.id.length*6.6}" y="4">${esc(r.n.name)}${cnt>1?' ×'+cnt:''}${V.scope===r.n.id?'  ◂ in view':''}</text></g>`});
+  const f=F[r.n.id],s=r.n.id==='root'||r.n.type==='user'?(f&&f.noRoute?'crit':'accent'):EXTERNAL.includes(r.n.type)||PLATFORM.includes(r.n.type)||r.n.type==='part'?'muted':f?st(f.util):'ok',isNew=!treeSeen.has(r.n.id)&&treeSeen.size,cnt=r.n.id==='root'?1:instCount(r.n),inner=r.n.id!=='root'&&innerWorst(r.n.id);
+  h+=`<g class="row${isNew?' new':''}" data-id="${r.n.id}" style="transform:translate(${c.x}px,${c.y}px)"><rect x="-8" y="-8" width="${310-c.x}" height="17" rx="3" fill="${V.sel===r.n.id?'var(--accent-soft)':'transparent'}"/><circle r="4" fill="var(--${s})" class="${s==='crit'?'pulse':''}"/><text x="9" y="4">${r.n.id==='root'?'':r.n.id}</text><text class="n" x="${r.n.id==='root'?9:13+r.n.id.length*6.6}" y="4">${esc(r.n.name)}${cnt>1?' ×'+cnt:''}${V.scope===r.n.id?'  ◂ in view':''}${inner&&st(inner.util)!=='ok'?`<tspan fill="var(--${st(inner.util)})"> ● ${inner.id} inside ${pct(inner.util)}</tspan>`:''}</text></g>`});
  svg.innerHTML=h;treeSeen=new Set(rows.map(r=>r.n.id));
 }
 $('#treeSvg').addEventListener('click',e=>{const g=e.target.closest('g.row');if(!g)return;const id=g.dataset.id;if(id==='root'){V.scope='root';V.sel=null;fit();changed();return}if(g.dataset.inst){V.selInst=g.dataset.inst;S.nodes[id].expanded=true}focusNode(id)});
@@ -1727,6 +1739,7 @@ changed();
 placePanels(true);
 fit();
 say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
+if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
 say('Click ▾ on any component for actions. Every change is reviewed by the Action Guard and can be undone (Ctrl+Z). "help" lists console commands.','s');
 requestAnimationFrame(frame);
 })();
