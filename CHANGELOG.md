@@ -5,6 +5,19 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.11] — 2026-10-31
+
+### Added
+- **Redesign**: `redesign`, `redesign: <goal>`, `fix the weak points` or
+  `apply the second opinion` asks the escalation model (gpt-oss) for an
+  incremental plan that resolves the current findings and, if present, the
+  latest second opinion's recommendations. It keeps component IDs, is
+  validated against technical constraints, is reviewed by the Action Guard,
+  and after it is applied the console shows compliance before and after.
+  One Ctrl+Z undoes the whole redesign.
+- Every console request to a model now includes the rules engine's current
+  findings, so answers address real problems.
+
 ## [0.1.10] — 2026-10-31
 
 ### Added
@@ -265,7 +278,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/dizonj-lab/nexus/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/dizonj-lab/nexus/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/dizonj-lab/nexus/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/dizonj-lab/nexus/compare/v0.1.7...v0.1.8
