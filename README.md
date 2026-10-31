@@ -27,6 +27,26 @@ open poc/prototype/index.html        # or xdg-open on Linux
 cd architecture/likec4 && npx likec4 start
 ```
 
+## Test deployment
+
+One site: prototype at `/`, LikeC4 architecture at `/c4/`.
+
+```bash
+bash deploy/build-site.sh && python3 -m http.server 8080 -d site
+```
+
+```bash
+docker build -f deploy/Dockerfile -t nexus-site . && docker run --rm -p 8080:8080 nexus-site
+```
+
+On Buddy (home LLM server, 192.168.1.93):
+
+```bash
+bash deploy/buddy.sh
+```
+
+Prototype at `http://192.168.1.93:8088/`, LikeC4 at `http://192.168.1.93:8088/c4/`.
+
 ## Versioning
 
 Semantic Versioning. `0.x` while the work packages in `docs/ROADMAP.md` are being

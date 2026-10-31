@@ -5,6 +5,16 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-10-31
+
+### Added
+- Test deployment: one site with the prototype at `/` and the LikeC4
+  architecture at `/c4/` (`deploy/build-site.sh`, `deploy/Dockerfile`,
+  `deploy/nginx.conf`, health check at `/healthz`).
+- Deployment to Buddy, the home LLM server (192.168.1.93): Docker Compose
+  (`deploy/compose.yml`, port 8088, read-only container) and `deploy/buddy.sh`
+  to pull, rebuild and health-check. Standalone NEXUS stack.
+
 ## [0.1.0] — 2026-10-31
 
 Concept baseline: prototype and target architecture.
@@ -34,5 +44,6 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/dizonj-lab/nexus/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/dizonj-lab/nexus/releases/tag/v0.1.0
