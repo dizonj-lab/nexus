@@ -60,3 +60,18 @@ Every flow records how it travels: in-network, internet, private link, VPN or
 dedicated circuit. Traffic to third parties must use private connectivity or
 the egress gateway (GT5). Terraform for endpoints and circuits is generated
 from these flows.
+
+## D14 — Scaling is a choice among options, not "add instances"
+Each bottleneck offers scale out, autoscale, scale up, rate limiting, async
+queues or CDN offload (and for queues: consumers, partitions, brokers). Every
+option is dry-run so its effect on utilization, errors and throttling is shown
+before it is chosen. Protection comes before scaling (P7).
+
+## D15 — Platform dependencies are modelled explicitly
+Components declare what the platform must provide (images, artifacts, keys,
+secrets, telemetry). A platform dependency expert, driven by the provider pack,
+flags gaps and adds shared services. Dependency links carry no traffic.
+
+## D16 — Every change is undoable
+The workbench keeps an undo/redo history of design snapshots. Decisions and the
+AI log are audit records and stay even when a change is undone.

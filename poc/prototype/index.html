@@ -180,12 +180,26 @@ table.opt tr.rec td{background:var(--accent-soft)}
   .checks{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){#treeSvg .pulse,#treeSvg g.new{animation:none}#treeSvg g.row{transition:none}}
+.nmenu{position:absolute;z-index:8;width:240px;background:var(--surface);border:1px solid var(--line);border-radius:7px;box-shadow:0 8px 24px rgba(10,20,40,.16);padding:4px;display:grid;gap:1px;font-size:12px}
+.nmenu .mh{padding:5px 8px;border-bottom:1px solid var(--line);margin-bottom:3px}
+.nmenu .mh b{font-family:var(--f-mono)}
+.nmenu label{display:grid;gap:3px;padding:4px 8px;color:var(--muted);font-size:11px}
+.nmenu select{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:3px;font-size:12px}
+.nmenu button{border:0;background:transparent;text-align:left;padding:5px 8px;border-radius:4px;font-size:12px}
+.nmenu button:hover{background:var(--accent-soft);color:var(--accent)}
+.nmenu button.del{color:var(--crit)}
+.nmenu button.del:hover{background:var(--crit);color:var(--surface)}
+.ribbon{display:inline-flex;gap:3px;align-items:center}
+.ribbon .btn{padding:4px 8px}
+.ribbon .btn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.insp .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#treeSvg text.i{font-size:9.5px;fill:var(--muted)}
 </style>
-
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.2</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.3</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
+    <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
       <button data-v="flow" aria-pressed="true">Flow</button><button data-v="flat" aria-pressed="false">Flat</button><button data-v="iso" aria-pressed="false">3D</button><button data-v="rel" aria-pressed="false">Relations</button>
     </span>
@@ -202,8 +216,8 @@ table.opt tr.rec td{background:var(--accent-soft)}
     <canvas id="cv" aria-label="System design canvas"></canvas>
     <div class="palette" id="palette" aria-label="Add component"></div>
     <div class="crumb" id="crumb"></div>
-    <div class="nbar" id="nbar" hidden><button data-a="connect" title="Connect to another component (C)">Connect</button><button data-a="open" title="Open sub-design">Open</button><button data-a="inst" title="Show replicas and instances (I)">Instances</button><button data-a="del" class="del" title="Remove (Delete)">Remove</button></div>
-    <div class="hint" id="hint">Click a component for actions · Drag to move · Double-click to open sub-design · Scroll to zoom</div>
+    <div class="nmenu" id="nmenu" hidden></div>
+    <div class="hint" id="hint">Click ▾ on a component (or right-click) for actions · Drag to move · Double-click to open · Scroll to zoom for details</div>
 
     <section class="panel" id="pAdv" data-k="adv">
       <header><span class="ttl">Design Advisor</span><span class="tag" id="advCount"></span><span class="sp"></span><button class="ib tuneB" title="Opacity and border" aria-label="Opacity and border">◐</button><button class="ib colB" title="Collapse" aria-label="Collapse">–</button></header>
@@ -238,7 +252,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
     <div class="pane on" id="pane-con">
       <header><span class="ttl">Systems Architect Console</span><span class="tag" id="verTag"></span><span class="tag" id="guardTag"></span><span class="sp"></span><button class="btn" id="discBtn" style="padding:2px 8px;font-size:11px">Start discovery</button></header>
       <div id="conOut" aria-live="polite"></div>
-      <form class="adder" id="conForm"><input id="conIn" placeholder="e.g. connect SVC2 to SAAS1 via privatelink · decide DB1 · expand DB1 · what if load 3x" autocomplete="off"><button class="btn primary">Run</button></form>
+      <form class="adder" id="conForm"><input id="conIn" placeholder="e.g. use aws managed kafka for microservice to microservice communication · rate limit GW1 2000 · undo" autocomplete="off"><button class="btn primary">Run</button></form>
     </div>
     <div class="pane" id="pane-cap">
       <header><span class="ttl">Technical Capabilities</span><span class="tag" id="capVer"></span></header>
@@ -315,68 +329,102 @@ const T={
  fn:{p:'FN',label:'Function',cap:2500,zone:'app',lat:35,pro:'Scale-to-zero; pay per call',con:'Cold starts; vendor lock-in'},
  api:{p:'EP',label:'API endpoint',cap:1500,zone:'app',lat:4},
  adp:{p:'ADP',label:'Adapter',cap:1200,zone:'app',lat:6,pro:'Isolates third-party contract changes',con:'Extra translation layer'},
- queue:{p:'Q',label:'Queue',cap:15000,zone:'data',route:1,lat:3,pro:'Absorbs bursts; decouples writers',con:'Eventual consistency'},
+ queue:{p:'Q',label:'Queue / event bus',cap:15000,zone:'data',lat:3,pro:'Absorbs bursts; decouples producers from consumers',con:'Eventual consistency; idempotent consumers needed'},
  cache:{p:'C',label:'Cache',cap:20000,zone:'data',lat:1,pro:'Sub-ms reads; offloads database',con:'Staleness; invalidation logic'},
  db:{p:'DB',label:'Database',cap:1500,zone:'data',lat:9,pro:'Durable transactional store',con:'Hardest tier to scale out'},
- obj:{p:'OS',label:'Object store',cap:6000,zone:'data',lat:18,pro:'Cheap durable blobs',con:'Public exposure risk'}
+ obj:{p:'OS',label:'Object store',cap:6000,zone:'data',lat:18,pro:'Cheap durable blobs',con:'Public exposure risk'},
+ part:{p:'PT',label:'Part',cap:Infinity,zone:'app',route:0,lat:1},
+ reg:{p:'REG',label:'Container registry',cap:Infinity,zone:'platform',lat:0,pro:'Signed, scanned images in one place',con:'Must be replicated for DR'},
+ art:{p:'ART',label:'Artifact store',cap:Infinity,zone:'platform',lat:0,pro:'Versioned build artifacts and packages',con:'Another bucket to protect'},
+ kms:{p:'KMS',label:'Key management',cap:Infinity,zone:'platform',lat:0,pro:'Customer-managed keys and rotation (GT4)',con:'Key loss is data loss'},
+ sec:{p:'SEC',label:'Secrets manager',cap:Infinity,zone:'platform',lat:0,pro:'No secrets in code or images',con:'Tier-0 dependency at startup'},
+ mon:{p:'MON',label:'Observability',cap:Infinity,zone:'platform',lat:0,pro:'Logs, metrics, traces, SIEM feed',con:'Ingest cost'}
 };
 const EXTERNAL=['user','ext','saas'];
+const PLATFORM=['reg','art','kms','sec','mon'];
 const TIERS={s:{l:'Small · 2 vCPU',cap:700},m:{l:'Medium · 4 vCPU',cap:1500},l:{l:'Large · 8 vCPU',cap:3000},xl:{l:'X-Large · 16 vCPU',cap:6000},xxl:{l:'2X-Large · 32 vCPU',cap:11000}};
 const TIER_ORDER=['s','m','l','xl','xxl'];
 const ZX={internet:60,edge:270,dmz:480,app:710,data:950};
-const PORT={HTTPS:443,mTLS:443,'SQL/TLS':5432,'RESP/TLS':6380,AMQPS:5671,HTTP:80};
-const PROTOS=['HTTPS','mTLS','SQL/TLS','RESP/TLS','AMQPS','HTTP'];
+const PORT={HTTPS:443,mTLS:443,'SQL/TLS':5432,'RESP/TLS':6380,AMQPS:5671,'Kafka/TLS':9094,HTTP:80};
+const PROTOS=['HTTPS','mTLS','SQL/TLS','RESP/TLS','AMQPS','Kafka/TLS','HTTP'];
 const defProto=t=>({db:'SQL/TLS',cache:'RESP/TLS',queue:'AMQPS',svc:'mTLS',api:'mTLS',adp:'mTLS',vm:'mTLS',fn:'mTLS'}[t]||'HTTPS');
+const protoFor=(A,B)=>(B.type==='queue'&&B.flavor==='kafka')||(A.type==='queue'&&A.flavor==='kafka')?'Kafka/TLS':A.type==='queue'?'AMQPS':defProto(B.type);
 const defVia=(a,b)=>EXTERNAL.includes(b)&&!EXTERNAL.includes(a)&&a!=='egw'?'internet':'net';
+const isFlow=e=>e.kind!=='dep';
 
 /* ---------- provider packs (one interface, one pack per provider) ---------- */
 const PACK={
  aws:{name:'AWS',outer:'AWS · VPC 10.0.0.0/16 · eu-west-1 · 2 AZs',rrMax:15,
   zone:{internet:'INTERNET',edge:'PUBLIC SUBNETS · 2 AZ',dmz:'INGRESS · PRIVATE SUBNET',app:'APP SUBNETS · PRIVATE',data:'DATA SUBNETS · ISOLATED'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'CloudFront',waf:'AWS WAF',lb:'Application LB',egw:'NAT GW + Network Firewall',gw:'API Gateway',idp:'Cognito',svc:'ECS Fargate',vm:'EC2',fn:'Lambda',api:'API route',adp:'Sidecar container',queue:'SQS',cache:'ElastiCache Redis',db:'RDS PostgreSQL',obj:'S3'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'CloudFront',waf:'AWS WAF',lb:'Application LB',egw:'NAT GW + Network Firewall',gw:'API Gateway',idp:'Cognito',svc:'ECS Fargate',vm:'EC2',fn:'Lambda',api:'API route',adp:'Sidecar container',queue:'SQS',cache:'ElastiCache Redis',db:'RDS PostgreSQL',obj:'S3',reg:'ECR',art:'S3 (artifacts)',kms:'KMS',sec:'Secrets Manager',mon:'CloudWatch'},
+  q:{kafka:'Amazon MSK',mq:'Amazon MQ (RabbitMQ)',native:'SQS'},
+  idp:{native:'Cognito user pool',corp:'Cognito + SAML federation',social:'Cognito + social IdPs',work:'IAM Identity Center'},
   pl:'PrivateLink',dedicated:'Direct Connect',vpn:'Site-to-Site VPN',
-  dbClass:{s:'db.r6g.large',m:'db.r6g.xlarge',l:'db.r6g.2xlarge',xl:'db.r6g.4xlarge',xxl:'db.r6g.8xlarge'},shard:'Aurora Limitless or Citus'},
+  dbClass:{s:'db.r6g.large',m:'db.r6g.xlarge',l:'db.r6g.2xlarge',xl:'db.r6g.4xlarge',xxl:'db.r6g.8xlarge'},shard:'Aurora Limitless or Citus',
+  waf:'AWS managed Common, SQLi, KnownBadInputs'},
  azure:{name:'Azure',outer:'AZURE · VNet 10.0.0.0/16 · West Europe · zone-redundant',rrMax:5,
   zone:{internet:'INTERNET',edge:'EDGE SUBNET · FRONT DOOR / APP GW',dmz:'APIM SUBNET',app:'APP SUBNET · PRIVATE',data:'DATA SUBNET · PRIVATE ENDPOINTS'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Front Door',waf:'App Gateway WAF',lb:'Azure Load Balancer',egw:'Azure Firewall',gw:'API Management',idp:'Entra ID',svc:'Container Apps',vm:'Azure VM',fn:'Functions',api:'APIM operation',adp:'Sidecar container',queue:'Service Bus',cache:'Azure Cache for Redis',db:'PostgreSQL Flexible',obj:'Blob Storage'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Front Door',waf:'App Gateway WAF',lb:'Azure Load Balancer',egw:'Azure Firewall',gw:'API Management',idp:'Entra ID',svc:'Container Apps',vm:'Azure VM',fn:'Functions',api:'APIM operation',adp:'Sidecar container',queue:'Service Bus',cache:'Azure Cache for Redis',db:'PostgreSQL Flexible',obj:'Blob Storage',reg:'ACR',art:'Blob (artifacts)',kms:'Key Vault keys',sec:'Key Vault secrets',mon:'Azure Monitor'},
+  q:{kafka:'Event Hubs (Kafka)',mq:'Service Bus Premium',native:'Service Bus'},
+  idp:{native:'Entra External ID',corp:'Entra ID federation (SAML)',social:'Entra External ID + social',work:'Entra ID'},
   pl:'Private Endpoint',dedicated:'ExpressRoute',vpn:'VPN Gateway',
-  dbClass:{s:'GP_Standard_D2ds_v5',m:'GP_Standard_D4ds_v5',l:'GP_Standard_D8ds_v5',xl:'GP_Standard_D16ds_v5',xxl:'GP_Standard_D32ds_v5'},shard:'Cosmos DB for PostgreSQL (Citus)'},
+  dbClass:{s:'GP_Standard_D2ds_v5',m:'GP_Standard_D4ds_v5',l:'GP_Standard_D8ds_v5',xl:'GP_Standard_D16ds_v5',xxl:'GP_Standard_D32ds_v5'},shard:'Cosmos DB for PostgreSQL (Citus)',
+  waf:'OWASP CRS 3.2, Prevention mode'},
  gcp:{name:'GCP',outer:'GCP · VPC · europe-west1 · 2 zones',rrMax:10,
   zone:{internet:'INTERNET',edge:'EDGE · CLOUD LB + ARMOR',dmz:'INGRESS SUBNET',app:'APP SUBNET · PRIVATE',data:'DATA SUBNET · PRIVATE SERVICE ACCESS'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Cloud CDN',waf:'Cloud Armor',lb:'Cloud Load Balancing',egw:'Cloud NAT + Secure Web Proxy',gw:'API Gateway',idp:'Identity Platform',svc:'Cloud Run',vm:'Compute Engine',fn:'Cloud Functions',api:'API route',adp:'Sidecar container',queue:'Pub/Sub',cache:'Memorystore Redis',db:'Cloud SQL PostgreSQL',obj:'Cloud Storage'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Cloud CDN',waf:'Cloud Armor',lb:'Cloud Load Balancing',egw:'Cloud NAT + Secure Web Proxy',gw:'API Gateway',idp:'Identity Platform',svc:'Cloud Run',vm:'Compute Engine',fn:'Cloud Functions',api:'API route',adp:'Sidecar container',queue:'Pub/Sub',cache:'Memorystore Redis',db:'Cloud SQL PostgreSQL',obj:'Cloud Storage',reg:'Artifact Registry',art:'Cloud Storage (artifacts)',kms:'Cloud KMS',sec:'Secret Manager',mon:'Cloud Logging + Monitoring'},
+  q:{kafka:'Managed Service for Apache Kafka',mq:'RabbitMQ on GKE',native:'Pub/Sub'},
+  idp:{native:'Identity Platform',corp:'Identity Platform + SAML',social:'Identity Platform + social',work:'Cloud Identity'},
   pl:'Private Service Connect',dedicated:'Cloud Interconnect',vpn:'Cloud VPN',
-  dbClass:{s:'db-custom-2-8192',m:'db-custom-4-16384',l:'db-custom-8-32768',xl:'db-custom-16-65536',xxl:'db-custom-32-131072'},shard:'AlloyDB + Citus or Spanner'},
+  dbClass:{s:'db-custom-2-8192',m:'db-custom-4-16384',l:'db-custom-8-32768',xl:'db-custom-16-65536',xxl:'db-custom-32-131072'},shard:'AlloyDB + Citus or Spanner',
+  waf:'Cloud Armor sqli-v33, xss-v33'},
  vmware:{name:'Datacenter',outer:'DATACENTER · Site A active / Site B passive · NSX',rrMax:5,
   zone:{internet:'INTERNET',edge:'DMZ EDGE · NSX SEGMENT',dmz:'INGRESS SEGMENT',app:'APP SEGMENT · DFW',data:'DATA SEGMENT · DFW'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'External CDN',waf:'Avi WAF',lb:'NSX Advanced LB',egw:'NSX Edge + forward proxy',gw:'Kong on VM',idp:'Keycloak',svc:'Tanzu pods',vm:'vSphere VM',fn:'Knative',api:'Route',adp:'Sidecar container',queue:'Kafka',cache:'Redis on VM',db:'PostgreSQL (Patroni)',obj:'MinIO'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'External CDN',waf:'Avi WAF',lb:'NSX Advanced LB',egw:'NSX Edge + forward proxy',gw:'Kong on VM',idp:'Keycloak',svc:'Tanzu pods',vm:'vSphere VM',fn:'Knative',api:'Route',adp:'Sidecar container',queue:'RabbitMQ',cache:'Redis on VM',db:'PostgreSQL (Patroni)',obj:'MinIO',reg:'Harbor',art:'MinIO (artifacts)',kms:'Vault transit',sec:'HashiCorp Vault',mon:'Prometheus + Loki'},
+  q:{kafka:'Kafka (Strimzi)',mq:'RabbitMQ',native:'RabbitMQ'},
+  idp:{native:'Keycloak',corp:'Keycloak brokering corporate IdP',social:'Keycloak + social',work:'Keycloak + Active Directory'},
   pl:'Private circuit',dedicated:'MPLS / dark fibre',vpn:'IPsec VPN',
-  dbClass:{s:'2 vCPU / 8 GiB',m:'4 vCPU / 16 GiB',l:'8 vCPU / 32 GiB',xl:'16 vCPU / 64 GiB',xxl:'32 vCPU / 128 GiB'},shard:'Citus'}
+  dbClass:{s:'2 vCPU / 8 GiB',m:'4 vCPU / 16 GiB',l:'8 vCPU / 32 GiB',xl:'16 vCPU / 64 GiB',xxl:'32 vCPU / 128 GiB'},shard:'Citus',
+  waf:'Avi CRS signatures'}
 };
+Object.values(PACK).forEach(p=>{p.zone.platform='SHARED PLATFORM SERVICES';p.svc.part='Part'});
 const prov=()=>({aws:'aws',azure:'azure',gcp:'gcp'}[S.deploy]||'vmware');
 const pk=()=>PACK[prov()];
 const VIAS=['net','internet','privatelink','vpn','dedicated'];
 const viaName=v=>({net:'In-network',internet:'Public internet',privatelink:pk().pl,vpn:pk().vpn,dedicated:pk().dedicated}[v]||v);
 const viaShort=v=>({net:'',internet:'internet',privatelink:pk().pl,vpn:'VPN',dedicated:pk().dedicated}[v]);
-const svcName=n=>{const s=pk().svc[n.type]||T[n.type].label;return n.type==='db'?`${s} · ${pk().dbClass[n.tier||'m']}`:s};
+const idpKey=n=>n.audience==='workforce'?'work':(n.idpMode||'native');
+function svcName(n){
+ const P=pk();
+ if(n.type==='db')return `${P.svc.db} · ${P.dbClass[n.tier||'m']}`;
+ if(n.type==='queue')return P.q[n.flavor||'native'];
+ if(n.type==='idp')return P.idp[idpKey(n)]+(idpKey(n)==='corp'&&n.fedIdp?` (${n.fedIdp})`:'');
+ return P.svc[n.type]||T[n.type].label;
+}
+const zoneOf=n=>{if(!n)return 'app';if(n.type==='part'){const p=S.nodes[n.parent];return p?zoneOf(p):'app'}return T[n.type].zone};
 
-const SYN=[['cdn',/\bcdn\b|edge cache|cloudfront|front ?door/],['egw',/egress|\bnat\b|forward proxy|outbound/],['waf',/\bwaf\b|web application firewall/],['lb',/load ?balancer|\blb\b/],['gw',/gateway|\bapim\b|\bkong\b/],['idp',/identity|\bidp\b|\bsso\b|keycloak|entra|okta/],['cache',/cache|redis|memcache/],['queue',/queue|kafka|service bus|\bsqs\b|pub ?sub|rabbit/],['obj',/object|bucket|\bblob|\bs3\b/],['db',/database|\bdb\b|postgres|\bsql\b|mysql|mongo|oracle/],['fn',/function|lambda|serverless/],['vm',/\bvm\b|virtual (server|machine)/],['api',/endpoint|route/],['adp',/adapter/],['saas',/saas|salesforce|stripe|workday|servicenow|twilio|sendgrid/],['ext',/external|third.party|partner|on.?prem|legacy/],['user',/users?\b|customers?|clients?|actor|staff/],['svc',/service|microservice|container|\bapi\b|\bapp\b/]];
+const SYN=[['cdn',/\bcdn\b|edge cache|cloudfront|front ?door/],['egw',/egress|\bnat\b|forward proxy|outbound/],['waf',/\bwaf\b|web application firewall/],['lb',/load ?balancer|\blb\b/],['reg',/registry|\becr\b|\bacr\b|harbor/],['kms',/\bkms\b|key management|key vault|\bhsm\b/],['sec',/secret/],['mon',/observability|monitoring|logging|cloudwatch|prometheus|siem/],['art',/artifact|artefact|package store/],['queue',/queue|kafka|\bmsk\b|event ?bus|event hubs?|service bus|\bsqs\b|pub ?sub|rabbit|\bmq\b|messaging|streaming/],['gw',/gateway|\bapim\b|\bkong\b/],['idp',/identity|\bidp\b|\bsso\b|keycloak|entra|okta|cognito|federat/],['cache',/cache|redis|memcache/],['obj',/object|bucket|\bblob|\bs3\b/],['db',/database|\bdb\b|postgres|\bsql\b|mysql|mongo|oracle|aurora|\brds\b/],['fn',/function|lambda|serverless/],['vm',/\bvm\b|virtual (server|machine)|\bec2\b/],['api',/endpoint|route/],['adp',/adapter/],['saas',/saas|salesforce|stripe|workday|servicenow|twilio|sendgrid/],['ext',/external|third.party|partner|on.?prem|legacy/],['user',/users?\b|customers?|clients?|actor|staff/],['svc',/service|microservice|container|\bapi\b|\bapp\b/]];
 const typeOf=s=>{for(const [t,r] of SYN) if(r.test(s)) return t; return null};
+const flavorOf=s=>/kafka|\bmsk\b|event hubs?|confluent|streaming/.test(s)?'kafka':/rabbit|amazon mq|activemq|\bmq\b/.test(s)?'mq':'native';
 
 /* ---------- state ---------- */
-let S, F={}, EF=new Map(), KPI={}, findings=[], seenF=new Set(), miniHits=[];
-const V={x:0,y:0,k:1,mode:'flow',scope:'root',sel:null,selE:null,selInst:null,hover:null,connectFrom:null};
+let S, F={}, EF=new Map(), KPI={}, findings=[], seenF=new Set(), miniHits=[], chipHits=[];
+const V={x:0,y:0,k:1,mode:'flow',scope:'root',sel:null,selE:null,selInst:null,hover:null,connectFrom:null,allInst:false};
 function enrichOf(type){
  const t=T[type];
- const base={zone:t.zone,encryptRest:['db','obj','cache','queue'].includes(type),classification:['db','obj'].includes(type)?'Confidential (PII)':'Internal',owner:'tbd',rto:['db','gw','idp'].includes(type)?'15 min':'1 h'};
+ const base={zone:t.zone,encryptRest:['db','obj','cache','queue','art'].includes(type),classification:['db','obj'].includes(type)?'Confidential (PII)':'Internal',owner:'tbd',rto:['db','gw','idp','kms','sec'].includes(type)?'15 min':'1 h'};
  if(type==='svc') Object.assign(base,{runtime:'container · distroless',cpu:'0.5 vCPU / 1 GiB per replica'});
  if(type==='vm') Object.assign(base,{os:'RHEL 9 CIS L1',size:'4 vCPU / 16 GiB'});
  if(type==='db') Object.assign(base,{engine:'PostgreSQL 16',backup:'PITR 7 days'});
  if(type==='saas'||type==='ext') Object.assign(base,{dataShared:'Customer contact data',contract:'DPA required'});
+ if(type==='part'){delete base.rto;delete base.owner}
  return base;
 }
 function mkNode(id,type,name,x,y,o={}){
  const n={id,type,name,x,y,parent:'root',rep:1,cap:T[type].cap,standby:false,failed:false,enrich:enrichOf(type),...o};
  if(type==='db')Object.assign(n,{tier:'m',cap:TIERS.m.cap,rw:.8,readReplicas:0,shards:1,sizeGB:350},o);
+ if(type==='queue')Object.assign(n,{flavor:'native',partitions:6,brokers:3,consumers:3,consumerRate:800,pkey:''},o);
+ if(type==='idp')Object.assign(n,{idpMode:'native',audience:'customers',fedIdp:'Entra ID'},o);
  if(type==='saas')n.pl=o.pl??true;
  if(type==='ext')n.pl=o.pl??false;
  if(type==='user'&&n.rps==null)n.rps=500;
@@ -401,8 +449,8 @@ function seed(){
   mkNode('ADP2','adp','Orders DB adapter',430,320,{parent:'SVC1'})
  ];
  const byId=Object.fromEntries(nodes.map(x=>[x.id,x]));
- const e=(from,to,proto,via)=>({from,to,proto:proto||defProto(byId[to].type),via:via||defVia(byId[from].type,byId[to].type)});
- S={schema:2,project:'Customer Portal',deploy:'aws',mult:1,nodes:byId,
+ const e=(from,to,proto,via)=>({from,to,proto:proto||protoFor(byId[from],byId[to]),via:via||defVia(byId[from].type,byId[to].type)});
+ S={schema:3,project:'Customer Portal',deploy:'aws',mult:1,nodes:byId,
   edges:[e('U1','WAF1','HTTPS'),e('WAF1','GW1','HTTPS'),e('GW1','SVC1'),e('GW1','SVC2'),e('GW1','IDP1','HTTPS'),e('SVC1','DB1'),e('SVC1','C1'),e('SVC2','DB1'),e('SVC2','OS1','HTTP'),e('SVC2','SAAS1','HTTPS'),
    e('EP1','ADP1'),e('ADP1','X1','HTTPS','privatelink'),e('EP2','ADP2')],
   caps:defaultCaps(),
@@ -412,24 +460,25 @@ function seed(){
    {id:'P3',t:'Reuse before buy before build. Prefer catalogued capabilities; new platforms need an ADR.'},
    {id:'P4',t:'Design for 60% steady-state utilization so the system absorbs a 1.6× burst.'},
    {id:'P5',t:'Segment by trust zone. Each perimeter is default-deny; flows only move one zone at a time.'},
-   {id:'P6',t:'Scale the simplest way first: cache, then scale up, then read replicas, and shard only when nothing else fits.'}],
+   {id:'P6',t:'Scale the simplest way first: cache, then scale up, then read replicas, and shard only when nothing else fits.'},
+   {id:'P7',t:'Protect before you scale. Rate-limit at the edge so one client or a burst cannot take the platform down.'}],
   gt:[
    {id:'GT1',t:'TLS 1.2+ on every flow, including east-west.',src:'Security Standard SS-04 §3'},
    {id:'GT2',t:'No public object storage.',src:'OPA policy deny_public_bucket.rego'},
    {id:'GT3',t:'Internet-facing endpoints sit behind a WAF.',src:'CIS Controls v8 · 13.10'},
    {id:'GT4',t:'Data stores are encrypted at rest with customer-managed keys.',src:'Data Protection Policy DP-2'},
    {id:'GT5',t:'Traffic to third parties uses private connectivity or the egress gateway with an FQDN allow-list.',src:'Network Security Standard NS-07'}],
-  files:[],ver:{caps:4,ea:6,gt:3},versions:[],log:[],adrs:[],settings:{slm:0,ml:0,llm:'off',guard:'enforce'}};
+  files:[],ver:{caps:5,ea:7,gt:3},versions:[],log:[],adrs:[],settings:{slm:0,ml:0,llm:'off',guard:'enforce'}};
 }
 function defaultCaps(){return [
- {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp'],on:true},
+ {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
  {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
  {id:'TC3',name:'Redis 7 cache',types:['cache'],on:true},
  {id:'TC4',name:'Kong API gateway',types:['gw'],on:true},
  {id:'TC5',name:'WAF (cloud-native or F5 Advanced WAF)',types:['waf'],on:true},
  {id:'TC6',name:'L7 load balancer',types:['lb'],on:true},
  {id:'TC7',name:'S3-compatible object storage',types:['obj'],on:true},
- {id:'TC8',name:'Entra ID / Keycloak OIDC',types:['idp'],on:true},
+ {id:'TC8',name:'Entra ID / Keycloak OIDC, SAML federation',types:['idp'],on:true},
  {id:'TC9',name:'VMware vSphere 8 virtual servers',types:['vm'],on:true},
  {id:'TC10',name:'Kafka 3.7 event streaming',types:['queue'],on:false},
  {id:'TC11',name:'Serverless functions',types:['fn'],on:false},
@@ -437,30 +486,48 @@ function defaultCaps(){return [
  {id:'TC13',name:'Third-party integrations via adapter',types:['ext'],on:true},
  {id:'TC14',name:'Public users over internet',types:['user'],on:true},
  {id:'TC15',name:'Egress gateway with FQDN allow-list',types:['egw'],on:true},
- {id:'TC16',name:'SaaS integrations (approved vendor list)',types:['saas'],on:true}]}
+ {id:'TC16',name:'SaaS integrations (approved vendor list)',types:['saas'],on:true},
+ {id:'TC17',name:'Container registry with image scanning',types:['reg'],on:true},
+ {id:'TC18',name:'Artifact repository',types:['art'],on:true},
+ {id:'TC19',name:'Key management (customer-managed keys)',types:['kms'],on:true},
+ {id:'TC20',name:'Secrets management',types:['sec'],on:true},
+ {id:'TC21',name:'Observability stack and SIEM feed',types:['mon'],on:true}]}
 function migrate(){
- if(S.schema===2)return;
+ if(S.schema===3)return;
  Object.values(S.nodes).forEach(n=>{
   if(n.type==='db'&&n.tier==null){n.tier='m';n.cap=TIERS.m.cap;n.rw=.8;n.readReplicas=Math.max(0,(n.rep||1)-1);n.rep=1;n.shards=1;n.sizeGB=200}
+  if(n.type==='queue'&&n.flavor==null)Object.assign(n,{flavor:'native',partitions:6,brokers:3,consumers:3,consumerRate:800,pkey:''});
+  if(n.type==='idp'&&n.idpMode==null)Object.assign(n,{idpMode:'native',audience:'customers',fedIdp:'Entra ID'});
  });
  S.edges.forEach(e=>{if(!e.via&&S.nodes[e.from]&&S.nodes[e.to])e.via=defVia(S.nodes[e.from].type,S.nodes[e.to].type)});
- defaultCaps().slice(14).forEach(c=>{if(!S.caps.some(x=>x.id===c.id))S.caps.push(c)});
+ defaultCaps().forEach(c=>{if(!S.caps.some(x=>x.id===c.id))S.caps.push(c)});
  if(!S.gt.some(g=>g.id==='GT5'))S.gt.push({id:'GT5',t:'Traffic to third parties uses private connectivity or the egress gateway with an FQDN allow-list.',src:'Network Security Standard NS-07'});
+ if(!S.ea.some(g=>g.id==='P6'))S.ea.push({id:'P6',t:'Scale the simplest way first: cache, then scale up, then read replicas, and shard only when nothing else fits.'});
+ if(!S.ea.some(g=>g.id==='P7'))S.ea.push({id:'P7',t:'Protect before you scale. Rate-limit at the edge so one client or a burst cannot take the platform down.'});
  S.adrs=S.adrs||[];S.settings.guard=S.settings.guard||'enforce';
- if(['hybrid','local'].includes(S.deploy)===false&&!PACK[S.deploy]&&S.deploy!=='vmware')S.deploy='aws';
- S.schema=2;
+ S.schema=3;
 }
 
-/* ---------- persistence ---------- */
+/* ---------- persistence and undo ---------- */
 const KEY='nexus.workbench.v1';
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();return true}}catch(e){}return false}
+const UNDO=[],REDO=[];
+const snap=()=>JSON.stringify({...S,log:[],versions:[]});
+function pushUndo(desc,data){UNDO.push({desc,data:data||snap()});if(UNDO.length>80)UNDO.shift();REDO.length=0;renderUR()}
+function restoreSnap(data){const keep={log:S.log,versions:S.versions};S={...JSON.parse(data),...keep};if(V.sel&&!S.nodes[V.sel])V.sel=null;if(V.selE&&!findEdge(V.selE.from,V.selE.to))V.selE=null;if(V.scope!=='root'&&!S.nodes[V.scope])V.scope='root'}
+function undo(){const u=UNDO.pop();if(!u)return;REDO.push({desc:u.desc,data:snap()});restoreSnap(u.data);logAI('Workbench',`Undo: ${u.desc}`,'Restored the design to the state before this change',1);say(`Undid: ${u.desc}.`,'s');changed()}
+function redo(){const r=REDO.pop();if(!r)return;UNDO.push({desc:r.desc,data:snap()});restoreSnap(r.data);logAI('Workbench',`Redo: ${r.desc}`,'Re-applied the change',1);say(`Redid: ${r.desc}.`,'s');changed()}
+function renderUR(){const u=$('#undoBtn'),r=$('#redoBtn');u.disabled=!UNDO.length;r.disabled=!REDO.length;u.title=UNDO.length?`Undo: ${UNDO[UNDO.length-1].desc} (Ctrl+Z)`:'Nothing to undo';r.title=REDO.length?`Redo: ${REDO[REDO.length-1].desc} (Ctrl+Shift+Z)`:'Nothing to redo'}
+$('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;
 
 /* ---------- simulation ---------- */
 const kids=pid=>Object.values(S.nodes).filter(n=>n.parent===pid);
 const edgesIn=pid=>S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent===pid&&S.nodes[e.to].parent===pid);
-const instCount=n=>n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):(n.rep||1);
-function scaleOf(n){let m=1,p=S.nodes[n.parent];while(p){m*=p.type==='db'?(1+(p.readReplicas||0))*(p.shards||1):(p.rep||1);p=S.nodes[p.parent]}return m}
+const flowsIn=pid=>edgesIn(pid).filter(isFlow);
+const repOf=n=>(F[n.id]&&F[n.id].rep)||n.rep||1;
+function scaleOf(n){let m=1,p=S.nodes[n.parent];while(p){m*=p.type==='db'?(1+(p.readReplicas||0))*(p.shards||1):repOf(p);p=S.nodes[p.parent]}return m}
+const instCount=n=>n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):n.type==='queue'?(n.flavor==='native'?1:n.brokers||1):(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')?1:repOf(n);
 // Single-primary database: writes land on each shard's primary; reads spread over primary + read replicas.
 function dbLoad(n,i,o={}){
  const rw=o.rw??n.rw??.8,k=1+(o.rr??n.readReplicas??0),sh=o.shards??n.shards??1,c=(o.cap??n.cap)*scaleOf(n);
@@ -468,29 +535,41 @@ function dbLoad(n,i,o={}){
  const prim=writePer/(c*.6)+readPer/c,repl=k>1?readPer/c:0;
  return {util:Math.max(prim,repl),prim,repl,r,w,bound:(writePer/(c*.6))>=(readPer/c)?'writes':'reads'};
 }
-function utilOf(n,i){
- if(n.type==='user')return 0;if(n.failed)return Infinity;
- if(n.type==='db')return dbLoad(n,i).util;
- const c=n.cap*n.rep*scaleOf(n);return c>0?i/c:Infinity;
+// Queue / event bus: brokers accept, the consumer group drains. Kafka consumers beyond the partition count sit idle.
+function queueLoad(n,i){
+ const fl=n.flavor||'native',kafka=fl==='kafka',sc=scaleOf(n);
+ const c=Math.max(1,n.consumers||1),p=Math.max(1,n.partitions||1),b=Math.max(1,n.brokers||1);
+ const active=kafka?Math.min(c,p):c,consCap=active*(n.consumerRate||800)*sc;
+ const brokerCap=fl==='native'?Infinity:b*n.cap*sc;
+ const ub=isFinite(brokerCap)?i/brokerCap:0,uc=consCap>0?i/consCap:Infinity;
+ return {util:Math.max(ub,uc),ub,uc,consCap,brokerCap,idle:kafka?Math.max(0,c-p):0,active};
 }
-const capEff=n=>n.type==='db'?1/Math.max(1e-9,dbLoad(n,1).util):T[n.type].cap===Infinity?Infinity:n.cap*n.rep*scaleOf(n);
+const capEff=n=>{if(n.type==='db')return 1/Math.max(1e-9,dbLoad(n,1).util);if(n.type==='queue'){const q=queueLoad(n,1);return Math.min(q.brokerCap,q.consCap)}return T[n.type].cap===Infinity?Infinity:n.cap*repOf(n)*scaleOf(n)};
 const st=u=>!isFinite(u)?'crit':u>=.85?'crit':u>=.6?'warn':'ok';
 function flowScope(pid,entryIn){
- const ns=kids(pid),es=edgesIn(pid),inn={},deg={};
+ const ns=kids(pid),es=flowsIn(pid),inn={},deg={};
  ns.forEach(n=>{inn[n.id]=0;deg[n.id]=0});es.forEach(e=>deg[e.to]++);
  ns.forEach(n=>{if(n.type==='user')inn[n.id]=(n.rps||0)*S.mult});
- const entries=ns.filter(n=>deg[n.id]===0&&n.type!=='user');
+ const entries=ns.filter(n=>deg[n.id]===0&&n.type!=='user'&&!PLATFORM.includes(n.type));
  if(entryIn!=null&&entries.length)entries.forEach(n=>inn[n.id]+=entryIn/entries.length);
  const d={...deg},q=ns.filter(n=>d[n.id]===0).map(n=>n.id),order=[],lat={};
  while(q.length){const id=q.shift();order.push(id);es.filter(e=>e.from===id).forEach(e=>{if(--d[e.to]===0)q.push(e.to)})}
  ns.forEach(n=>{if(!order.includes(n.id))order.push(n.id)});
  for(const id of order){
-  const n=S.nodes[id],t=T[n.type],i=inn[id],util=utilOf(n,i);
-  const served=n.type==='user'?i:n.failed?0:(util<=1?i:i/util);
+  const n=S.nodes[id],t=T[n.type],i0=inn[id],outs=es.filter(e=>e.from===id);
+  let rep=n.rep||1;
+  if(n.auto&&isFinite(t.cap))rep=Math.min(n.auto.max,Math.max(n.auto.min,Math.ceil(i0/(n.cap*scaleOf(n)*.6))||n.auto.min));
+  const thr=n.rateLimit?Math.max(0,i0-n.rateLimit):0,i=i0-thr;
+  let util,served,pass,lag=0,dbx=null,qx=null,noRoute=false;
+  if(n.type==='user'){util=0;served=i;noRoute=i>0&&!outs.length;pass=served}
+  else if(n.failed){util=Infinity;served=0;pass=0}
+  else if(n.type==='db'){dbx=dbLoad(n,i);util=dbx.util;served=util<=1?i:i/util;pass=served}
+  else if(n.type==='queue'){qx=queueLoad(n,i);util=qx.util;served=Math.min(i,qx.brokerCap);pass=Math.min(served,qx.consCap);lag=served-pass}
+  else{const c=n.cap*rep*scaleOf(n);util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
   const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
   lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95));
-  F[id]={in:i,served,util,drop:Math.max(0,i-served),lat:lat[id],db:n.type==='db'?dbLoad(n,i):null};
-  const outs=es.filter(e=>e.from===id),pass=served*(t.pass??1),hasCache=outs.some(e=>S.nodes[e.to].type==='cache');
+  F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,lat:lat[id],db:dbx,q:qx,noRoute};
+  pass*=(t.pass??1);const hasCache=outs.some(e=>S.nodes[e.to].type==='cache');
   outs.forEach(e=>{let f=t.route?pass/outs.length:pass;const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-(tn.rw??.8)*.8;EF.set(e,f);inn[e.to]+=f});
  }
  ns.forEach(n=>{if(kids(n.id).length)flowScope(n.id,F[n.id].served)});
@@ -499,52 +578,73 @@ function simulate(){
  F={};EF=new Map();flowScope('root',null);
  const root=kids('root'),users=root.filter(n=>n.type==='user');
  const offered=users.reduce((a,n)=>a+(n.rps||0)*S.mult,0);
- let worst=null,err=0,lat=0;
- root.forEach(n=>{if(EXTERNAL.includes(n.type))return;const f=F[n.id];if(!worst||f.util>F[worst.id].util)worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
- KPI={offered,err:Math.min(1,err),lat,worst};
+ let worst=null,err=0,lat=0,thr=0,lag=0,noRoute=0;
+ root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(!worst||f.util>F[worst.id].util)worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
+ if(offered)err=Math.max(err,noRoute/offered);
+ KPI={offered,err:Math.min(1,err),lat,worst,thr:offered?thr/offered:0,lag,noRoute};
+}
+
+/* ---------- platform dependency expert ---------- */
+const DEPS={svc:['reg','sec','mon'],vm:['art','sec','mon'],fn:['art','sec','mon'],db:['kms','mon','art'],obj:['kms'],cache:['kms','mon'],queue:['kms','mon'],waf:['mon'],cdn:['art'],gw:['mon'],idp:['sec','mon'],egw:['mon']};
+const depWhy=(t,d)=>({reg:'container images',art:{fn:'deployment package',vm:'golden images and packages',db:'backups and exports',cdn:'static app bundle (origin)'}[t]||'build artifacts',kms:'customer-managed keys (GT4)',sec:'credentials and API keys',mon:'logs and metrics to the SIEM'}[d]);
+const missingDeps=n=>n.parent!=='root'?[]:(DEPS[n.type]||[]).filter(d=>!S.edges.some(e=>e.kind==='dep'&&e.from===n.id&&S.nodes[e.to]&&S.nodes[e.to].type===d));
+function connectDep(a,b){if(!S.edges.some(e=>e.from===a&&e.to===b&&e.kind==='dep'))S.edges.push({from:a,to:b,kind:'dep',proto:'HTTPS',via:'net'})}
+function addDeps(ids){
+ (ids||kids('root').map(n=>n.id)).forEach(id=>{const n=S.nodes[id];if(!n)return;missingDeps(n).forEach(d=>{let t=kids('root').find(m=>m.type===d);if(!t)t=addNode(d,null,'root');connectDep(id,t.id)})});
 }
 
 /* ---------- advisor rules (stand-in for the SLM; rules decide, model explains) ---------- */
-const ZONE_OK={internet:['edge'],edge:['edge','dmz'],dmz:['dmz','app'],app:['app','data','dmz'],data:['data']};
+const ZONE_OK={internet:['edge'],edge:['edge','dmz'],dmz:['dmz','app'],app:['app','data','dmz'],data:['data'],platform:[]};
 function analyze(log=true){
  const out=[],capTypes=new Set(S.caps.filter(c=>c.on).flatMap(c=>c.types)),N=S.nodes;
  const add=(sev,key,target,title,why,basis,fix,adr)=>out.push({sev,key,target,title,why,basis,fix,adr});
  S.edges.forEach(e=>{
-  const a=N[e.from],b=N[e.to];if(!a||!b)return;
-  const za=T[a.type].zone,zb=T[b.type].zone,f=EF.get(e)||0,ek=e.from+'>'+e.to;
+  const a=N[e.from],b=N[e.to];if(!a||!b||!isFlow(e))return;
+  const za=zoneOf(a),zb=zoneOf(b),f=EF.get(e)||0,ek=e.from+'>'+e.to;
   if(a.type==='user'&&!['waf','cdn'].includes(b.type))add('crit','direct:'+ek,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(f)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['GT3','EA-P1','ATT&CK T1190'],{k:'waf',from:e.from,to:e.to});
   if(EXTERNAL.includes(a.type)&&['db','obj','cache'].includes(b.type))add('crit','expose:'+ek,b.id,`Data store ${b.id} is reachable from outside`,`Direct path ${a.id} → ${b.id} bypasses every perimeter.`,['GT2','EA-P5','ATT&CK T1530'],{k:'unlink',from:e.from,to:e.to});
   const egress=EXTERNAL.includes(b.type)&&!EXTERNAL.includes(a.type);
   if(egress){
    if(a.type!=='egw'&&e.via==='internet')add('crit','egress:'+ek,b.id,`${a.id} → ${b.id} goes straight out to the internet`,`${fmt(f)} rps to ${T[b.type].label.toLowerCase()} "${b.name}" leave without inspection or allow-list. ${b.pl?b.id+' offers '+pk().pl+'.':'No private option is offered; route through an egress gateway.'}`,['GT5','EA-P1','ATT&CK T1567'],b.pl?{k:'via',from:e.from,to:e.to,via:'privatelink'}:{k:'egw',from:e.from,to:e.to});
    if(e.via==='privatelink'&&!b.pl)add('warn','plna:'+ek,b.id,`${b.id} does not offer ${pk().pl}`,`Confirm with the vendor, or route through the egress gateway.`,['GT5'],{k:'egw',from:e.from,to:e.to});
-  }else if(a.type!=='user'&&!EXTERNAL.includes(a.type)&&!(a.type==='egw'&&EXTERNAL.includes(b.type))&&!(ZONE_OK[za]||[]).includes(zb))
-   add('crit','zone:'+ek,b.id,`Flow ${a.id} → ${b.id} skips a perimeter`,`${za} → ${zb} is not an allowed hop. Flows move one trust zone at a time (${za} may call ${(ZONE_OK[za]||[]).join(', ')}).`,['EA-P5','EA-P1','ATT&CK T1021'],{k:'unlink',from:e.from,to:e.to});
+  }else if(a.type!=='user'&&!EXTERNAL.includes(a.type)&&!(a.type==='egw'&&EXTERNAL.includes(b.type))&&a.type!=='part'&&b.type!=='part'){
+   const ok=(ZONE_OK[za]||[]).includes(zb)||(a.type==='queue'&&zb==='app');
+   if(!ok)add('crit','zone:'+ek,b.id,`Flow ${a.id} → ${b.id} skips a perimeter`,`${za} → ${zb} is not an allowed hop. Flows move one trust zone at a time (${za} may call ${(ZONE_OK[za]||[]).join(', ')||'nothing'}).`,['EA-P5','EA-P1','ATT&CK T1021'],{k:'unlink',from:e.from,to:e.to});
+  }
   if(e.proto==='HTTP')add('crit','tls:'+ek,b.id,`Plaintext flow ${a.id} → ${b.id}`,`${fmt(f)} rps cross the ${zb} perimeter unencrypted.`,['GT1','EA-P1','ATT&CK T1040'],{k:'tls',from:e.from,to:e.to});
  });
  Object.values(N).forEach(n=>{
-  if(EXTERNAL.includes(n.type))return;const f=F[n.id];if(!f)return;
+  const f=F[n.id];if(!f)return;
+  if(n.type==='user'){if(f.noRoute)add('crit','noroute:'+n.id,n.id,`${n.id} "${n.name}" has no route into the system`,`${fmt(f.in)} rps from ${n.name} fail: every request errors until a path through the perimeter exists.`,['EA-P2','GT3'],null);return}
+  if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return;
   if(n.failed){add('crit','fail:'+n.id,n.id,`${n.id} is down (what-if)`,`${fmt(f.in)} rps arrive and fail. ${n.standby?'The standby would take over in production.':'There is no standby to fail over to.'}`,['EA-P2'],{k:'restore',n:n.id});return}
+  if(n.parent==='root'&&!S.edges.some(e=>e.to===n.id&&isFlow(e))&&f.in===0)add('warn','orphan:'+n.id,n.id,`${n.id} is unreachable`,`No flow reaches ${n.id}, so it serves nothing. Connect it or remove it.`,['EA-P2'],null);
+  if(f.thr>0)add('warn','thr:'+n.id,n.id,`${n.id} throttles ${fmt(f.thr)} rps`,`Rate limit ${fmt(n.rateLimit)} rps rejects ${pct(f.thr/(f.in||1))} of requests with 429. Downstream is protected; those users are not served.`,['EA-P7','EA-P4'],{k:'decide',n:n.id});
+  if(n.type==='queue'){
+   if(f.lag>0)add(f.lag>f.served*.2?'crit':'warn','lag:'+n.id,n.id,`${n.id} consumer lag grows by ${fmt(f.lag)} msg/s`,`${f.q.active} active consumer${f.q.active>1?'s':''} drain ${fmt(f.q.consCap)} msg/s; ${fmt(f.served)} msg/s arrive. Backlog grows until consumers catch up.`,['EA-P4'],{k:'decide',n:n.id});
+   if(f.q.idle)add('warn','idle:'+n.id,n.id,`${f.q.idle} consumer${f.q.idle>1?'s':''} on ${n.id} sit idle`,`A Kafka consumer group uses at most one consumer per partition (${n.partitions} partitions, ${n.consumers} consumers).`,['EA-P4'],{k:'decide',n:n.id});
+  }
   if(n.type==='db'&&f.util>=.6){
    const d=f.db,opts=dbOptions(n);const rec=opts.find(o=>o.rec);
    add(f.util>=.85?'crit':'warn','hot:'+n.id,n.id,`${n.id} is ${f.util>=.85?'a bottleneck':'running warm'} at ${pct(f.util)} (${d.bound}-bound)`,`${fmt(d.r)} reads/s + ${fmt(d.w)} writes/s. Recommended: ${rec?rec.name:'review options'}.`,['EA-P4','EA-P6','ML forecast'],{k:'decide',n:n.id});
-  }else if(n.type!=='db'&&isFinite(T[n.type].cap)){
-   const need=Math.ceil(f.in/(n.cap*scaleOf(n)*.6));
-   if(f.util>=.85)add('crit','hot:'+n.id,n.id,`${n.id} is a bottleneck at ${pct(f.util)}`,`${fmt(f.in)} rps against ${fmt(capEff(n))} rps capacity. ${need} replicas bring it to ≤60%.`,['EA-P4','ML forecast'],{k:'scale',n:n.id,to:need});
-   else if(f.util>=.6)add('warn','warm:'+n.id,n.id,`${n.id} runs at ${pct(f.util)}`,`Headroom is ${fmt(capEff(n)-f.in)} rps. A ${(1/f.util).toFixed(1)}× burst saturates it.`,['EA-P4'],{k:'scale',n:n.id,to:need});
+  }else if(n.type!=='db'&&n.type!=='queue'&&isFinite(T[n.type].cap)){
+   if(f.util>=.85)add('crit','hot:'+n.id,n.id,`${n.id} is a bottleneck at ${pct(f.util)}`,`${fmt(f.in-f.thr)} rps against ${fmt(capEff(n))} rps capacity. Options: scale out, autoscale, scale up, rate limit${['svc','vm','fn'].includes(n.type)?', async via queue':''}.`,['EA-P4','EA-P7','ML forecast'],{k:'decide',n:n.id});
+   else if(f.util>=.6)add('warn','warm:'+n.id,n.id,`${n.id} runs at ${pct(f.util)}`,`Headroom is ${fmt(capEff(n)-f.in)} rps. A ${(1/f.util).toFixed(1)}× burst saturates it.`,['EA-P4'],{k:'decide',n:n.id});
   }
-  if(n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:n.rep<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
+  if(n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(n.auto?n.auto.min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
   if(!capTypes.has(n.type))add('warn','cap:'+n.id,n.id,`${T[n.type].label} is not in Technical Capabilities`,`Recommended platform. Needs an architecture decision before build.`,['EA-P3','TC catalog v'+S.ver.caps],{k:'cap',t:n.type},
-   `Context: ${n.id} "${n.name}" carries ${fmt(f.in)} rps; no catalogued capability covers it.\nConstraints: security review; must meet GT1–GT5; operated by the platform team.\nTradeoffs: + ${T[n.type].pro||'fills a gap'}\n           − ${T[n.type].con||'new operational surface'}`);
+   `Context: ${n.id} "${n.name}" (${svcName(n)}) carries ${fmt(f.in)} rps; no catalogued capability covers it.\nConstraints: security review; must meet GT1–GT5; operated by the platform team.\nTradeoffs: + ${T[n.type].pro||'fills a gap'}\n           − ${T[n.type].con||'new operational surface'}`);
   if(['db','obj','cache','queue'].includes(n.type)&&n.enrich&&n.enrich.encryptRest===false)add('crit','enc:'+n.id,n.id,`${n.id} stores data unencrypted at rest`,`Classification is ${n.enrich.classification}.`,['GT4','EA-P1'],{k:'enc',n:n.id});
-  const fan=S.edges.filter(e=>e.from===n.id).length;
-  if(fan>6)add('warn','fan:'+n.id,n.id,`${n.id} calls ${fan} dependencies`,`High fan-out couples deploys and multiplies failure paths. Consider an event or a facade.`,['EA-P2'],null);
+  const fan=S.edges.filter(e=>e.from===n.id&&isFlow(e)).length;
+  if(fan>6)add('warn','fan:'+n.id,n.id,`${n.id} calls ${fan} dependencies`,`High fan-out couples deploys and multiplies failure paths. Consider an event bus or a facade.`,['EA-P2'],null);
  });
+ const miss=kids('root').map(n=>({n,m:missingDeps(n)})).filter(x=>x.m.length);
+ if(miss.length)add('warn','deps:'+miss.map(x=>x.n.id+'='+x.m.join('+')).join(','),null,`${miss.length} component${miss.length>1?'s are':' is'} missing platform dependencies`,miss.map(x=>`${x.n.id} (${svcName(x.n)}) needs ${x.m.map(d=>`${pk().svc[d]} for ${depWhy(x.n.type,d)}`).join(', ')}.`).join(' '),['Platform','EA-P3',...(miss.some(x=>x.m.includes('kms'))?['GT4']:[])],{k:'deps'});
  const root=kids('root');
  if(root.some(n=>n.type==='user')&&!root.some(n=>n.type==='idp'))add('warn','noidp',null,'No identity provider in the design','Zero trust needs a token issuer for every hop.',['EA-P1','ATT&CK T1078'],{k:'idp'});
  const ord={crit:0,warn:1,info:2};out.sort((a,b)=>ord[a.sev]-ord[b.sev]);
  out.forEach((f,i)=>f.id='F'+(i+1));
- if(log){out.forEach(f=>{if(!seenF.has(f.key)){seenF.add(f.key);logAI('Advisor',`${f.sev.toUpperCase()} ${f.title}`,`Rule ${f.key.split(':')[0]} fired on ${f.target||'design'} · basis ${f.basis.join(', ')}`,f.sev==='crit'?.96:.82)}});
+ if(log){out.forEach(f=>{const k=f.key.split(':')[0];if(!seenF.has(f.key)){seenF.add(f.key);logAI(k==='deps'?'Platform expert':'Advisor',`${f.sev.toUpperCase()} ${f.title}`,`Rule ${k} fired on ${f.target||'design'} · basis ${f.basis.join(', ')}`,f.sev==='crit'?.96:.82)}});
   [...seenF].forEach(k=>{if(!out.some(f=>f.key===k))seenF.delete(k)})}
  findings=out;
 }
@@ -552,27 +652,20 @@ function analyze(log=true){
 /* ---------- database scaling decision (expert system) ---------- */
 function dbOptions(n){
  const f=F[n.id]||{in:0},i=f.in,cur=dbLoad(n,i),opts=[],P=pk();
- const callers=S.edges.filter(e=>e.to===n.id).map(e=>S.nodes[e.from]).filter(Boolean);
- const cached=callers.length&&callers.every(c=>S.edges.some(e=>e.from===c.id&&S.nodes[e.to]?.type==='cache'));
+ const callers=S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>S.nodes[e.from]).filter(Boolean);
+ const cached=callers.length&&callers.every(c=>S.edges.some(e=>e.from===c.id&&S.nodes[e.to]&&S.nodes[e.to].type==='cache'));
  const writeBound=cur.bound==='writes',readHeavy=(n.rw??.8)>=.7;
- // 1 cache
  if(!cached){const u=dbLoad(n,i*(1-(n.rw??.8)*.8)).util;opts.push({key:'cache',name:'Cache hot reads',fixes:'reads',effect:u,detail:'Redis in front, ~80% hit rate',pro:'Cheapest big win for read-heavy loads; sub-ms reads',con:'Stale reads; invalidation logic; another store to secure'})}
- // 2 scale up
  let t=null;for(const k of TIER_ORDER.slice(TIER_ORDER.indexOf(n.tier||'m')+1)){if(dbLoad(n,i,{cap:TIERS[k].cap}).util<=.6){t=k;break}}
  const top=TIER_ORDER[TIER_ORDER.length-1];
  opts.push({key:'up',name:t?`Scale up to ${TIERS[t].l}`:`Scale up to ${TIERS[top].l} (max)`,tier:t||top,fixes:'reads + writes',effect:dbLoad(n,i,{cap:TIERS[t||top].cap}).util,detail:P.dbClass[t||top],pro:'No code change; helps reads and writes',con:'Hard ceiling; ~2× cost per step; failover or restart during resize'});
- // 3 read replicas
  let rr=null;for(let k=(n.readReplicas||0)+1;k<=P.rrMax;k++){if(dbLoad(n,i,{rr:k}).util<=.6){rr=k;break}}
  const rrBest=rr??P.rrMax;
  opts.push({key:'rr',name:`${rrBest} read replica${rrBest>1?'s':''}`,rr:rrBest,fixes:'reads only',effect:dbLoad(n,i,{rr:rrBest}).util,detail:`${P.name} allows up to ${P.rrMax}`,pro:'Scales reads horizontally; replicas can serve reporting',con:'Replica lag (eventual reads); app must split read and write connections; writes still hit one primary'});
- // 4 shard
  let sh=null;for(let s=2;s<=32;s*=2){if(dbLoad(n,i,{shards:s}).util<=.6){sh=s;break}}
  opts.push({key:'shard',name:`Shard into ${sh||32} partitions`,shards:sh||32,fixes:'writes + data size',effect:dbLoad(n,i,{shards:sh||32}).util,detail:P.shard,pro:'Scales writes and storage beyond one machine',con:'Shard key is hard to change; cross-shard joins and transactions; rebalancing; much more to operate'});
- // 5 queue
  if(writeBound)opts.push({key:'queue',name:'Buffer writes in a queue',fixes:'write bursts',effect:null,detail:'Async writers (CQRS-style)',pro:'Absorbs bursts; protects the primary',con:'Eventual consistency; does not raise sustained capacity'});
- // recommendation, following EA-P6: simplest option that reaches <=60%
- const ok=o=>o.effect!=null&&o.effect<=.6;
- const why=[];let rec=null;
+ const ok=o=>o.effect!=null&&o.effect<=.6,why=[];let rec=null;
  const upO=opts.find(o=>o.key==='up'),rrO=opts.find(o=>o.key==='rr'),cO=opts.find(o=>o.key==='cache'),shO=opts.find(o=>o.key==='shard');
  if(cur.util<.6){why.push('Below the 60% target (EA-P4). No change needed.')}
  else if(!writeBound&&readHeavy&&cO&&ok(cO)){rec=cO;why.push('Read-bound and read-heavy: a cache removes most reads before they reach the database.')}
@@ -588,18 +681,52 @@ function dbOptions(n){
 }
 function applyDbOption(id,key){
  const n=S.nodes[id],opts=dbOptions(n),o=opts.find(x=>x.key===key);if(!o)return;
- const desc=`${id}: ${o.name}`;
  const adr={title:`Scale ${id} "${n.name}": ${o.name}`,context:`${fmt(opts.cur.r)} reads/s + ${fmt(opts.cur.w)} writes/s; utilization ${pct(opts.cur.util)} (${opts.cur.bound}-bound) at ${S.mult}× load.`,
   decision:`${o.name} (${o.detail}). Expected utilization ${o.effect==null?'n/a':pct(o.effect)}.`,
   options:opts.map(x=>`${x.rec?'* ':'  '}${x.name}: ${x.effect==null?'burst only':pct(x.effect)} · fixes ${x.fixes}`).join('\n'),
   tradeoffs:`+ ${o.pro}\n− ${o.con}`,basis:['EA-P4','EA-P6']};
- act(desc,()=>{const m=S.nodes[id];
+ act(`${id}: ${o.name}`,()=>{const m=S.nodes[id];
   if(key==='up'){m.tier=o.tier;m.cap=TIERS[o.tier].cap}
   if(key==='rr')m.readReplicas=o.rr;
   if(key==='shard')m.shards=o.shards;
-  if(key==='cache'){const c=addNode('cache',`${m.name} cache`,m.parent,{x:m.x,y:m.y-170});S.edges.filter(e=>e.to===id).map(e=>e.from).forEach(f=>connect(f,c.id))}
-  if(key==='queue'){const q=addNode('queue',`${m.name} write buffer`,m.parent,{x:m.x-120,y:m.y+170});S.edges.filter(e=>e.to===id).map(e=>e.from).forEach(f=>connect(f,q.id));connect(q.id,id)}
+  if(key==='cache'){const c=addNode('cache',`${m.name} cache`,m.parent,{x:m.x,y:m.y-170});S.edges.filter(e=>e.to===id&&isFlow(e)).map(e=>e.from).forEach(f=>connect(f,c.id))}
+  if(key==='queue'){const q=addNode('queue',`${m.name} write buffer`,m.parent,{x:m.x-120,y:m.y+170});S.edges.filter(e=>e.to===id&&isFlow(e)).map(e=>e.from).forEach(f=>connect(f,q.id));connect(q.id,id)}
  },{tradeoffs:[`+ ${o.pro}`,`− ${o.con}`],adr});
+}
+
+/* ---------- scaling and protection options for every other component ---------- */
+function remedyOptions(n){
+ const f=F[n.id]||{in:0,util:0},id=n.id,t=n.type,opts=[];
+ const add=(key,name,fixes,mut,pro,con)=>opts.push({key,name,fixes,mut,pro,con});
+ const base=n.cap*scaleOf(n),need=Math.max(repOf(n)+1,Math.ceil((f.in-f.thr)/(base*.6)));
+ if(t==='queue'){
+  const kafka=n.flavor==='kafka',needC=Math.max((n.consumers||1)+1,Math.ceil(f.in/((n.consumerRate||800)*scaleOf(n)*.6)));
+  if(kafka){
+   if(needC<=n.partitions)add('cons',`Consumer group → ${needC}`,'consumer lag',()=>{S.nodes[id].consumers=needC},'No broker change; uses partitions that have no consumer yet','Consumers beyond the partition count sit idle');
+   const np=Math.max(n.partitions+1,Math.ceil(needC/3)*3);
+   add('part',`Partitions → ${np}, consumers → ${needC}`,'lag + parallelism',()=>{S.nodes[id].partitions=np;S.nodes[id].consumers=needC},'More parallel consumers in the group','Adding partitions remaps keys: per-key ordering breaks while it settles; partitions can never be reduced; choose the partition key (e.g. order_id) for ordering and even spread');
+   add('group','Add a second consumer group','new use case',()=>{S.nodes[id].consumers=n.consumers},'Another service reads the same events independently (fan-out, replay)','Does not reduce this group\'s lag; doubles read traffic on brokers');
+  }else add('cons',`Competing consumers → ${needC}`,'backlog',()=>{S.nodes[id].consumers=needC},'Near-linear scaling for independent messages','No ordering across consumers; consumers must be idempotent');
+  if(n.flavor!=='native'){const nb=Math.max(n.brokers+1,Math.ceil(f.in/(n.cap*scaleOf(n)*.6)));add('brk',`Brokers → ${nb}`,'ingest throughput',()=>{S.nodes[id].brokers=nb},'More ingest and storage throughput','Partition reassignment traffic while rebalancing; cost')}
+ }else if(isFinite(T[t].cap)){
+  add('out',`Scale out to ×${need}`,'throughput',()=>{S.nodes[id].rep=need;S.nodes[id].auto=null},'Near-linear for stateless components; more failure domains',`Cost ×${(need/repOf(n)).toFixed(1)}; needs stateless design behind a load balancer`);
+  add('auto',`Autoscale ${Math.max(2,n.rep)}–${need*2}`,'peaks',()=>{S.nodes[id].auto={min:Math.max(2,n.rep),max:need*2}},'Pays for peaks only; absorbs bursts automatically','Scale-out lag of 30–90 s; needs health checks and warm-up; set a max to cap cost');
+  add('up','Scale up (2× instance size)','throughput',()=>{S.nodes[id].cap=n.cap*2},'No architecture change','Hard ceiling; restart during resize; same number of failure domains');
+  const up=['gw','waf'].includes(t)?n:S.edges.filter(e=>e.to===id&&isFlow(e)).map(e=>S.nodes[e.from]).find(x=>x&&['gw','waf','lb'].includes(x.type));
+  if(up&&F[up.id]){const gi=F[up.id].in,lim=Math.max(50,Math.round(gi*Math.min(1,(capEff(n)*.6)/Math.max(1,f.in))/50)*50);
+   add('rate',`Rate limit at ${up.id}: ${fmt(lim)} rps`,'overload protection',()=>{S.nodes[up.id].rateLimit=lim},'Protects everything downstream; per-client quotas with 429 + Retry-After (EA-P7)','Rejects the excess: users are throttled, not served')}
+  if(['svc','vm','fn'].includes(t))add('async','Accept work through a queue','bursts',()=>{const m=S.nodes[id];const q=addNode('queue',`${m.name} work queue`,m.parent,{x:m.x-120,y:m.y+170});q.consumers=Math.max(1,repOf(m));S.edges.filter(e=>e.to===id&&isFlow(e)).forEach(e=>{const fr=e.from;removeEdge(fr,id);connect(fr,q.id)});connect(q.id,id)},'Smooths bursts; callers get an immediate 202','Eventual results; idempotent consumers; does not raise sustained capacity');
+  if(['waf','lb'].includes(t)&&S.edges.some(e=>e.to===id&&S.nodes[e.from]&&S.nodes[e.from].type==='user')&&!kids(n.parent).some(m=>m.type==='cdn'))
+   add('cdn','Put a CDN in front','static offload',()=>{const m=S.nodes[id];const c=addNode('cdn','Edge cache',m.parent,{x:m.x-110,y:m.y-150});S.edges.filter(e=>e.to===id&&S.nodes[e.from].type==='user').forEach(e=>{const u=e.from;removeEdge(u,id);connect(u,c.id,'HTTPS')});connect(c.id,id,'HTTPS')},'Serves ~60% of requests at the edge','New platform (capability gap); cache invalidation');
+ }
+ const pref=t==='queue'?['cons','part','brk','group']:['auto','out','up','rate','cdn','async'];
+ opts.forEach(o=>{const r=preview(o.mut);o.effect=r.afterF[id]?r.afterF[id].util:null;o.err=r.after.err;o.thr=r.after.thr;o.lag=r.afterF[id]?r.afterF[id].lag:0});
+ if(f.util>=.6){const cand=pref.map(k=>opts.find(o=>o.key===k)).filter(Boolean);const rec=cand.find(o=>o.effect!=null&&o.effect<=.6&&o.key!=='rate'&&o.key!=='group')||cand.find(o=>o.effect!=null&&o.effect<=.6)||cand.slice().sort((a,b)=>(a.effect??9)-(b.effect??9))[0];if(rec)rec.rec=true}
+ return opts;
+}
+function applyRemedy(id,key){
+ const n=S.nodes[id],o=remedyOptions(n).find(x=>x.key===key);if(!o)return;const f=F[id]||{};
+ act(`${id}: ${o.name}`,o.mut,{tradeoffs:[`+ ${o.pro}`,`− ${o.con}`],adr:{title:`${id} "${n.name}": ${o.name}`,context:`${fmt(f.in)} rps at ${pct(f.util)} utilization (${S.mult}× load).`,decision:`${o.name}. Expected utilization ${o.effect==null?'n/a':pct(o.effect)}${o.thr?`, ${pct(o.thr)} of requests throttled`:''}.`,tradeoffs:`+ ${o.pro}\n− ${o.con}`,basis:['EA-P4','EA-P7']}});
 }
 
 /* ---------- fixes ---------- */
@@ -615,49 +742,73 @@ function fixFn(x){
   standby:()=>{N()[x.n].standby=true},
   restore:()=>{N()[x.n].failed=false},
   enc:()=>{N()[x.n].enrich.encryptRest=true},
+  deps:()=>addDeps(x.n?[x.n]:null),
   idp:()=>{const gw=kids('root').find(n=>n.type==='gw')||kids('root').find(n=>!EXTERNAL.includes(n.type));const i=addNode('idp',null,'root',{x:ZX.dmz,y:(gw?gw.y:250)+170});if(gw)connect(gw.id,i.id,'HTTPS')},
   cap:()=>{const c=S.caps.find(c=>c.types.includes(x.t));if(c)c.on=true;else S.caps.push({id:'TC'+(S.caps.length+1),name:T[x.t].label+' (proposed via ADR)',types:[x.t],on:true});S.ver.caps++}
  }[x.k];
 }
-const fixLabel=x=>({waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling decision'}[x.k]);
+const fixLabel=x=>({waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
 function applyFix(f){
  const x=f.fix;if(!x)return;
  if(x.k==='decide'){focusNode(x.n);return}
  const opts={};
  if(x.k==='cap')opts.adr={title:`Adopt ${T[x.t].label.toLowerCase()} as a capability`,context:f.why,decision:'Add to Technical Capabilities as proposed; platform team to operate.',tradeoffs:f.adr||'',basis:f.basis};
+ if(x.k==='deps')opts.tradeoffs=['+ Every component can be built, deployed, keyed and observed','− Shared platform services become tier-0: protect and replicate them'];
  act(`${f.id}: ${fixLabel(x)}`,fixFn(x),opts);
 }
 
 /* ---------- model mutations ---------- */
 function nextId(type){const p=T[type].p;let i=1;while(S.nodes[p+i])i++;return p+i}
 function addNode(type,name,parent,pos={}){
- parent=parent||V.scope;const t=T[type],id=nextId(type);
- const col=kids(parent).filter(n=>Math.abs(n.x-ZX[t.zone])<70);
- const y=col.length?Math.max(...col.map(n=>n.y))+150:250;
- const n=mkNode(id,type,name||t.label,pos.x??ZX[t.zone],pos.y??y,{parent});
+ parent=parent||V.scope;const t=T[type],id=nextId(type);let x,y;
+ if(t.zone==='platform'){const others=kids(parent).filter(m=>zoneOf(m)!=='platform'),plat=kids(parent).filter(m=>zoneOf(m)==='platform');
+  y=plat.length?plat[0].y:(others.length?Math.max(...others.map(m=>m.y))+230:600);x=270+plat.length*200}
+ else{const z=type==='part'?zoneOf(S.nodes[parent]):t.zone;const col=kids(parent).filter(n=>Math.abs(n.x-ZX[z])<70&&zoneOf(n)!=='platform');x=ZX[z];y=col.length?Math.max(...col.map(n=>n.y))+150:250}
+ const n=mkNode(id,type,name||t.label,pos.x??x,pos.y??y,{parent});
  S.nodes[id]=n;
  logAI('SLM enrichment',`Enriched ${id} (${t.label})`,'Filled '+Object.keys(n.enrich).join(', ')+' from catalog defaults and zone policy',.88);
  return n;
 }
 function removeNode(id){const all=[id];for(let i=0;i<all.length;i++)kids(all[i]).forEach(k=>all.push(k.id));all.forEach(x=>delete S.nodes[x]);S.edges=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to])}
-const findEdge=(a,b)=>S.edges.find(e=>e.from===a&&e.to===b);
+const findEdge=(a,b)=>S.edges.find(e=>e.from===a&&e.to===b&&isFlow(e));
 function removeEdge(a,b){S.edges=S.edges.filter(e=>!(e.from===a&&e.to===b))}
-function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||defProto(B.type),via:via||defVia(A.type,B.type)});return true}
+function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||defVia(A.type,B.type)});return true}
+const TEMPLATES={
+ svc:n=>[['api','GET /health'],['api','POST /'+n.name.split(' ')[0].toLowerCase()],['adp','Data adapter']],
+ vm:()=>[['part','App runtime'],['part','Agent / sidecar']],
+ fn:()=>[['part','Trigger'],['part','Handler'],['part','Dead-letter queue']],
+ db:()=>[['part','Connection pool (PgBouncer)'],['part','Query engine'],['part','Storage + WAL']],
+ gw:()=>[['part','Route /v1/*'],['part','JWT auth plugin'],['part','Rate limiter'],['part','Request transformer']],
+ waf:()=>[['part','Managed rule set (OWASP / CRS)'],['part','Rate-based rule'],['part','Bot control'],['part','Log stream to SIEM']],
+ lb:()=>[['part','Listener :443 (TLS 1.2+)'],['part','Target group'],['part','Health check']],
+ cdn:()=>[['part','Cache behaviour'],['part','TLS certificate'],['part','Origin']],
+ egw:()=>[['part','FQDN allow-list'],['part','TLS inspection'],['part','NAT']],
+ idp:n=>[['part','/authorize'],['part','/token'],['part',idpKey(n)==='corp'?`SAML trust: ${n.fedIdp||'corporate IdP'}`:'User directory + MFA']],
+ adp:()=>[['part','Inbound mapper'],['part','Retry + circuit breaker'],['part','Outbound client']],
+ api:()=>[['part','Validate request'],['part','Business logic'],['part','Respond']],
+ queue:n=>[['part',n.flavor==='kafka'?`Topic (${n.partitions} partitions)`:'Queue'],['part','Dead-letter queue'],['part','Consumer group']],
+ cache:()=>[['part','Primary shard'],['part','Replica'],['part','Eviction policy (LRU)']],
+ obj:()=>[['part','Bucket policy (deny public)'],['part','Lifecycle rule'],['part','Versioning + object lock']]
+};
+const CHAIN={gw:[0,1,2],waf:[0,1,2],lb:[0,1],adp:[0,1,2],api:[0,1,2],fn:[0,1],db:[0,1,2],idp:[],queue:[0,2],egw:[0,1,2],vm:[0,1]};
 function drill(id){
  const n=S.nodes[id];if(!n)return;
+ if(EXTERNAL.includes(n.type)||n.type==='part'||PLATFORM.includes(n.type)){say(`${id} has no sub-design: it is ${n.type==='part'?'already a part':'outside or shared'}. Zoom in (scroll) to read its details.`,'s');return}
  if(!kids(id).length){
-  const tpl={svc:[['api','GET /health'],['api','POST /'+n.name.split(' ')[0].toLowerCase()],['adp','Data adapter']],vm:[['svc','App runtime'],['adp','Agent / sidecar']],db:[['adp','Connection pool (PgBouncer)'],['svc','Query engine'],['obj','Storage + WAL']],gw:[['api','Route /v1/*'],['adp','Auth plugin']],idp:[['api','/token'],['api','/authorize']]}[n.type]||[['svc','Component A'],['svc','Component B']];
-  const made=tpl.map(([t,nm],i)=>addNode(t,nm,id,{x:200+i*270,y:250}));
-  if(n.type==='db'){made[1].cap=n.cap;made[2].cap=n.cap*2;connect(made[0].id,made[1].id);connect(made[1].id,made[2].id)}
-  else if(made.length>=2)connect(made[made.length-2].id,made[made.length-1].id);
-  say(`Created starter sub-design for ${id}: ${made.map(m=>m.id).join(', ')}. Capacity inside scales with ${id}'s ${instCount(n)} instance${instCount(n)>1?'s':''}.`,'s');
+  pushUndo(`Create sub-design for ${id}`);
+  const tpl=(TEMPLATES[n.type]||(()=>[['part','Part A'],['part','Part B']]))(n);
+  const made=tpl.map(([t,nm],i)=>addNode(t,nm,id,{x:200+i*240,y:250}));
+  if(n.type==='db'){made[1].cap=n.cap}
+  const ch=CHAIN[n.type];if(ch){for(let i=0;i<ch.length-1;i++)connect(made[ch[i]].id,made[ch[i+1]].id)}else if(made.length>=2)connect(made[made.length-2].id,made[made.length-1].id);
+  say(`Created sub-design for ${id} (${svcName(n)}): ${made.map(m=>`${m.id} ${m.name}`).join(', ')}. Inner capacity scales with ${id}'s ${instCount(n)} instance${instCount(n)>1?'s':''}.`,'s');
  }
- V.scope=id;V.sel=null;V.selE=null;fit();changed();
+ V.scope=id;V.sel=null;V.selE=null;closeMenu();fit();changed();
 }
 
 /* ---------- Action Guard: dry-run every change before it happens ---------- */
-const CHECKS=[['Zero-trust path','EA-P5'],['Ground truth','GT'],['Capabilities','EA-P3'],['Resilience','EA-P2'],['Capacity','EA-P4'],['Threat exposure','ATT&CK']];
-function preview(fn){
+const CHECKS=[['Zero-trust path','EA-P5'],['Ground truth','GT'],['Capabilities','EA-P3'],['Resilience','EA-P2'],['Capacity','EA-P4'],['Threat exposure','ATT&CK'],['Platform dependencies','Platform']];
+const RANK={ok:0,review:1,risk:2,block:3};
+function preview(fn,opts={}){
  const keep={S,F,EF,findings,KPI};const before={find:findings.slice(),kpi:{...KPI},F:{...F}};
  S=clone(keep.S);let error=null;
  try{fn();simulate();analyze(false)}catch(e){error=e.message}
@@ -668,41 +819,49 @@ function preview(fn){
  const cons=[];
  const gone=Object.keys(S.nodes).filter(id=>!after.nodes[id]);
  if(gone.length)cons.push(`Removes ${gone.join(', ')}${gone.length>1?' (with its sub-design)':''}.`);
- const lostEdges=S.edges.filter(e=>!after.edges.some(x=>x.from===e.from&&x.to===e.to));
+ gone.filter(id=>['waf','idp','egw','gw','kms','sec'].includes(S.nodes[id].type)).forEach(id=>cons.push(`${id} is a security control (${T[S.nodes[id].type].label}): everything it protected loses that protection.`));
+ const lostEdges=S.edges.filter(e=>isFlow(e)&&!after.edges.some(x=>x.from===e.from&&x.to===e.to));
  if(lostEdges.length)cons.push(`Removes ${lostEdges.length} flow${lostEdges.length>1?'s':''}: ${lostEdges.map(e=>e.from+'→'+e.to).join(', ')}.`);
- Object.keys(after.nodes).forEach(id=>{const b=before.F[id],a=after.F[id];if(b&&a&&b.in>0&&a.in===0&&!EXTERNAL.includes(after.nodes[id].type))cons.push(`${id} stops receiving traffic (orphaned).`)});
- if(before.kpi.offered&&after.kpi.err>before.kpi.err+.005)cons.push(`Error rate rises to ${(after.kpi.err*100).toFixed(1)}%.`);
+ const starved=[];Object.keys(after.nodes).forEach(id=>{const b=before.F[id],a=after.F[id],an=after.nodes[id];if(!b||!a)return;
+  if(an.type==='user'&&a.noRoute&&!b.noRoute)cons.push(`${id} "${an.name}" loses its route in: ${fmt(a.drop)} rps start failing.`);
+  else if(b.in>0&&a.in===0&&!EXTERNAL.includes(an.type))starved.push(id)});
+ if(starved.length)cons.push(`${starved.length} component${starved.length>1?'s stop':' stops'} receiving traffic: ${starved.slice(0,8).join(', ')}${starved.length>8?' and '+(starved.length-8)+' more':''}.`);
+ if(after.kpi.err>before.kpi.err+.005)cons.push(`Errors rise from ${(before.kpi.err*100).toFixed(1)}% to ${(after.kpi.err*100).toFixed(1)}%.`);
+ if(after.kpi.thr>before.kpi.thr+.005)cons.push(`${(after.kpi.thr*100).toFixed(1)}% of requests are throttled (429).`);
  const gt=added.some(f=>f.sev==='crit'&&f.basis.some(b=>/^GT/.test(b)));
- const verdict=error?'block':gt?'block':added.some(f=>f.sev==='crit')?'risk':added.length?'review':'ok';
+ let verdict=error?'block':gt?'block':added.some(f=>f.sev==='crit')?'risk':added.length?'review':'ok';
+ if(opts.remove&&RANK[verdict]<RANK.review)verdict='review';
+ if(gone.some(id=>['waf','idp','egw','kms','sec'].includes(S.nodes[id].type))&&RANK[verdict]<RANK.risk)verdict='risk';
  const checks=CHECKS.map(([n,p])=>{const bad=added.filter(f=>f.basis.some(b=>b.startsWith(p)));return {n,p,ok:!bad.length,bad}});
- return {verdict,added,resolved,before:before.kpi,after:after.kpi,checks,cons,error};
+ return {verdict,added,resolved,before:before.kpi,after:after.kpi,afterF:after.F,checks,cons,error};
 }
 let pending=null;
 function act(desc,fn,opts={}){
  const mode=S.settings.guard||'enforce';
  if(mode==='off'){commit(desc,fn,opts,null);return}
- const r=preview(fn);
+ const r=preview(fn,opts);
  if(r.verdict==='ok'&&!opts.adr&&!opts.tradeoffs){commit(desc,fn,opts,r);return}
  pending={desc,fn,opts,r};showGuard();
 }
 function commit(desc,fn,opts,r,just){
+ pushUndo(desc);
  fn();
- if(r)logAI('Guardian',`${r.verdict==='ok'?'Allowed':just?'Exception approved':'Applied after review'}: ${desc}`,r.verdict==='ok'?'All checks passed in dry-run':`${r.added.length} new finding(s): ${r.added.map(f=>f.key.split(':')[0]).join(', ')}${just?' · justification: '+just:''}`,.93);
+ if(r)logAI('Guardian',`${r.verdict==='ok'?'Allowed':just?'Exception approved':'Applied after review'}: ${desc}`,r.verdict==='ok'?'All checks passed in dry-run':`Verdict ${r.verdict}; ${r.added.length} new finding(s)${r.added.length?': '+r.added.map(f=>f.key.split(':')[0]).join(', '):''}${just?' · justification: '+just:''}`,.93);
  if(opts.adr)addADR({...opts.adr,status:'Accepted'});
- if(just)addADR({title:`Exception: ${desc}`,status:'Accepted with exception',context:r.added.map(f=>`${f.id} ${f.title} [${f.basis.join(', ')}]`).join('\n'),decision:'Proceed despite guard findings.',tradeoffs:just,basis:[...new Set(r.added.flatMap(f=>f.basis))]});
- say(`${just?'Applied with exception':'Applied'}: ${desc}.`,'s');
+ if(just)addADR({title:`Exception: ${desc}`,status:'Accepted with exception',context:r.added.map(f=>`${f.id} ${f.title} [${f.basis.join(', ')}]`).join('\n')+(r.cons.length?'\n'+r.cons.join('\n'):''),decision:'Proceed despite guard findings.',tradeoffs:just,basis:[...new Set(r.added.flatMap(f=>f.basis))]});
+ say(`${just?'Applied with exception':'Applied'}: ${desc}. (Undo with Ctrl+Z)`,'s');
  if(opts.after)opts.after();
  changed();
 }
 function addADR(a){S.adrs.push({id:'ADR-'+String(S.adrs.length+1).padStart(3,'0'),at:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),...a})}
 function showGuard(){
  const {desc,opts,r}=pending,mode=S.settings.guard;
- const V2={ok:['ok','ALLOWED','No new risks.'],review:['warn','REVIEW','New warnings. Check the consequences before applying.'],risk:['crit','HIGH RISK','This change introduces critical findings.'],block:['crit','BLOCKED BY GROUND TRUTH','This change violates a non-negotiable standard.']}[r.verdict];
+ const V2={ok:['ok','ALLOWED','No new risks.'],review:['warn','REVIEW','Check the consequences before applying.'],risk:['crit','HIGH RISK','This change removes protection or introduces critical findings.'],block:['crit','BLOCKED BY GROUND TRUTH','This change violates a non-negotiable standard.']}[r.verdict];
  $('#gTitle').textContent='Action Guard · '+desc;
  $('#gVerdict').innerHTML=`<span class="pill ${V2[0]}">${V2[1]}</span><span>${esc(r.error?'Could not dry-run this change: '+r.error:V2[2])}</span>`;
  $('#gChecks').innerHTML=r.checks.map(c=>`<span class="${c.ok?'ok':'crit'}">${c.ok?'✓':'✗'} ${c.n} <span style="color:var(--muted);font-family:var(--f-mono);font-size:10px">${c.p}</span></span>`).join('');
  const row=(l,a,b,f)=>`<tr><td>${l}</td><td class="num">${f(a)}</td><td class="num">→ ${f(b)}</td></tr>`;
- $('#gImpact').innerHTML=`<tr><th></th><th>Now</th><th>After</th></tr>`+row('Errors ≈',r.before.err,r.after.err,v=>(v*100).toFixed(1)+'%')+row('Latency est.',r.before.lat,r.after.lat,v=>fmt(v)+' ms')+row('Bottleneck',r.before.worst,r.after.worst,w=>w?`${w.id}`:'—');
+ $('#gImpact').innerHTML=`<tr><th></th><th>Now</th><th>After</th></tr>`+row('Errors ≈',r.before.err,r.after.err,v=>(v*100).toFixed(1)+'%')+row('Throttled',r.before.thr,r.after.thr,v=>(v*100).toFixed(1)+'%')+row('Latency est.',r.before.lat,r.after.lat,v=>fmt(v)+' ms')+row('Bottleneck',r.before.worst,r.after.worst,w=>w?`${w.id}`:'—');
  $('#gCons').innerHTML=r.cons.map(c=>`<li>${esc(c)}</li>`).join('');
  const li=f=>`<li><b>${esc(f.title)}</b> <span class="basis" style="display:inline-flex">${f.basis.map(b=>`<span>${esc(b)}</span>`).join('')}</span><br><span class="why">${esc(f.why)}</span></li>`;
  $('#gNewWrap').hidden=!r.added.length;$('#gNew').innerHTML=r.added.map(li).join('');
@@ -710,7 +869,7 @@ function showGuard(){
  const tr=opts.tradeoffs||[];$('#gTradeWrap').hidden=!tr.length;$('#gTrade').innerHTML=tr.map(t=>`<li>${esc(t)}</li>`).join('');
  const needJ=r.verdict==='block'&&mode==='enforce';
  $('#gJustWrap').hidden=r.verdict!=='block'&&r.verdict!=='risk';$('#gJust').value='';
- $('#gNote').textContent=needJ?'Enforce mode: a written justification of at least 20 characters is required. It is recorded as an exception decision.':opts.adr?'Applying records an architecture decision with these tradeoffs.':'Reviewed by the Guardian rules engine (stand-in for the SLM). Every outcome is written to the AI log.';
+ $('#gNote').textContent=needJ?'Enforce mode: a written justification of at least 20 characters is required. It is recorded as an exception decision.':opts.adr?'Applying records an architecture decision with these tradeoffs. You can undo it.':'Reviewed by the Guardian rules engine (stand-in for the SLM). Every outcome is written to the AI log. You can undo it.';
  $('#gApply').textContent=r.verdict==='ok'?'Apply':needJ?'Apply with exception':'Apply anyway';
  $('#gApply').className='btn '+(r.verdict==='ok'||r.verdict==='review'?'primary':'danger');
  const upd=()=>{$('#gApply').disabled=needJ&&$('#gJust').value.trim().length<20};$('#gJust').oninput=upd;upd();
@@ -723,63 +882,83 @@ $('#guard').addEventListener('click',e=>{if(e.target.id==='guard')$('#gCancel').
 /* ---------- code generators ---------- */
 const slug=n=>n.id.toLowerCase();
 const hcl=(rt,name,lines)=>`resource "${rt}" "${name}" {\n${lines.filter(Boolean).map(l=>l.split('\n').map(x=>'  '+x).join('\n')).join('\n')}\n}`;
-const tags=n=>`tags = { nexus_id = "${n.id}", zone = "${T[n.type].zone}" }`;
+const tags=n=>`tags = { nexus_id = "${n.id}", zone = "${zoneOf(n)}" }`;
+const pab=n=>['aws_s3_bucket_public_access_block',[`bucket                  = aws_s3_bucket.${slug(n)}.id`,'block_public_acls       = true','block_public_policy     = true','restrict_public_buckets = true']];
 const RES={
  aws:{
-  waf:n=>[['aws_wafv2_web_acl',[`name  = "${slug(n)}"`,'scope = "REGIONAL"','default_action {\n  allow {}\n}','# managed rule groups: CommonRuleSet, KnownBadInputs, SQLi',tags(n)]]],
+  waf:n=>[['aws_wafv2_web_acl',[`name  = "${slug(n)}"`,'scope = "REGIONAL"','default_action {\n  allow {}\n}',`# managed rule groups: ${PACK.aws.waf}`,n.rateLimit?`# rate-based rule: ${n.rateLimit} rps`:'',tags(n)]]],
   lb:n=>[['aws_lb',[`name               = "${slug(n)}"`,'load_balancer_type = "application"','internal           = false','subnets            = [aws_subnet.edge.id]','drop_invalid_header_fields = true',tags(n)]]],
   egw:n=>[['aws_nat_gateway',['subnet_id     = aws_subnet.edge.id','allocation_id = aws_eip.'+slug(n)+'.id',tags(n)]],['aws_networkfirewall_firewall',[`name                = "${slug(n)}-fw"`,'firewall_policy_arn = aws_networkfirewall_firewall_policy.fqdn_allowlist.arn','vpc_id              = aws_vpc.main.id','subnet_mapping {\n  subnet_id = aws_subnet.edge.id\n}']]],
-  gw:n=>[['aws_apigatewayv2_api',[`name          = "${slug(n)}"`,'protocol_type = "HTTP"',tags(n)]]],
-  idp:n=>[['aws_cognito_user_pool',[`name              = "${slug(n)}"`,'mfa_configuration = "ON"',tags(n)]]],
-  svc:n=>[['aws_ecs_service',[`name            = "${slug(n)}"`,'cluster         = aws_ecs_cluster.main.id',`desired_count   = ${n.rep}`,'launch_type     = "FARGATE"','network_configuration {\n  subnets          = [aws_subnet.app.id]\n  assign_public_ip = false\n}',tags(n)]]],
+  gw:n=>[['aws_apigatewayv2_api',[`name          = "${slug(n)}"`,'protocol_type = "HTTP"',tags(n)]],...(n.rateLimit?[['aws_apigatewayv2_stage',[`api_id = aws_apigatewayv2_api.${slug(n)}.id`,'name   = "$default"',`default_route_settings {\n  throttling_rate_limit  = ${n.rateLimit}\n  throttling_burst_limit = ${Math.round(n.rateLimit*1.5)}\n}`]]]:[])],
+  idp:n=>{const r=[['aws_cognito_user_pool',[`name              = "${slug(n)}"`,'mfa_configuration = "ON"',n.audience==='workforce'?'# workforce identities: prefer IAM Identity Center (aws_ssoadmin_*) federated to the corporate IdP':'',tags(n)]]];
+   if(idpKey(n)==='corp')r.push(['aws_cognito_identity_provider',[`user_pool_id  = aws_cognito_user_pool.${slug(n)}.id`,`provider_name = "${(n.fedIdp||'Corporate').replace(/\W+/g,'')}"`,'provider_type = "SAML"',`provider_details = {\n  MetadataURL = var.${slug(n)}_saml_metadata_url\n}`]]);
+   if(idpKey(n)==='social')r.push(['aws_cognito_identity_provider',[`user_pool_id  = aws_cognito_user_pool.${slug(n)}.id`,'provider_name = "Google"','provider_type = "Google"',`provider_details = {\n  client_id        = var.google_client_id\n  client_secret    = var.google_client_secret\n  authorize_scopes = "openid email"\n}`]]);return r},
+  svc:n=>[['aws_ecs_service',[`name            = "${slug(n)}"`,'cluster         = aws_ecs_cluster.main.id',`desired_count   = ${n.auto?n.auto.min:n.rep}`,'launch_type     = "FARGATE"','network_configuration {\n  subnets          = [aws_subnet.app.id]\n  assign_public_ip = false\n}',tags(n)]],...(n.auto?[['aws_appautoscaling_target',[`service_namespace  = "ecs"`,`resource_id        = "service/\${aws_ecs_cluster.main.name}/${slug(n)}"`,'scalable_dimension = "ecs:service:DesiredCount"',`min_capacity       = ${n.auto.min}`,`max_capacity       = ${n.auto.max}`]]]:[])],
   vm:n=>[['aws_instance',[`count         = ${n.rep}`,'ami           = var.hardened_ami','instance_type = "m6i.large"','subnet_id     = aws_subnet.app.id','metadata_options {\n  http_tokens = "required"\n}',tags(n)]]],
-  fn:n=>[['aws_lambda_function',[`function_name = "${slug(n)}"`,'runtime       = "nodejs20.x"','handler       = "index.handler"','role          = var.lambda_role_arn',tags(n)]]],
+  fn:n=>[['aws_lambda_function',[`function_name = "${slug(n)}"`,'runtime       = "nodejs20.x"','handler       = "index.handler"','role          = var.lambda_role_arn','s3_bucket     = var.artifact_bucket # deployment package',tags(n)]]],
   db:n=>{const r=[['aws_db_instance',[n.shards>1?`count               = ${n.shards} # shards · ${PACK.aws.shard}`:'',`identifier          = "${slug(n)}${n.shards>1?'-${count.index}':''}"`,'engine              = "postgres"','engine_version      = "16.4"',`instance_class      = "${PACK.aws.dbClass[n.tier]}"`,`multi_az            = ${!!n.standby}`,`storage_encrypted   = ${n.enrich.encryptRest!==false}`,'kms_key_id          = var.cmk_arn','publicly_accessible = false','db_subnet_group_name = aws_db_subnet_group.data.name',tags(n)]]];
    if(n.readReplicas&&n.shards<=1)r.push(['aws_db_instance',[`count               = ${n.readReplicas} # read replicas`,`identifier          = "${slug(n)}-ro-\${count.index}"`,`replicate_source_db = aws_db_instance.${slug(n)}.identifier`,`instance_class      = "${PACK.aws.dbClass[n.tier]}"`,'storage_encrypted   = true','publicly_accessible = false']]);return r},
   cache:n=>[['aws_elasticache_replication_group',[`replication_group_id       = "${slug(n)}"`,`description                = "${n.name}"`,'node_type                  = "cache.r7g.large"',`num_cache_clusters         = ${Math.max(1,n.rep)}`,'transit_encryption_enabled = true','at_rest_encryption_enabled = true',tags(n)]]],
-  obj:n=>[['aws_s3_bucket',[`bucket = "${slug(n)}-${S.project.toLowerCase().replace(/\W+/g,'-')}"`,tags(n)]],['aws_s3_bucket_public_access_block',[`bucket                  = aws_s3_bucket.${slug(n)}.id`,'block_public_acls       = true','block_public_policy     = true','restrict_public_buckets = true']]],
-  queue:n=>[['aws_sqs_queue',[`name                    = "${slug(n)}"`,'sqs_managed_sse_enabled = true',tags(n)]]],
-  cdn:n=>[['aws_cloudfront_distribution',['enabled = true','# origin -> edge WAF; viewer TLSv1.2_2021',tags(n)]]],
-  api:n=>[['aws_apigatewayv2_route',['api_id    = var.api_id',`route_key = "${n.name}"`]]]
+  obj:n=>[['aws_s3_bucket',[`bucket = "${slug(n)}-${S.project.toLowerCase().replace(/\W+/g,'-')}"`,tags(n)]],pab(n)],
+  queue:n=>n.flavor==='kafka'?[['aws_msk_cluster',[`cluster_name           = "${slug(n)}"`,'kafka_version          = "3.6.0"',`number_of_broker_nodes = ${n.brokers}`,'broker_node_group_info {\n  instance_type  = "kafka.m7g.large"\n  client_subnets = [aws_subnet.data.id]\n}','encryption_info {\n  encryption_in_transit {\n    client_broker = "TLS"\n  }\n}',`# topic: ${n.partitions} partitions, key "${n.pkey||'choose: e.g. order_id'}", consumer group of ${n.consumers}`,tags(n)]]]
+   :n.flavor==='mq'?[['aws_mq_broker',[`broker_name         = "${slug(n)}"`,'engine_type         = "RabbitMQ"','engine_version      = "3.13"','host_instance_type  = "mq.m5.large"','deployment_mode     = "CLUSTER_MULTI_AZ"','publicly_accessible = false',tags(n)]]]
+   :[['aws_sqs_queue',[`name                    = "${slug(n)}"`,'sqs_managed_sse_enabled = true',tags(n)]]],
+  cdn:n=>[['aws_cloudfront_distribution',['enabled = true','# origin: artifact bucket (static app) and the WAF-fronted API; viewer TLSv1.2_2021',tags(n)]]],
+  api:n=>[['aws_apigatewayv2_route',['api_id    = var.api_id',`route_key = "${n.name}"`]]],
+  reg:n=>[['aws_ecr_repository',[`name                 = "${slug(n)}"`,'image_tag_mutability = "IMMUTABLE"','image_scanning_configuration {\n  scan_on_push = true\n}','encryption_configuration {\n  encryption_type = "KMS"\n}',tags(n)]]],
+  art:n=>[['aws_s3_bucket',[`bucket = "${slug(n)}-artifacts"`,tags(n)]],['aws_s3_bucket_versioning',[`bucket = aws_s3_bucket.${slug(n)}.id`,'versioning_configuration {\n  status = "Enabled"\n}']],pab(n)],
+  kms:n=>[['aws_kms_key',[`description             = "${n.name}"`,'enable_key_rotation     = true','deletion_window_in_days = 30',tags(n)]]],
+  sec:n=>[['aws_secretsmanager_secret',[`name                    = "${slug(n)}"`,'kms_key_id              = var.cmk_arn','recovery_window_in_days = 7',tags(n)]]],
+  mon:n=>[['aws_cloudwatch_log_group',[`name              = "/nexus/${slug(n)}"`,'retention_in_days = 365','kms_key_id        = var.cmk_arn',tags(n)]]]
  },
  azure:{
   waf:n=>[['azurerm_web_application_firewall_policy',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','location            = var.location','policy_settings {\n  mode = "Prevention"\n}','managed_rules {\n  managed_rule_set {\n    type    = "OWASP"\n    version = "3.2"\n  }\n}']]],
   lb:n=>[['azurerm_lb',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','location            = var.location','sku                 = "Standard"']]],
   egw:n=>[['azurerm_firewall',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','sku_name            = "AZFW_VNet"','sku_tier            = "Premium"','firewall_policy_id  = azurerm_firewall_policy.fqdn_allowlist.id']]],
-  gw:n=>[['azurerm_api_management',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','publisher_name      = var.org','publisher_email     = var.owner_email','sku_name            = "Premium_1"','virtual_network_type = "Internal"']]],
-  idp:n=>[['azuread_application',[`display_name = "${n.name}"`,'sign_in_audience = "AzureADMyOrg"']]],
-  svc:n=>[['azurerm_container_app',[`name                         = "${slug(n)}"`,'container_app_environment_id = azurerm_container_app_environment.main.id','resource_group_name          = azurerm_resource_group.main.name','revision_mode                = "Single"',`template {\n  min_replicas = ${n.rep}\n  max_replicas = ${n.rep*3}\n}`]]],
+  gw:n=>[['azurerm_api_management',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','publisher_name      = var.org','publisher_email     = var.owner_email','sku_name            = "Premium_1"','virtual_network_type = "Internal"',n.rateLimit?`# policy: <rate-limit calls="${n.rateLimit}" renewal-period="1" />`:'']]],
+  idp:n=>[['azuread_application',[`display_name = "${n.name}"`,`sign_in_audience = "${n.audience==='workforce'?'AzureADMyOrg':'AzureADandPersonalMicrosoftAccount'}"`,idpKey(n)==='corp'?`# federation: SAML trust with ${n.fedIdp||'corporate IdP'} (enterprise application)`:'']]],
+  svc:n=>[['azurerm_container_app',[`name                         = "${slug(n)}"`,'container_app_environment_id = azurerm_container_app_environment.main.id','resource_group_name          = azurerm_resource_group.main.name','revision_mode                = "Single"',`template {\n  min_replicas = ${n.auto?n.auto.min:n.rep}\n  max_replicas = ${n.auto?n.auto.max:n.rep}\n}`]]],
   vm:n=>[['azurerm_linux_virtual_machine',[`count               = ${n.rep}`,`name                = "${slug(n)}-\${count.index}"`,'resource_group_name = azurerm_resource_group.main.name','size                = "Standard_D4s_v5"','encryption_at_host_enabled = true']]],
   fn:n=>[['azurerm_linux_function_app',[`name                = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','https_only          = true']]],
   db:n=>{const r=[['azurerm_postgresql_flexible_server',[n.shards>1?`# ${n.shards} shards → ${PACK.azure.shard}`:'',`name                          = "${slug(n)}"`,'resource_group_name           = azurerm_resource_group.main.name','version                       = "16"',`sku_name                      = "${PACK.azure.dbClass[n.tier]}"`,'public_network_access_enabled = false','customer_managed_key {\n  key_vault_key_id = var.cmk_id\n}',n.standby?'high_availability {\n  mode = "ZoneRedundant"\n}':'# high_availability: not set (single primary)']]];
    if(n.readReplicas)r.push(['azurerm_postgresql_flexible_server',[`count            = ${n.readReplicas} # read replicas`,`name             = "${slug(n)}-ro-\${count.index}"`,'create_mode      = "Replica"',`source_server_id = azurerm_postgresql_flexible_server.${slug(n)}.id`]]);return r},
   cache:n=>[['azurerm_redis_cache',[`name                          = "${slug(n)}"`,'sku_name                      = "Premium"','family                        = "P"','capacity                      = 1','minimum_tls_version           = "1.2"','public_network_access_enabled = false']]],
   obj:n=>[['azurerm_storage_account',[`name                            = "${slug(n)}sa"`,'account_tier                    = "Standard"','account_replication_type        = "ZRS"','min_tls_version                 = "TLS1_2"','allow_nested_items_to_be_public = false','public_network_access_enabled   = false']]],
-  queue:n=>[['azurerm_servicebus_namespace',[`name = "${slug(n)}"`,'sku  = "Premium"','minimum_tls_version = "1.2"']]],
+  queue:n=>n.flavor==='kafka'?[['azurerm_eventhub_namespace',[`name     = "${slug(n)}"`,'sku      = "Premium"','capacity = 1','# Kafka endpoint on :9093']],['azurerm_eventhub',['name              = "events"',`namespace_id      = azurerm_eventhub_namespace.${slug(n)}.id`,`partition_count   = ${n.partitions}`,'message_retention = 7']]]:[['azurerm_servicebus_namespace',[`name = "${slug(n)}"`,'sku  = "Premium"','minimum_tls_version = "1.2"']]],
   cdn:n=>[['azurerm_cdn_frontdoor_profile',[`name     = "${slug(n)}"`,'sku_name = "Premium_AzureFrontDoor"']]],
-  api:n=>[['azurerm_api_management_api_operation',[`operation_id = "${slug(n)}"`,`method       = "${n.name.split(' ')[0]}"`,`url_template = "${n.name.split(' ')[1]||'/'}"`]]]
+  api:n=>[['azurerm_api_management_api_operation',[`operation_id = "${slug(n)}"`,`method       = "${n.name.split(' ')[0]}"`,`url_template = "${n.name.split(' ')[1]||'/'}"`]]],
+  reg:n=>[['azurerm_container_registry',[`name                          = "${slug(n)}acr"`,'resource_group_name           = azurerm_resource_group.main.name','sku                           = "Premium"','admin_enabled                 = false','public_network_access_enabled = false']]],
+  art:n=>[['azurerm_storage_account',[`name                            = "${slug(n)}art"`,'account_tier                    = "Standard"','account_replication_type        = "ZRS"','allow_nested_items_to_be_public = false']]],
+  kms:n=>[['azurerm_key_vault_key',[`name         = "${slug(n)}"`,'key_vault_id = azurerm_key_vault.main.id','key_type     = "RSA-HSM"','key_size     = 3072','key_opts     = ["wrapKey", "unwrapKey"]']]],
+  sec:n=>[['azurerm_key_vault',[`name                          = "${slug(n)}"`,'tenant_id                     = var.tenant_id','sku_name                      = "premium"','purge_protection_enabled      = true','public_network_access_enabled = false']]],
+  mon:n=>[['azurerm_log_analytics_workspace',[`name              = "${slug(n)}"`,'resource_group_name = azurerm_resource_group.main.name','retention_in_days = 365']]]
  },
  gcp:{
-  waf:n=>[['google_compute_security_policy',[`name = "${slug(n)}"`,'# Cloud Armor preconfigured WAF rules: sqli-v33, xss-v33']]],
+  waf:n=>[['google_compute_security_policy',[`name = "${slug(n)}"`,`# Cloud Armor rules: ${PACK.gcp.waf}`]]],
   lb:n=>[['google_compute_url_map',[`name            = "${slug(n)}"`,'default_service = var.backend_service']]],
   egw:n=>[['google_compute_router_nat',[`name   = "${slug(n)}"`,'router = google_compute_router.main.name','nat_ip_allocate_option = "AUTO_ONLY"','source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"','# + Secure Web Proxy with FQDN allow-list']]],
   gw:n=>[['google_api_gateway_api',['provider = google-beta',`api_id   = "${slug(n)}"`]]],
-  idp:n=>[['google_identity_platform_config',['project = var.project','mfa {\n  state = "ENABLED"\n}']]],
-  svc:n=>[['google_cloud_run_v2_service',[`name     = "${slug(n)}"`,'location = var.region','ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"',`template {\n  scaling {\n    min_instance_count = ${n.rep}\n  }\n}`]]],
+  idp:n=>[['google_identity_platform_config',['project = var.project','mfa {\n  state = "ENABLED"\n}']],...(idpKey(n)==='corp'?[['google_identity_platform_inbound_saml_config',[`name         = "saml.${(n.fedIdp||'corp').toLowerCase().replace(/\W+/g,'')}"`,`display_name = "${n.fedIdp||'Corporate IdP'}"`,'idp_config {\n  idp_entity_id = var.saml_entity_id\n  sso_url       = var.saml_sso_url\n}']]]:[])],
+  svc:n=>[['google_cloud_run_v2_service',[`name     = "${slug(n)}"`,'location = var.region','ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"',`template {\n  scaling {\n    min_instance_count = ${n.auto?n.auto.min:n.rep}\n    max_instance_count = ${n.auto?n.auto.max:n.rep}\n  }\n}`]]],
   vm:n=>[['google_compute_instance',[`count        = ${n.rep}`,`name         = "${slug(n)}-\${count.index}"`,'machine_type = "n2-standard-4"','shielded_instance_config {\n  enable_secure_boot = true\n}']]],
   fn:n=>[['google_cloudfunctions2_function',[`name     = "${slug(n)}"`,'location = var.region']]],
   db:n=>{const r=[['google_sql_database_instance',[n.shards>1?`# ${n.shards} shards → ${PACK.gcp.shard}`:'',`name             = "${slug(n)}"`,'database_version = "POSTGRES_16"','encryption_key_name = var.cmk',`settings {\n  tier              = "${PACK.gcp.dbClass[n.tier]}"\n  availability_type = "${n.standby?'REGIONAL':'ZONAL'}"\n  ip_configuration {\n    ipv4_enabled = false\n    ssl_mode     = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"\n  }\n}`]]];
    if(n.readReplicas)r.push(['google_sql_database_instance',[`count                = ${n.readReplicas} # read replicas`,`name                 = "${slug(n)}-ro-\${count.index}"`,'database_version     = "POSTGRES_16"',`master_instance_name = google_sql_database_instance.${slug(n)}.name`]]);return r},
   cache:n=>[['google_redis_instance',[`name                    = "${slug(n)}"`,'tier                    = "STANDARD_HA"','memory_size_gb          = 4','transit_encryption_mode = "SERVER_AUTHENTICATION"']]],
   obj:n=>[['google_storage_bucket',[`name                        = "${slug(n)}"`,'location                    = var.region','uniform_bucket_level_access = true','public_access_prevention    = "enforced"']]],
-  queue:n=>[['google_pubsub_topic',[`name = "${slug(n)}"`,'kms_key_name = var.cmk']]],
-  cdn:n=>[['google_compute_backend_bucket',[`name        = "${slug(n)}"`,'bucket_name = var.static_bucket','enable_cdn  = true']]]
+  queue:n=>n.flavor==='kafka'?[['google_managed_kafka_cluster',[`cluster_id = "${slug(n)}"`,'location   = var.region',`capacity_config {\n  vcpu_count   = ${n.brokers*3}\n  memory_bytes = ${n.brokers*3*4*1073741824}\n}`,`# topic: ${n.partitions} partitions, key "${n.pkey||'tbd'}"`]]]:[['google_pubsub_topic',[`name = "${slug(n)}"`,'kms_key_name = var.cmk']]],
+  cdn:n=>[['google_compute_backend_bucket',[`name        = "${slug(n)}"`,'bucket_name = var.static_bucket','enable_cdn  = true']]],
+  reg:n=>[['google_artifact_registry_repository',[`repository_id = "${slug(n)}"`,'location      = var.region','format        = "DOCKER"','kms_key_name  = var.cmk']]],
+  art:n=>[['google_storage_bucket',[`name                        = "${slug(n)}-artifacts"`,'location                    = var.region','uniform_bucket_level_access = true','public_access_prevention    = "enforced"','versioning {\n  enabled = true\n}']]],
+  kms:n=>[['google_kms_crypto_key',[`name            = "${slug(n)}"`,'key_ring        = google_kms_key_ring.main.id','rotation_period = "7776000s"']]],
+  sec:n=>[['google_secret_manager_secret',[`secret_id = "${slug(n)}"`,'replication {\n  auto {}\n}']]],
+  mon:n=>[['google_logging_project_bucket_config',['project        = var.project','location       = "global"',`bucket_id      = "${slug(n)}"`,'retention_days = 365']]]
  },
  vmware:{
   waf:n=>[['avi_wafpolicy',[`name = "${slug(n)}"`,'mode = "WAF_MODE_ENFORCEMENT"']]],
   lb:n=>[['nsxt_policy_lb_service',[`display_name = "${slug(n)}"`,'size         = "MEDIUM"']]],
   db:n=>[['vsphere_virtual_machine',[`count    = ${instCount(n)} # ${n.shards>1?n.shards+' shards × ':''}primary${n.readReplicas?' + '+n.readReplicas+' read replica(s)':''}${n.standby?' + standby at site B':''}`,`name     = "${slug(n)}-\${count.index}"`,`# size: ${PACK.vmware.dbClass[n.tier]}`,'guest_id = "rhel9_64Guest"','datastore_id = data.vsphere_datastore.encrypted.id','network_interface {\n  network_id = nsxt_policy_segment.data.path\n}']]],
-  _:n=>[['vsphere_virtual_machine',[`count    = ${n.rep}`,`name     = "${slug(n)}-\${count.index}"`,'num_cpus = 4','memory   = 16384',`network_interface {\n  network_id = nsxt_policy_segment.${T[n.type].zone==='data'?'data':T[n.type].zone==='app'?'app':'edge'}.path\n}`]]]
+  _:n=>[['vsphere_virtual_machine',[`count    = ${instCount(n)}`,`name     = "${slug(n)}-\${count.index}"`,`# ${svcName(n)}`,'num_cpus = 4','memory   = 16384',`network_interface {\n  network_id = nsxt_policy_segment.${['data','app','platform'].includes(zoneOf(n))?(zoneOf(n)==='platform'?'app':zoneOf(n)):'edge'}.path\n}`]]]
  }
 };
 const PROV={aws:'terraform {\n  required_providers {\n    aws = { source = "hashicorp/aws", version = "~> 5.60" }\n  }\n}\nprovider "aws" { region = var.region }',
@@ -788,18 +967,19 @@ const PROV={aws:'terraform {\n  required_providers {\n    aws = { source = "hash
  vmware:'terraform {\n  required_providers {\n    vsphere = { source = "hashicorp/vsphere", version = "~> 2.8" }\n    nsxt    = { source = "vmware/nsxt", version = "~> 3.6" }\n  }\n}'};
 function linkRes(tg,e){
  const a=S.nodes[e.from],b=S.nodes[e.to],nm=(e.from+'_'+e.to).toLowerCase();
+ if(!isFlow(e))return null;
  if(e.via==='privatelink')return {aws:hcl('aws_vpc_endpoint',nm,[`# ${a.id} → ${b.id} "${b.name}" over PrivateLink`,'vpc_id              = aws_vpc.main.id',`service_name        = var.${b.id.toLowerCase()}_endpoint_service`,'vpc_endpoint_type   = "Interface"','private_dns_enabled = true','subnet_ids          = [aws_subnet.app.id]']),
   azure:hcl('azurerm_private_endpoint',nm,[`# ${a.id} → ${b.id} "${b.name}"`,`name      = "${nm}"`,'subnet_id = azurerm_subnet.app.id',`private_service_connection {\n  name                              = "${nm}"\n  private_connection_resource_alias = var.${b.id.toLowerCase()}_alias\n  is_manual_connection              = true\n}`]),
   gcp:hcl('google_compute_forwarding_rule',nm,[`# ${a.id} → ${b.id} "${b.name}" via Private Service Connect`,`name                  = "${nm}"`,`target                = var.${b.id.toLowerCase()}_service_attachment`,'load_balancing_scheme = ""','network               = google_compute_network.main.id']),
   vmware:`# ${a.id} → ${b.id}: private circuit to "${b.name}" (provider-managed)`}[tg];
  if(e.via==='vpn')return {aws:hcl('aws_vpn_connection',nm,[`# ${a.id} → ${b.id}`,'vpn_gateway_id      = aws_vpn_gateway.main.id','customer_gateway_id = var.'+b.id.toLowerCase()+'_cgw','type                = "ipsec.1"']),azure:hcl('azurerm_virtual_network_gateway_connection',nm,[`# ${a.id} → ${b.id}`,'type = "IPsec"','virtual_network_gateway_id = azurerm_virtual_network_gateway.main.id']),gcp:hcl('google_compute_vpn_tunnel',nm,[`# ${a.id} → ${b.id}`,'vpn_gateway = google_compute_ha_vpn_gateway.main.id']),vmware:`# ${a.id} → ${b.id}: IPsec VPN on NSX Edge`}[tg];
  if(e.via==='dedicated')return {aws:hcl('aws_dx_connection',nm,[`# ${a.id} → ${b.id}`,`name      = "${nm}"`,'bandwidth = "1Gbps"','location  = var.dx_location']),azure:hcl('azurerm_express_route_circuit',nm,[`# ${a.id} → ${b.id}`,`name = "${nm}"`,'bandwidth_in_mbps = 1000']),gcp:hcl('google_compute_interconnect_attachment',nm,[`# ${a.id} → ${b.id}`,`name = "${nm}"`,'type = "PARTNER"']),vmware:`# ${a.id} → ${b.id}: dedicated circuit`}[tg];
- if(e.via==='internet'&&a.type!=='egw')return `# !! ${a.id} → ${b.id} "${b.name}" leaves directly over the internet (violates GT5)`;
+ if(e.via==='internet'&&a.type!=='egw'&&a.type!=='user')return `# !! ${a.id} → ${b.id} "${b.name}" leaves directly over the internet (violates GT5)`;
  return null;
 }
 function genTF(){
  const tg=prov(),all=Object.values(S.nodes),out=[`# ${S.project} · generated by NEXUS · ${PACK[tg].name}`,`# Every change on the canvas regenerates this file. Run terraform validate before apply.`,PROV[tg]];
- const zones=[...new Set(kids('root').map(n=>T[n.type].zone))].filter(z=>z!=='internet');
+ const zones=[...new Set(kids('root').map(n=>zoneOf(n)))].filter(z=>z!=='internet'&&z!=='platform');
  out.push('\n# ---- network perimeter: one segment per trust zone, default deny ----');
  zones.forEach(z=>{
   if(tg==='aws')out.push(hcl('aws_subnet',z,['vpc_id     = aws_vpc.main.id',`cidr_block = var.cidr_${z}`,`map_public_ip_on_launch = ${z==='edge'}`]));
@@ -807,39 +987,43 @@ function genTF(){
   if(tg==='gcp')out.push(hcl('google_compute_subnetwork',z,[`name          = "${z}"`,'network       = google_compute_network.main.id',`ip_cidr_range = var.cidr_${z}`,'private_ip_google_access = true']));
   if(tg==='vmware')out.push(hcl('nsxt_policy_segment',z,[`display_name        = "${z}"`,'transport_zone_path = data.nsxt_policy_transport_zone.overlay.path']));
  });
- const flows=edgesIn('root').filter(e=>S.nodes[e.from].type!=='user');
+ const flows=flowsIn('root').filter(e=>S.nodes[e.from].type!=='user');
  if(tg==='vmware'){out.push(hcl('nsxt_policy_security_policy','zero_trust',['display_name = "nexus-zt"','category     = "Application"',...flows.map(e=>`rule {\n  display_name = "${e.from}-to-${e.to}"\n  action       = "ALLOW"\n  services     = [var.svc_tcp_${PORT[e.proto]}]\n}`),'rule {\n  display_name = "default-deny"\n  action       = "DROP"\n}']))}
  else{out.push('# zero-trust allow-list (everything else denied):');flows.forEach(e=>out.push(`#   ${e.from} -> ${e.to}  tcp/${PORT[e.proto]}  ${e.proto}${e.via!=='net'?'  via '+viaName(e.via):''}${e.proto==='HTTP'?'   !! violates GT1':''}`))}
  const links=S.edges.map(e=>linkRes(tg,e)).filter(Boolean);
  if(links.length){out.push('\n# ---- external connectivity ----');out.push(...links)}
- out.push('\n# ---- components ----');
- all.forEach(n=>{
-  if(['user','ext','saas'].includes(n.type)){if(n.type!=='user')out.push(`# ${n.id} "${n.name}" is external (${T[n.type].label}); reached via ${S.edges.filter(e=>e.to===n.id).map(e=>viaName(e.via)).join(', ')||'nothing yet'}`);return}
-  if(n.type==='adp'){out.push(`# ${n.id} "${n.name}" ships as a sidecar inside ${n.parent}`);return}
+ const plat=all.filter(n=>PLATFORM.includes(n.type)),comps=all.filter(n=>!PLATFORM.includes(n.type));
+ const emit=n=>{
+  if(['user','ext','saas'].includes(n.type)){if(n.type!=='user')out.push(`# ${n.id} "${n.name}" is external (${T[n.type].label}); reached via ${S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>viaName(e.via)).join(', ')||'nothing yet'}`);return}
+  if(n.type==='adp'||n.type==='part'){out.push(`# ${n.id} "${n.name}" is part of ${n.parent} (configuration, not a separate resource)`);return}
   const f=RES[tg][n.type]||RES[tg]._;
   if(!f){out.push(`# ${n.id} ${T[n.type].label}: no native mapping on ${tg}; see ADR`);return}
-  f(n).forEach(([rt,lines],i)=>out.push(`# ${n.id} · ${n.name}${n.parent!=='root'?' (in '+n.parent+')':''}\n`+hcl(rt,slug(n)+(i?'_'+i:''),lines)));
- });
+  const deps=S.edges.filter(e=>e.kind==='dep'&&e.from===n.id).map(e=>S.nodes[e.to]).filter(Boolean);
+  f(n).forEach(([rt,lines],i)=>out.push(`# ${n.id} · ${n.name}${n.parent!=='root'?' (in '+n.parent+')':''}${!i&&deps.length?' · depends on '+deps.map(d=>d.id).join(', '):''}\n`+hcl(rt,slug(n)+(i?'_'+i:''),lines)));
+ };
+ if(plat.length){out.push('\n# ---- shared platform services ----');plat.forEach(emit)}
+ out.push('\n# ---- components ----');comps.forEach(emit);
  return out.join('\n');
 }
 function tfChecks(){
- const N=Object.values(S.nodes),ext=e=>EXTERNAL.includes(S.nodes[e.to]?.type)&&!EXTERNAL.includes(S.nodes[e.from]?.type)&&S.nodes[e.from]?.type!=='egw';
+ const N=Object.values(S.nodes),ext=e=>EXTERNAL.includes(S.nodes[e.to]&&S.nodes[e.to].type)&&!EXTERNAL.includes(S.nodes[e.from]&&S.nodes[e.from].type)&&S.nodes[e.from]&&S.nodes[e.from].type!=='egw';
  return [
   ['TLS everywhere',!S.edges.some(e=>e.proto==='HTTP')],
   ['Encrypted at rest',!N.some(n=>['db','obj','cache','queue'].includes(n.type)&&n.enrich&&n.enrich.encryptRest===false)],
-  ['Ingress via WAF',!S.edges.some(e=>S.nodes[e.from]?.type==='user'&&!['waf','cdn'].includes(S.nodes[e.to]?.type))],
-  ['Controlled egress',!S.edges.some(e=>ext(e)&&e.via==='internet')],
-  ['Data tier HA',!N.some(n=>n.type==='db'&&n.parent==='root'&&!n.standby)]
+  ['Ingress via WAF',!S.edges.some(e=>isFlow(e)&&S.nodes[e.from]&&S.nodes[e.from].type==='user'&&!['waf','cdn'].includes(S.nodes[e.to]&&S.nodes[e.to].type))],
+  ['Controlled egress',!S.edges.some(e=>isFlow(e)&&ext(e)&&e.via==='internet')],
+  ['Data tier HA',!N.some(n=>n.type==='db'&&n.parent==='root'&&!n.standby)],
+  ['Platform deps',!kids('root').some(n=>missingDeps(n).length)]
  ];
 }
 function genC4(){
  const st_=n=>{const f=F[n.id];return f?st(f.util):'ok'};
- const kind=n=>n.type==='user'?'actor':['ext','saas'].includes(n.type)?'external':['db','obj','cache','queue'].includes(n.type)?'store':n.parent==='root'?'container':'component';
+ const kind=n=>n.type==='user'?'actor':['ext','saas'].includes(n.type)?'external':['db','obj','cache','queue','art','reg'].includes(n.type)?'store':n.parent==='root'?'container':'component';
  const fq=n=>{const p=[];let c=n;while(c){p.unshift(c.id.toLowerCase());c=S.nodes[c.parent]}return (EXTERNAL.includes(n.type)&&n.parent==='root')?p.join('.'):'sys.'+p.join('.')};
  const el=(n,ind)=>{const k=kids(n.id),f=F[n.id];const pad=' '.repeat(ind);
   return `${pad}${n.id.toLowerCase()} = ${kind(n)} '${n.name.replace(/'/g,'')}' {\n${pad}  #${st_(n)}\n${pad}  technology '${svcName(n).replace(/'/g,'')}${instCount(n)>1?' ×'+instCount(n):''}'\n${pad}  description '${f?fmt(f.in)+' rps · '+pct(f.util)+' util':''}'`+(k.length?'\n'+k.map(c=>el(c,ind+2)).join('\n'):'')+`\n${pad}}`};
  const root=kids('root'),outside=root.filter(n=>EXTERNAL.includes(n.type)),inside=root.filter(n=>!EXTERNAL.includes(n.type));
- const rels=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]).map(e=>`  ${fq(S.nodes[e.from])} -> ${fq(S.nodes[e.to])} '${e.proto}${e.via!=='net'?' via '+viaName(e.via):''}'`);
+ const rels=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]).map(e=>`  ${fq(S.nodes[e.from])} -> ${fq(S.nodes[e.to])} '${isFlow(e)?e.proto+(e.via!=='net'?' via '+viaName(e.via):''):'uses'}'`);
  const views=Object.values(S.nodes).filter(n=>kids(n.id).length).map(n=>`  view ${n.id.toLowerCase()} of ${fq(n)} {\n    include *\n  }`);
  return `// ${S.project} · LikeC4 model generated by NEXUS · ${pk().name}\nspecification {\n  element actor\n  element external\n  element system\n  element container\n  element component\n  element store\n  tag ok\n  tag warn\n  tag crit\n}\n\nmodel {\n${outside.map(n=>el(n,2)).join('\n')}\n  sys = system '${S.project}' {\n${inside.map(n=>el(n,4)).join('\n')}\n  }\n\n${rels.join('\n')}\n}\n\nviews {\n  view index {\n    include *\n  }\n${views.join('\n')}\n}`;
 }
@@ -859,7 +1043,7 @@ function resize(){const r=stage.getBoundingClientRect();W=r.width;H=r.height;DPR
 new ResizeObserver(()=>{resize();placePanels(false)}).observe(stage);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readColors);
 new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-const hexA=(h,a)=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h.slice(0,6),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
+const hexA=(h,a)=>{h=(h||'#888').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h.slice(0,6),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
 const NW=160,NH=66;
 function P(x,y){if(V.mode==='iso'){const ix=(x-y)*.72,iy=(x+y)*.36;return{x:ix*V.k+V.x,y:iy*V.k+V.y}}return{x:x*V.k+V.x,y:y*V.k+V.y}}
 function invDelta(dx,dy){if(V.mode==='iso'){const a=dx/V.k/.72,b=dy/V.k/.36;return{x:(a+b)/2,y:(b-a)/2}}return{x:dx/V.k,y:dy/V.k}}
@@ -884,53 +1068,75 @@ function edgeAt(sx,sy){
  edgesIn(V.scope).forEach(e=>{const g=e._g;if(!g)return;const dx=g.ex-g.sx,dy=g.ey-g.sy,l2=dx*dx+dy*dy||1;let t=((sx-g.sx)*dx+(sy-g.sy)*dy)/l2;t=Math.max(0,Math.min(1,t));const d=Math.hypot(sx-(g.sx+t*dx),sy-(g.sy+t*dy));if(d<bd){bd=d;best=e}});
  return best;
 }
-const colOf=n=>{const f=F[n.id];if(!f||EXTERNAL.includes(n.type))return n.type==='user'?colors.accent:colors.muted;return colors[st(f.util)]};
+const colOf=n=>{const f=F[n.id];if(n.type==='user')return f&&f.noRoute?colors.crit:colors.accent;if(!f||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return colors.muted;return colors[st(f.util)]};
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
 let particles=[],last=performance.now(),connecting=null,mouse={x:0,y:0};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+// Instances are numbered per component: SVC1.1, SVC1.2 … ; DB1.1 is the primary, then read replicas, then the standby.
 function instancesOf(n){
- const f=F[n.id]||{in:0,util:0},out=[];
- if(n.type==='db'){const d=dbLoad(n,f.in),sh=n.shards||1,k=n.readReplicas||0;
-  for(let s=1;s<=sh;s++){const pre=sh>1?`s${s}`:'';out.push({id:`${n.id}.${pre}p`,role:'primary',util:n.failed?Infinity:d.prim});for(let r=1;r<=k;r++)out.push({id:`${n.id}.${pre}r${r}`,role:'read replica',util:n.failed?Infinity:d.repl})}
-  if(n.standby)out.push({id:`${n.id}.sb`,role:'standby',util:0,idle:true});
- }else for(let i=1;i<=(n.rep||1);i++)out.push({id:`${n.id}.${i}`,role:'instance',util:f.util});
+ const f=F[n.id]||{in:0,util:0},out=[];let k=0;const nx=()=>`${n.id}.${++k}`;
+ if(n.type==='db'){const d=dbLoad(n,f.in),sh=n.shards||1,rr_=n.readReplicas||0;
+  for(let s=1;s<=sh;s++){const sl=sh>1?` · shard ${s}`:'';out.push({id:nx(),role:'primary'+sl,util:n.failed?Infinity:d.prim});for(let r=1;r<=rr_;r++)out.push({id:nx(),role:'read replica'+sl,util:n.failed?Infinity:d.repl})}
+  if(n.standby)out.push({id:nx(),role:'standby',util:0,idle:true});
+ }else if(n.type==='queue'){const q=f.q||queueLoad(n,f.in);
+  if(n.flavor!=='native')for(let b=1;b<=(n.brokers||1);b++)out.push({id:nx(),role:'broker',util:q.ub});
+  for(let c=1;c<=(n.consumers||1);c++){const idle=n.flavor==='kafka'&&c>(n.partitions||1);out.push({id:nx(),role:idle?'consumer · idle':'consumer',util:idle?0:q.uc,idle})}
+ }else for(let i=1;i<=repOf(n);i++)out.push({id:nx(),role:n.auto?`instance (auto ${n.auto.min}–${n.auto.max})`:'instance',util:n.failed?Infinity:f.util});
  return out;
 }
+const showInst=n=>(n.expanded||V.allInst)&&!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)&&n.type!=='part'&&(instancesOf(n).length>1||n.expanded);
+function details(n){
+ const f=F[n.id]||{},P_=pk(),L=[];
+ const ins=S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>`${e.from} ${e.proto}${e.via!=='net'?' '+viaShort(e.via):''}`),outs=S.edges.filter(e=>e.from===n.id&&isFlow(e)).map(e=>`${e.to} ${e.proto}${e.via!=='net'?' '+viaShort(e.via):''}`);
+ const deps=S.edges.filter(e=>e.kind==='dep'&&e.from===n.id).map(e=>S.nodes[e.to]).filter(Boolean);
+ switch(n.type){
+  case 'waf':L.push(`Rules: ${P_.waf}`,`Rate limit: ${n.rateLimit?fmt(n.rateLimit)+' rps':'2,000 req / 5 min per IP'} · block mode`,`Logs → ${P_.svc.mon}`);break;
+  case 'gw':L.push(`Auth: JWT validated against ${kids(n.parent).find(m=>m.type==='idp')?.id||'an IdP'}`,`Rate limit: ${n.rateLimit?fmt(n.rateLimit)+' rps':'none set'}`,'TLS 1.2+ · schema validation');break;
+  case 'idp':L.push(`Audience: ${n.audience} · source: ${{native:'own user directory',corp:'federated to '+(n.fedIdp||'corporate IdP')+' (SAML/OIDC)',social:'social logins (OIDC)'}[n.idpMode||'native']}`,'MFA on · access 15 min / refresh 8 h');break;
+  case 'db':L.push(`${n.readReplicas||0} read replica(s) · ${n.shards||1} shard(s) · ${n.standby?'standby':'no standby'}`,`Reads ${pct(n.rw??.8)} · ${fmt(n.sizeGB)} GB · CMK ${n.enrich.encryptRest!==false?'on':'off'}`);break;
+  case 'queue':L.push(`${n.flavor==='kafka'?`${n.partitions} partitions · ${n.brokers} brokers`:n.flavor==='mq'?`${n.brokers} brokers`:'managed, serverless'} · ${n.consumers} consumers`,`Lag ${fmt(f.lag||0)} msg/s${n.flavor==='kafka'?` · key ${n.pkey||'not set'}`:''}`);break;
+  case 'svc':case 'vm':case 'fn':case 'api':case 'adp':L.push(`${n.auto?`Autoscale ${n.auto.min}–${n.auto.max}, now ×${repOf(n)}`:`×${n.rep} fixed`} · ${fmt(n.cap)} rps each`);if(n.enrich.runtime||n.enrich.os)L.push(n.enrich.runtime||n.enrich.os);break;
+  case 'lb':case 'cdn':case 'egw':L.push(`×${repOf(n)} · ${fmt(n.cap)} rps each${n.rateLimit?' · limit '+fmt(n.rateLimit)+' rps':''}`);break;
+ }
+ if(!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)){L.push(`In: ${ins.join(', ')||'—'}`,`Out: ${outs.join(', ')||'—'}`)}
+ if(PLATFORM.includes(n.type))L.push(`Used by: ${S.edges.filter(e=>e.kind==='dep'&&e.to===n.id).map(e=>e.from).join(', ')||'—'}`);
+ const m=missingDeps(n);if(DEPS[n.type]&&n.parent==='root')L.push(m.length?`Missing: ${m.map(d=>P_.svc[d]).join(', ')}`:`Uses: ${deps.map(d=>d.id).join(', ')}`);
+ return L.slice(0,6);
+}
 function frame(now){
- const dt=Math.min(.05,(now-last)/1000);last=now;miniHits=[];
+ const dt=Math.min(.05,(now-last)/1000);last=now;miniHits=[];chipHits=[];
  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=colors.bg;ctx.fillRect(0,0,W,H);
  ctx.fillStyle=colors.grid;const g=40*V.k;if(g>12&&V.mode!=='iso'){for(let x=V.x%g;x<W;x+=g)for(let y=V.y%g;y<H;y+=g)ctx.fillRect(x-1,y-1,2,2)}
- const ns=kids(V.scope),es=edgesIn(V.scope);
+ const ns=kids(V.scope),es=edgesIn(V.scope),fls=es.filter(isFlow);
  const rel=V.mode==='rel'&&V.sel?new Set([V.sel,...es.filter(e=>e.from===V.sel||e.to===V.sel).flatMap(e=>[e.from,e.to])]):null;
- // zones + provider boundary
- const byZ={};ns.forEach(n=>{const z=T[n.type].zone;(byZ[z]=byZ[z]||[]).push(P(n.x,n.y))});
- const font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;ctx.font=font;
+ const byZ={};ns.forEach(n=>{const z=zoneOf(n);(byZ[z]=byZ[z]||[]).push(P(n.x,n.y))});
+ ctx.font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;
  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
  const boxes={};Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
  const inner=Object.entries(boxes).filter(([z])=>z!=='internet').map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-14*V.k,x1:Math.max(...inner.map(b=>b.x1))+14*V.k,y0:Math.min(...inner.map(b=>b.y0))-24*V.k,y1:Math.max(...inner.map(b=>b.y1))+12*V.k};
   ctx.strokeStyle=colors.accent;ctx.globalAlpha=.45;ctx.lineWidth=1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(pk().outer,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1}
  Object.entries(boxes).forEach(([z,b])=>{
-  ctx.setLineDash([4,4]);ctx.strokeStyle=z==='internet'?colors.crit:colors.muted;ctx.globalAlpha=.55;ctx.lineWidth=1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);
-  ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:colors.muted;ctx.fillText(pk().zone[z],b.x0+8*V.k,b.y0+13*V.k);ctx.globalAlpha=1;
+  ctx.setLineDash([4,4]);ctx.strokeStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.globalAlpha=.55;ctx.lineWidth=1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);
+  ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.fillText(pk().zone[z]||z.toUpperCase(),b.x0+8*V.k,b.y0+13*V.k);ctx.globalAlpha=1;
  });
- // edges (gradient, thinner alpha as they get thicker)
  const labels=[];
  es.forEach(e=>{
-  const a=S.nodes[e.from],b=S.nodes[e.to],pa=P(a.x,a.y),pb=P(b.x,b.y),f=EF.get(e)||0,c=colOf(b);
+  const a=S.nodes[e.from],b=S.nodes[e.to],pa=P(a.x,a.y),pb=P(b.x,b.y),f=EF.get(e)||0,dep=!isFlow(e),c=dep?colors.muted:colOf(b);
   const dx=pb.x-pa.x,dy=pb.y-pa.y,len=Math.hypot(dx,dy)||1;
   const cut=V.mode==='iso'?40*V.k:Math.min(NW/2*V.k/Math.abs(dx/len||1e-9),NH/2*V.k/Math.abs(dy/len||1e-9));
   const sx=pa.x+dx/len*cut,sy=pa.y+dy/len*cut,ex=pb.x-dx/len*(cut+3),ey=pb.y-dy/len*(cut+3);
   e._g={sx,sy,ex,ey};
-  const sel=V.selE&&V.selE.from===e.from&&V.selE.to===e.to;
+  const sel=V.selE&&V.selE.from===e.from&&V.selE.to===e.to&&isFlow(e);
   const dim=rel&&!(rel.has(e.from)&&rel.has(e.to)&&(e.from===V.sel||e.to===V.sel));
+  if(dep){const hot=V.sel===e.from||V.sel===e.to||V.hover===e.from||V.hover===e.to;ctx.globalAlpha=dim?.08:hot?.7:.28;ctx.strokeStyle=hot?colors.accent:colors.muted;ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;return}
   const w=Math.max(1.3,Math.min(11,1+Math.log10(1+f)*1.8))*Math.min(1,V.k+.25);
   const a0=Math.max(.22,.88-(w-1.3)*.075);
   ctx.globalAlpha=dim?.15:1;
   if(sel){ctx.strokeStyle=hexA(colors.accent,.35);ctx.lineWidth=w+8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke()}
   const gr=ctx.createLinearGradient(sx,sy,ex,ey);gr.addColorStop(0,hexA(c,a0*.25));gr.addColorStop(.55,hexA(c,a0*.7));gr.addColorStop(1,hexA(c,a0));
   ctx.strokeStyle=gr;ctx.lineWidth=w;ctx.lineCap='butt';
-  if(e.proto==='HTTP'||e.via==='internet')ctx.setLineDash([4,4]);else if(e.via==='privatelink'||e.via==='vpn'||e.via==='dedicated')ctx.setLineDash([10,3,2,3]);
+  if(e.proto==='HTTP'||e.via==='internet')ctx.setLineDash([4,4]);else if(['privatelink','vpn','dedicated'].includes(e.via))ctx.setLineDash([10,3,2,3]);
   ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.setLineDash([]);
   const an=Math.atan2(ey-sy,ex-sx),ah=Math.max(7,w*1.4)*Math.min(1.2,V.k+.2);ctx.fillStyle=hexA(c,Math.min(1,a0+.25));ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-ah*Math.cos(an-.45),ey-ah*Math.sin(an-.45));ctx.lineTo(ex-ah*Math.cos(an+.45),ey-ah*Math.sin(an+.45));ctx.closePath();ctx.fill();
   ctx.globalAlpha=1;
@@ -938,129 +1144,163 @@ function frame(now){
   if(V.mode!=='flat'&&!reduce.matches&&f>0){e._acc=(e._acc||0)+dt*Math.min(28,f/45);while(e._acc>1&&particles.length<900){e._acc-=1;particles.push({e,t:0})}}
  });
  if(V.mode!=='flat'){
-  particles=particles.filter(p=>p.e._g&&es.includes(p.e));
+  particles=particles.filter(p=>p.e._g&&fls.includes(p.e));
   particles.forEach(p=>{const b=S.nodes[p.e.to],u=F[b.id]?F[b.id].util:0;const sp=.15+.55*(1-Math.min(1,isFinite(u)?u:1)*.8);p.t+=dt*sp;
    const g=p.e._g;const x=g.sx+(g.ex-g.sx)*p.t,y=g.sy+(g.ey-g.sy)*p.t;ctx.fillStyle=colOf(b);ctx.globalAlpha=rel&&!(rel.has(p.e.from)&&rel.has(p.e.to))?.1:.95;ctx.beginPath();ctx.arc(x,y,2.3*Math.min(1.3,V.k+.3),0,7);ctx.fill()});
   ctx.globalAlpha=1;particles=particles.filter(p=>p.t<1);
  }
- // labels last, on readable pills
  const fs=Math.max(10,10*Math.min(1.1,V.k));ctx.font=`500 ${fs}px "IBM Plex Mono",monospace`;ctx.textAlign='center';
  labels.forEach(l=>{const v=viaShort(l.e.via);const t=`${l.e.proto}${v?' · '+v:''} · ${fmt(l.f)}`,tw=ctx.measureText(t).width;
-  ctx.globalAlpha=l.dim?.25:.96;ctx.fillStyle=colors.surface;ctx.strokeStyle=l.sel?colors.accent:l.bad?colors.crit:colors.line;ctx.lineWidth=1;rr(l.mx-tw/2-5,l.my-fs*.75,tw+10,fs*1.5,4);ctx.fill();ctx.stroke();
+  ctx.globalAlpha=l.dim?.25:1;ctx.fillStyle=hexA(colors.surface,l.sel?.92:.68);ctx.strokeStyle=hexA(l.sel?colors.accent:l.bad?colors.crit:colors.line,.8);ctx.lineWidth=1;rr(l.mx-tw/2-5,l.my-fs*.75,tw+10,fs*1.5,4);ctx.fill();ctx.stroke();
   ctx.fillStyle=l.bad?colors.crit:colors.ink;ctx.fillText(t,l.mx,l.my+fs*.35)});
  ctx.textAlign='left';ctx.globalAlpha=1;
  if(connecting||V.connectFrom){const from=S.nodes[connecting?connecting.id:V.connectFrom];if(from){const p=P(from.x,from.y);ctx.strokeStyle=colors.accent;ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}}
  const order=V.mode==='iso'?[...ns].sort((a,b)=>(a.x+a.y)-(b.x+b.y)):ns;
  order.forEach(n=>drawNode(n,now,rel));
- placeNbar();
  requestAnimationFrame(frame);
 }
 function drawNode(n,now,rel){
  const p=P(n.x,n.y),k=V.k,f=F[n.id]||{in:0,util:0},c=colOf(n),sel=V.sel===n.id,hov=V.hover===n.id;
- const crit=!EXTERNAL.includes(n.type)&&st(f.util)==='crit',baseA=rel&&!rel.has(n.id)?.18:1,cnt=instCount(n);
+ const crit=(!EXTERNAL.includes(n.type)||n.type==='user')&&(n.type==='user'?f.noRoute:st(f.util)==='crit')&&!PLATFORM.includes(n.type)&&n.type!=='part',baseA=rel&&!rel.has(n.id)?.18:1,cnt=instCount(n);
  ctx.globalAlpha=baseA;
  if(V.mode==='iso'){
   const hw=56,hh=24,h=(14+Math.min(1.2,isFinite(f.util)?f.util:1.2)*46)*k;
   const poly=(pts,fill,stroke)=>{ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}};
   const box=(ox,oy,alpha,top)=>{const cs=[P(n.x-hw+ox,n.y-hh+oy),P(n.x+hw+ox,n.y-hh+oy),P(n.x+hw+ox,n.y+hh+oy),P(n.x-hw+ox,n.y+hh+oy)];const up=q=>({x:q.x,y:q.y-h});
-   ctx.globalAlpha=baseA*alpha*.9;poly([cs[3],cs[2],up(cs[2]),up(cs[3])],c);ctx.globalAlpha=baseA*alpha*.6;poly([cs[1],cs[2],up(cs[2]),up(cs[1])],c);ctx.globalAlpha=baseA*alpha;poly(cs.map(up),colors.surface,top);return cs};
+   ctx.globalAlpha=baseA*alpha*.9;poly([cs[3],cs[2],up(cs[2]),up(cs[3])],c);ctx.globalAlpha=baseA*alpha*.6;poly([cs[1],cs[2],up(cs[2]),up(cs[1])],c);ctx.globalAlpha=baseA*alpha;poly(cs.map(up),colors.surface,top)};
   const ghosts=Math.min(3,cnt-1);for(let j=ghosts;j>=1;j--)box(-j*16,-j*16,.45,c);
   box(0,0,1,sel?colors.accent:c);
   ctx.globalAlpha=baseA;ctx.textAlign='center';ctx.fillStyle=colors.ink;ctx.font=`600 ${11*Math.max(.8,k)}px "IBM Plex Mono",monospace`;ctx.fillText(n.id+(cnt>1?` ×${cnt}`:''),p.x,p.y-h-2);
   if(k>.5){ctx.font=`${10*Math.max(.8,k)}px "IBM Plex Sans",sans-serif`;ctx.fillStyle=colors.muted;ctx.fillText(n.name,p.x,p.y-h+11*k)}
   ctx.textAlign='left';ctx.globalAlpha=1;return;
  }
- const w=NW*k,h=NH*k,x=p.x-w/2,y=p.y-h/2;
+ const w=NW*k,h=NH*k,x=p.x-w/2,y=p.y-h/2,inst=showInst(n);
  if(crit&&!reduce.matches){const a=.25+.2*Math.sin(now/220);ctx.strokeStyle=colors.crit;ctx.globalAlpha=baseA*a;ctx.lineWidth=6*k;rr(x-3*k,y-3*k,w+6*k,h+6*k,10*k);ctx.stroke();ctx.globalAlpha=baseA}
- if(cnt>1&&!n.expanded){for(let j=Math.min(2,cnt-1);j>=1;j--){ctx.fillStyle=colors.surface;ctx.strokeStyle=c;ctx.lineWidth=1;rr(x+4*k*j,y-4*k*j,w,h,7*k);ctx.fill();ctx.stroke()}}
+ if(cnt>1&&!inst){for(let j=Math.min(2,cnt-1);j>=1;j--){ctx.fillStyle=colors.surface;ctx.strokeStyle=c;ctx.lineWidth=1;rr(x+4*k*j,y-4*k*j,w,h,7*k);ctx.fill();ctx.stroke()}}
  ctx.fillStyle=colors.surface;rr(x,y,w,h,7*k);ctx.fill();
- ctx.lineWidth=sel?2.5:hov?2:1.5;ctx.strokeStyle=sel?colors.accent:c;if(n.failed||EXTERNAL.includes(n.type)&&n.type!=='user')ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
- if(!EXTERNAL.includes(n.type)){const u=Math.min(1,isFinite(f.util)?f.util:1);ctx.fillStyle=c;rr(x+8*k,y+h-7*k,(w-16*k)*u,3*k,1.5*k);ctx.fill()}
+ ctx.lineWidth=sel?2.5:hov?2:1.5;ctx.strokeStyle=sel?colors.accent:c;if(n.failed||(EXTERNAL.includes(n.type)&&n.type!=='user')||PLATFORM.includes(n.type))ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
+ if(!EXTERNAL.includes(n.type)&&isFinite(T[n.type].cap)){const u=Math.min(1,isFinite(f.util)?f.util:1);ctx.fillStyle=c;rr(x+8*k,y+h-7*k,(w-16*k)*u,3*k,1.5*k);ctx.fill()}
  ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+12*k,y+14*k,4*k,0,7);ctx.fill();
  ctx.fillStyle=colors.ink;ctx.font=`600 ${11.5*k}px "IBM Plex Mono",monospace`;ctx.fillText(n.id,x+21*k,y+18*k);
  const idw=ctx.measureText(n.id).width;
- ctx.font=`${11*k}px "IBM Plex Sans",sans-serif`;let nm=n.name;const maxw=w-idw-34*k;while(ctx.measureText(nm).width>maxw&&nm.length>3)nm=nm.slice(0,-2)+'…';ctx.fillText(nm,x+27*k+idw,y+18*k);
+ ctx.font=`${11*k}px "IBM Plex Sans",sans-serif`;let nm=n.name;const maxw=w-idw-48*k;while(ctx.measureText(nm).width>maxw&&nm.length>3)nm=nm.slice(0,-2)+'…';ctx.fillText(nm,x+27*k+idw,y+18*k);
+ // dropdown chip on every component
+ const cs_=13*k,cx=x+w-cs_-5*k,cy=y+5*k;ctx.globalAlpha=baseA*(sel||hov?1:.5);ctx.fillStyle=sel?colors['accent-soft']:colors.surface;ctx.strokeStyle=sel||hov?colors.accent:colors.line;ctx.lineWidth=1;rr(cx,cy,cs_,cs_,3*k);ctx.fill();ctx.stroke();
+ ctx.fillStyle=sel||hov?colors.accent:colors.muted;ctx.font=`${9*k}px sans-serif`;ctx.textAlign='center';ctx.fillText('▾',cx+cs_/2,cy+cs_*.75);ctx.textAlign='left';ctx.globalAlpha=baseA;
+ chipHits.push({x:cx-3,y:cy-3,w:cs_+6,h:cs_+6,node:n.id});
  if(k>.5){
   ctx.font=`${9.5*k}px "IBM Plex Sans",sans-serif`;ctx.fillStyle=colors.accent;let sv=svcName(n);while(ctx.measureText(sv).width>w-18*k&&sv.length>3)sv=sv.slice(0,-2)+'…';ctx.fillText(sv,x+10*k,y+33*k);
-  ctx.font=`${10*k}px "IBM Plex Mono",monospace`;ctx.fillStyle=colors.muted;
-  const l2=n.type==='user'?`${fmt(f.in)} rps offered`:EXTERNAL.includes(n.type)?`${fmt(f.in)} rps · external`:n.failed?'FAILED · what-if':`${fmt(f.in)}/${fmt(capEff(n))} rps · ${pct(f.util)}`;
+  ctx.font=`${10*k}px "IBM Plex Mono",monospace`;ctx.fillStyle=f.noRoute?colors.crit:colors.muted;
+  const l2=n.type==='user'?(f.noRoute?`NO ROUTE · ${fmt(f.in)} rps failing`:`${fmt(f.in)} rps offered`):EXTERNAL.includes(n.type)?`${fmt(f.in)} rps · external`:PLATFORM.includes(n.type)?`shared · ${S.edges.filter(e=>e.kind==='dep'&&e.to===n.id).length} users`:n.type==='part'?`${fmt(f.in)} rps`:n.failed?'FAILED · what-if':`${fmt(f.in)}/${fmt(capEff(n))} rps · ${pct(f.util)}`;
   ctx.fillText(l2,x+10*k,y+48*k);
-  const tg=[cnt>1?'×'+cnt:'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
+  const tg=[cnt>1?'×'+cnt:'',n.auto?'AUTO':'',n.rateLimit?'RL':'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.type==='queue'&&n.flavor==='kafka'?`${n.partitions}P`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
   if(tg){ctx.textAlign='right';ctx.fillStyle=colors.accent;ctx.fillText(tg,x+w-8*k,y+48*k);ctx.textAlign='left'}
  }
- if(n.expanded&&cnt>=1){
-  const list=instancesOf(n),show=list.slice(0,12),mw=74*k,mh=30*k,gap=6*k,tot=show.length*mw+(show.length-1)*gap,y0=y+h+18*k;let x0=p.x-tot/2;
+ let below=y+h;
+ if(inst){
+  const list=instancesOf(n),show=list.slice(0,12),mw=78*k,mh=30*k,gap=6*k,tot=show.length*mw+(show.length-1)*gap,y0=y+h+18*k;let x0=p.x-tot/2;
   show.forEach((m,i)=>{const mx=x0+i*(mw+gap),mc=m.idle?colors.muted:colors[st(m.util)],on=V.selInst===m.id;
    ctx.strokeStyle=colors.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x,y+h);ctx.lineTo(mx+mw/2,y0);ctx.stroke();
    ctx.fillStyle=on?colors['accent-soft']:colors.surface;rr(mx,y0,mw,mh,5*k);ctx.fill();ctx.strokeStyle=on?colors.accent:mc;ctx.lineWidth=on?2:1.3;if(m.idle)ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
    ctx.fillStyle=colors.ink;ctx.font=`600 ${9.5*k}px "IBM Plex Mono",monospace`;ctx.fillText(m.id,mx+5*k,y0+12*k);
-   ctx.fillStyle=mc;ctx.font=`${9*k}px "IBM Plex Mono",monospace`;ctx.fillText(m.idle?'standby':`${m.role==='primary'?'P ':m.role==='read replica'?'R ':''}${pct(m.util)}`,mx+5*k,y0+24*k);
+   ctx.fillStyle=mc;ctx.font=`${8.5*k}px "IBM Plex Mono",monospace`;let rl=`${m.role.split(' · ')[0]}${m.idle?'':' '+pct(m.util)}`;while(ctx.measureText(rl).width>mw-8*k&&rl.length>3)rl=rl.slice(0,-2)+'…';ctx.fillText(rl,mx+5*k,y0+24*k);
    miniHits.push({x:mx,y:y0,w:mw,h:mh,node:n.id,inst:m.id})});
   if(list.length>12){ctx.fillStyle=colors.muted;ctx.font=`${10*k}px "IBM Plex Mono",monospace`;ctx.fillText(`+${list.length-12}`,x0+tot+6*k,y0+18*k)}
+  below=y0+mh;
  }
+ // semantic zoom: details appear when you zoom in
+ if(k>=1.3){const L=details(n);if(L.length){const lh=12.5*Math.min(k,1.6),bw=Math.max(w,190*Math.min(k,1.6)),bx=p.x-bw/2,by=below+8*k,bh=L.length*lh+8;
+  ctx.fillStyle=hexA(colors.surface,.9);ctx.strokeStyle=colors.line;ctx.lineWidth=1;rr(bx,by,bw,bh,5);ctx.fill();ctx.stroke();
+  ctx.fillStyle=colors.ink;ctx.font=`${9.5*Math.min(k,1.6)}px "IBM Plex Mono",monospace`;L.forEach((t,i)=>{let s=t;while(ctx.measureText(s).width>bw-12&&s.length>3)s=s.slice(0,-2)+'…';ctx.fillStyle=/^Missing/.test(t)?colors.warn:colors.ink;ctx.fillText(s,bx+6,by+lh*(i+1))})}}
  ctx.globalAlpha=1;
 }
-function placeNbar(){
- const nb=$('#nbar'),n=S.nodes[V.sel];
- if(!n||n.parent!==V.scope||drag&&drag.moved){nb.hidden=true;return}
- const p=P(n.x,n.y),top=p.y-(V.mode==='iso'?90:NH/2+34)*V.k;nb.hidden=false;
- nb.style.left=Math.max(4,Math.min(W-nb.offsetWidth-4,p.x-nb.offsetWidth/2))+'px';nb.style.top=Math.max(40,top)+'px';
- nb.querySelector('[data-a=inst]').textContent=n.expanded?'Hide instances':`Instances (${instCount(n)})`;
+
+/* ---------- component menu (dropdown on every component) ---------- */
+const menu=$('#nmenu');
+function closeMenu(){menu.hidden=true;menu.dataset.id=''}
+function openMenu(id,sx,sy){
+ const n=S.nodes[id];if(!n)return;V.sel=id;V.selE=null;
+ const others=kids(n.parent).filter(m=>m.id!==id),zones=[...new Set(others.map(zoneOf))];
+ const has=to=>S.edges.some(e=>e.from===id&&e.to===to);
+ const md=missingDeps(n),ic=instancesOf(n).length;
+ menu.innerHTML=`<div class="mh"><b>${id}</b> ${esc(n.name)}<br><span style="color:var(--accent);font-size:11px">${esc(svcName(n))}</span></div>
+ <label>Connect to<select id="mConn"><option value="">Choose a component…</option>${zones.map(z=>`<optgroup label="${esc(pk().zone[z]||z)}">${others.filter(m=>zoneOf(m)===z).map(m=>`<option value="${m.id}" ${has(m.id)?'disabled':''}>${m.id} · ${esc(m.name)}${has(m.id)?' ✓':''}</option>`).join('')}</optgroup>`).join('')}</select></label>
+ <button data-m="pick">Pick target on canvas</button>
+ <button data-m="insp">Inspect and scaling options</button>
+ ${EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part'?'':`<button data-m="open">Open sub-design${kids(id).length?` (${kids(id).length})`:''}</button><button data-m="inst">${n.expanded?'Hide':'Show'} instances (${ic})</button>`}
+ ${md.length?`<button data-m="deps">Add ${md.map(d=>pk().svc[d]).join(', ')}</button>`:''}
+ <button data-m="del" class="del">Remove ${id}…</button>`;
+ menu.hidden=false;menu.dataset.id=id;
+ menu.style.left=Math.max(4,Math.min(W-menu.offsetWidth-4,sx))+'px';menu.style.top=Math.max(4,Math.min(H-menu.offsetHeight-4,sy))+'px';
+ $('#mConn').onchange=e=>{const t=e.target.value;if(t){closeMenu();guardedConnect(id,t)}};
+ renderAdvisor();renderTree();
 }
-// pointer
+menu.addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b)return;const id=menu.dataset.id;closeMenu();
+ ({pick:()=>startConnect(id),insp:()=>focusNode(id),open:()=>drill(id),inst:()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()},deps:()=>act(`${id}: add platform dependencies`,()=>addDeps([id]),{tradeoffs:['+ '+id+' can be built, deployed, keyed and observed','− Shared services become tier-0 for '+id]}),del:()=>{V.sel=id;deleteSelected()}})[b.dataset.m]()});
+document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target))closeMenu()},true);
+
+/* ---------- pointer ---------- */
 let drag=null;
-const setMode=t=>{const h=$('#hint');h.classList.toggle('mode',!!t);h.textContent=t||'Click a component for actions · Drag to move · Double-click to open sub-design · Scroll to zoom'};
+const setMode=t=>{const h=$('#hint');h.classList.toggle('mode',!!t);h.textContent=t||'Click ▾ on a component (or right-click) for actions · Drag to move · Double-click to open · Scroll to zoom for details'};
 function startConnect(id){V.connectFrom=id;setMode(`Connecting from ${id}: click the target component · Esc to cancel`)}
 function endConnect(){V.connectFrom=null;setMode('')}
-function guardedConnect(a,b,proto,via){act(`Connect ${a} → ${b}`,()=>connect(a,b,proto,via),{tradeoffs:EXTERNAL.includes(S.nodes[b].type)&&!EXTERNAL.includes(S.nodes[a].type)?[`Data leaves your boundary to ${S.nodes[b].name}: classify it and check the vendor's DPA`,`Choose connectivity: ${pk().pl} (private, needs vendor support) or egress gateway (allow-listed, still internet)`]:null})}
+function guardedConnect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B)return;act(`Connect ${a} → ${b}`,()=>connect(a,b,proto,via),{tradeoffs:EXTERNAL.includes(B.type)&&!EXTERNAL.includes(A.type)?[`Data leaves your boundary to ${B.name}: classify it and check the vendor's DPA`,`Choose connectivity: ${pk().pl} (private, needs vendor support) or egress gateway (allow-listed, still internet)`]:null})}
+const local=ev=>{const r=cv.getBoundingClientRect();return {sx:ev.clientX-r.left,sy:ev.clientY-r.top}};
 cv.addEventListener('pointerdown',ev=>{
- const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top;
+ const {sx,sy}=local(ev);
+ if(ev.button===2)return;
  if(V.connectFrom){const t=nodeAt(sx,sy);const from=V.connectFrom;endConnect();if(t&&t.id!==from)guardedConnect(from,t.id);return}
+ const ch=chipHits.find(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h);
+ if(ch){openMenu(ch.node,sx,sy+10);return}
  const m=miniHits.find(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h);
  if(m){V.sel=m.node;V.selE=null;V.selInst=m.inst;showTab('insp');return}
  const n=nodeAt(sx,sy);cv.setPointerCapture(ev.pointerId);
  if(n&&ev.shiftKey){connecting=n;mouse={x:sx,y:sy};return}
- if(n){V.sel=n.id;V.selE=null;if(V.selInst&&!V.selInst.startsWith(n.id+'.'))V.selInst=null;drag={n,sx,sy,ox:n.x,oy:n.y,moved:false};renderAdvisor();renderTree();return}
+ if(n){V.sel=n.id;V.selE=null;if(V.selInst&&!V.selInst.startsWith(n.id+'.'))V.selInst=null;drag={n,sx,sy,ox:n.x,oy:n.y,moved:false,before:snap()};renderAdvisor();renderTree();return}
  const e=edgeAt(sx,sy);
- if(e){V.selE={from:e.from,to:e.to};V.sel=null;showTab('insp');return}
+ if(e&&isFlow(e)){V.selE={from:e.from,to:e.to};V.sel=null;showTab('insp');return}
  drag={pan:true,sx,sy,ox:V.x,oy:V.y};
 });
+cv.addEventListener('contextmenu',ev=>{const {sx,sy}=local(ev);const n=nodeAt(sx,sy);if(n){ev.preventDefault();openMenu(n.id,sx,sy)}});
 cv.addEventListener('pointermove',ev=>{
- const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top;mouse={x:sx,y:sy};
- if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;cv.style.cursor=V.connectFrom?'crosshair':n?'pointer':edgeAt(sx,sy)?'pointer':'grab';return}
+ const {sx,sy}=local(ev);mouse={x:sx,y:sy};
+ if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;cv.style.cursor=V.connectFrom?'crosshair':chipHits.some(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h)||n||edgeAt(sx,sy)?'pointer':'grab';return}
  if(!drag)return;
  if(drag.pan){V.x=drag.ox+sx-drag.sx;V.y=drag.oy+sy-drag.sy;cv.style.cursor='grabbing';return}
  if(ev.shiftKey&&!connecting){drag.n.x=drag.ox;drag.n.y=drag.oy;connecting=drag.n;drag=null;return}
  const d=invDelta(sx-drag.sx,sy-drag.sy);if(Math.abs(sx-drag.sx)+Math.abs(sy-drag.sy)>3){drag.n.x=Math.round(drag.ox+d.x);drag.n.y=Math.round(drag.oy+d.y);drag.moved=true}
 });
 cv.addEventListener('pointerup',ev=>{
- const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top;
+ const {sx,sy}=local(ev);
  if(connecting){const t=nodeAt(sx,sy),from=connecting.id;connecting=null;if(t&&t.id!==from)guardedConnect(from,t.id);return}
- if(drag&&!drag.pan&&drag.moved)persist();
+ if(drag&&!drag.pan&&drag.moved){pushUndo(`Move ${drag.n.id}`,drag.before);persist()}
  if(drag&&drag.pan&&Math.abs(sx-drag.sx)<3&&Math.abs(sy-drag.sy)<3){V.sel=null;V.selE=null;V.selInst=null;renderAdvisor();renderTree()}
  drag=null;
 });
-cv.addEventListener('dblclick',ev=>{const r=cv.getBoundingClientRect(),n=nodeAt(ev.clientX-r.left,ev.clientY-r.top);if(n)drill(n.id)});
-cv.addEventListener('wheel',ev=>{ev.preventDefault();const r=cv.getBoundingClientRect(),sx=ev.clientX-r.left,sy=ev.clientY-r.top,z=Math.exp(-ev.deltaY*.0015),nk=Math.min(3,Math.max(.25,V.k*z));V.x=sx-(sx-V.x)*nk/V.k;V.y=sy-(sy-V.y)*nk/V.k;V.k=nk},{passive:false});
+cv.addEventListener('dblclick',ev=>{const {sx,sy}=local(ev),n=nodeAt(sx,sy);if(n)drill(n.id)});
+cv.addEventListener('wheel',ev=>{ev.preventDefault();const {sx,sy}=local(ev),z=Math.exp(-ev.deltaY*.0015),nk=Math.min(3,Math.max(.25,V.k*z));V.x=sx-(sx-V.x)*nk/V.k;V.y=sy-(sy-V.y)*nk/V.k;V.k=nk},{passive:false});
 function deleteSelected(){
- if(V.selE){const {from,to}=V.selE;V.selE=null;act(`Remove flow ${from} → ${to}`,()=>removeEdge(from,to));return}
- if(V.sel){const id=V.sel;act(`Remove ${id}`,()=>removeNode(id),{after:()=>{V.sel=null}})}
+ if(V.selE){const {from,to}=V.selE;V.selE=null;act(`Remove flow ${from} → ${to}`,()=>removeEdge(from,to),{remove:true});return}
+ if(V.sel){const id=V.sel;act(`Remove ${id}`,()=>removeNode(id),{remove:true,after:()=>{V.sel=null}})}
 }
+function toggleAllInst(){V.allInst=!V.allInst;$('#instBtn').setAttribute('aria-pressed',V.allInst);$('#instBtn').textContent=V.allInst?'Instances: all':'Instances';renderTree()}
+$('#instBtn').onclick=toggleAllInst;
 document.addEventListener('keydown',ev=>{
- if(ev.key==='Escape'){if(!$('#guard').hidden)$('#gCancel').click();else if(V.connectFrom)endConnect();return}
- if(document.activeElement!==document.body&&document.activeElement!==cv)return;
+ if(ev.key==='Escape'){if(!$('#guard').hidden)$('#gCancel').click();else if(!menu.hidden)closeMenu();else if(V.connectFrom)endConnect();return}
+ const typing=['INPUT','TEXTAREA','SELECT'].includes(document.activeElement&&document.activeElement.tagName);
+ if((ev.ctrlKey||ev.metaKey)&&!typing&&ev.key.toLowerCase()==='z'){ev.preventDefault();ev.shiftKey?redo():undo();return}
+ if((ev.ctrlKey||ev.metaKey)&&!typing&&ev.key.toLowerCase()==='y'){ev.preventDefault();redo();return}
+ if(typing||!$('#guard').hidden)return;
  if(ev.key==='Delete'||ev.key==='Backspace'){ev.preventDefault();deleteSelected()}
  if((ev.key==='c'||ev.key==='C')&&V.sel)startConnect(V.sel);
- if((ev.key==='i'||ev.key==='I')&&V.sel){S.nodes[V.sel].expanded=!S.nodes[V.sel].expanded;persist()}
+ if(ev.key==='i'||ev.key==='I'){if(V.sel){S.nodes[V.sel].expanded=!S.nodes[V.sel].expanded;persist();renderAdvisor()}else toggleAllInst()}
 });
-$('#nbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!V.sel)return;const id=V.sel;
- ({connect:()=>startConnect(id),open:()=>drill(id),inst:()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()},del:()=>deleteSelected()})[b.dataset.a]()});
 
 /* ---------- palette & crumb ---------- */
-const PAL=['user','saas','ext','cdn','waf','lb','egw','gw','idp','svc','vm','fn','api','adp','queue','cache','db','obj'];
-$('#palette').innerHTML=PAL.map((t,i)=>(i===3||i===9||i===14?'<hr>':'')+`<button data-t="${t}" title="Add ${T[t].label}" aria-label="Add ${T[t].label}">${T[t].p}</button>`).join('');
+const PAL=['user','saas','ext','cdn','waf','lb','egw','gw','idp','svc','vm','fn','api','adp','queue','cache','db','obj','reg','art','kms','sec','mon'];
+$('#palette').innerHTML=PAL.map((t,i)=>([3,9,14,18].includes(i)?'<hr>':'')+`<button data-t="${t}" title="Add ${T[t].label}" aria-label="Add ${T[t].label}">${T[t].p}</button>`).join('');
 $('#palette').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const t=b.dataset.t,id=nextId(t);
- act(`Add ${id} (${T[t].label})`,()=>addNode(t),{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}. Use Connect to wire it.`,'s')}})});
+ act(`Add ${id} (${T[t].label})`,()=>addNode(t),{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}. Use ▾ → Connect to wire it.`,'s')}})});
 function renderCrumb(){
  const path=[];let c=S.nodes[V.scope];while(c){path.unshift(c);c=S.nodes[c.parent]}
  $('#crumb').innerHTML=`<button data-s="root">${esc(S.project)}</button>`+path.map(n=>`<span>/</span><button data-s="${n.id}">${n.id} ${esc(n.name)}</button>`).join('');
@@ -1105,7 +1345,7 @@ function renderAdvisor(){
  }else if(advTab==='insp'){
   if(V.selE)return renderEdgeInspector(body);
   const n=S.nodes[V.sel];
-  if(!n){body.innerHTML='<div class="empty">Select a component or a flow on the canvas. Its ID is how you refer to it in reviews and in the console.<br><br><b>Connect:</b> select a component, then <b>Connect</b> (or press C) and click the target.<br><b>Remove:</b> select it, then <b>Remove</b> or press Delete.<br>Every change goes through the Action Guard first.</div>';return}
+  if(!n){body.innerHTML='<div class="empty">Select a component or a flow on the canvas. Its ID is how you refer to it in reviews and in the console.<br><br><b>Actions:</b> click ▾ on any component, or right-click it.<br><b>Undo:</b> Ctrl+Z, or ↶ in the toolbar.<br>Every change goes through the Action Guard first.</div>';return}
   renderNodeInspector(body,n);
  }else if(advTab==='adr'){
   body.innerHTML=S.adrs.length?S.adrs.slice().reverse().map(a=>`<div class="fd"><div class="h"><span class="pill ${/exception/.test(a.status)?'warn':'acc'}">${a.id}</span><span class="t">${esc(a.title)}</span></div><div class="why">${esc(a.status)} · ${esc(a.at)}${a.basis?' · '+a.basis.join(', '):''}</div><details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Context, decision, tradeoffs</summary><div class="adr">Context: ${esc(a.context||'')}\nDecision: ${esc(a.decision||'')}${a.options?'\nOptions considered:\n'+esc(a.options):''}\nTradeoffs:\n${esc(a.tradeoffs||'')}</div></details></div>`).join(''):'<div class="empty">No architecture decisions yet. Applying a scaling option, accepting a new capability, or approving a guard exception records one here.</div>';
@@ -1116,7 +1356,7 @@ function renderAdvisor(){
 function renderEdgeInspector(body){
  const e=findEdge(V.selE.from,V.selE.to);if(!e){V.selE=null;body.innerHTML='';return}
  const a=S.nodes[e.from],b=S.nodes[e.to],f=EF.get(e)||0,egress=EXTERNAL.includes(b.type)&&!EXTERNAL.includes(a.type);
- body.innerHTML=`<div class="insp"><div style="display:flex;gap:8px;align-items:baseline"><span class="pill acc">FLOW</span><b>${a.id} → ${b.id}</b><span style="color:var(--muted);font-size:11px">${T[a.type].zone} → ${T[b.type].zone}</span></div>
+ body.innerHTML=`<div class="insp"><div style="display:flex;gap:8px;align-items:baseline"><span class="pill acc">FLOW</span><b>${a.id} → ${b.id}</b><span style="color:var(--muted);font-size:11px">${zoneOf(a)} → ${zoneOf(b)}</span></div>
  <div class="just"><b>${fmt(f)}</b> rps from ${esc(a.name)} to ${esc(b.name)}.${egress?` This flow leaves your boundary. ${b.pl?b.id+' offers '+pk().pl+'.':'No private option is recorded for '+b.id+'.'}`:''}</div>
  <label>Protocol <select id="eProto">${PROTOS.map(p=>`<option ${p===e.proto?'selected':''}>${p}</option>`).join('')}</select></label>
  <label>Connectivity <select id="eVia">${VIAS.map(v=>`<option value="${v}" ${v===e.via?'selected':''}>${esc(viaName(v))}</option>`).join('')}</select></label>
@@ -1128,70 +1368,109 @@ function renderEdgeInspector(body){
  $('#eDel').onclick=()=>deleteSelected();
 }
 function renderNodeInspector(body,n){
- const f=F[n.id]||{in:0,util:0,served:0},tot=KPI.offered||1,inE=S.edges.filter(e=>e.to===n.id).length,outE=S.edges.filter(e=>e.from===n.id).length,ext=EXTERNAL.includes(n.type);
- const just=n.type==='user'?`Source of <b>${fmt(f.in)}</b> rps.`:ext?`Receives <b>${fmt(f.in)}</b> rps from inside the boundary. Data shared: ${esc(n.enrich.dataShared||'n/a')}.`:`Carries <b>${fmt(f.in)}</b> rps (${Math.round(f.in/tot*100)}% of offered load) at <b>${pct(f.util)}</b> utilization on ${instCount(n)} instance${instCount(n)>1?'s':''}${scaleOf(n)>1?` (×${scaleOf(n)} inherited from ${n.parent})`:''}. ${inE} inbound / ${outE} outbound flows. Adds ≈${(T[n.type].lat||0)} ms base latency.`;
- const g=(id,fn,val)=>{const el=document.getElementById(id);if(el)el.onchange=e=>fn(e.target.value)};
- let h=`<div class="insp"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span class="pill ${ext?'info':st(f.util)}">${n.id}</span><b>${esc(T[n.type].label)}</b><span style="color:var(--accent);font-size:11px">${esc(svcName(n))}</span></div>
+ const f=F[n.id]||{in:0,util:0,served:0},tot=KPI.offered||1,inE=S.edges.filter(e=>e.to===n.id&&isFlow(e)).length,outE=S.edges.filter(e=>e.from===n.id&&isFlow(e)).length,ext=EXTERNAL.includes(n.type),plat=PLATFORM.includes(n.type),part=n.type==='part';
+ const just=n.type==='user'?(f.noRoute?`<b class="crit">No route</b>: ${fmt(f.in)} rps fail.`:`Source of <b>${fmt(f.in)}</b> rps.`):ext?`Receives <b>${fmt(f.in)}</b> rps from inside the boundary. Data shared: ${esc(n.enrich.dataShared||'n/a')}.`:plat?`Shared platform service used by ${S.edges.filter(e=>e.kind==='dep'&&e.to===n.id).map(e=>e.from).join(', ')||'nothing yet'}.`:`Carries <b>${fmt(f.in)}</b> rps (${Math.round(f.in/tot*100)}% of offered load) at <b>${pct(f.util)}</b> utilization on ${instCount(n)} instance${instCount(n)>1?'s':''}${scaleOf(n)>1?` (×${scaleOf(n)} inherited from ${n.parent})`:''}. ${inE} inbound / ${outE} outbound flows. Adds ≈${(T[n.type].lat||0)} ms base latency.${f.thr?` Throttles ${fmt(f.thr)} rps.`:''}`;
+ const g=(id,fn)=>{const el=document.getElementById(id);if(el)el.onchange=e=>fn(e.target.value)};
+ const others=kids(n.parent).filter(m=>m.id!==n.id);
+ let h=`<div class="insp"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span class="pill ${ext||plat||part?'info':st(f.util)}">${n.id}</span><b>${esc(T[n.type].label)}</b><span style="color:var(--accent);font-size:11px">${esc(svcName(n))}</span></div>
   <div class="just"><b>Justification</b><br>${just}</div>
-  <label>Name <input id="iName" value="${esc(n.name)}"></label>`;
+  <label>Name <input id="iName" value="${esc(n.name)}"></label>
+  <label>Connect to <select id="iConn"><option value="">Choose a component…</option>${others.map(m=>`<option value="${m.id}">${m.id} · ${esc(m.name)}</option>`).join('')}</select></label>`;
  if(n.type==='user')h+=`<label>Peak load (rps) <input id="iRps" type="number" min="0" step="100" value="${n.rps}"></label>`;
  else if(ext)h+=`<label>Private connectivity <select id="iPl"><option value="1" ${n.pl?'selected':''}>Offered (${esc(pk().pl)})</option><option value="0" ${!n.pl?'selected':''}>Not offered</option></select></label>`;
  else if(n.type==='db'){
   h+=`<label>Instance size <select id="iTier">${TIER_ORDER.map(t=>`<option value="${t}" ${t===n.tier?'selected':''}>${TIERS[t].l} · ${pk().dbClass[t]}</option>`).join('')}</select></label>
-  <label>Read share <input id="iRw" type="number" min="0" max="100" step="5" value="${Math.round((n.rw??.8)*100)}"></label>
+  <label>Read share % <input id="iRw" type="number" min="0" max="100" step="5" value="${Math.round((n.rw??.8)*100)}"></label>
   <label>Read replicas <input id="iRr" type="number" min="0" max="${pk().rrMax}" value="${n.readReplicas||0}"></label>
   <label>Shards <input id="iSh" type="number" min="1" max="64" value="${n.shards||1}"></label>
   <label>Data size (GB) <input id="iGb" type="number" min="1" step="50" value="${n.sizeGB||0}"></label>
   <label>Standby <select id="iSb"><option value="0">None</option><option value="1" ${n.standby?'selected':''}>Passive standby (failover)</option></select></label>`;
   h+=dbDecisionHTML(n);
- }else h+=`<label>Replicas <input id="iRep" type="number" min="1" max="50" value="${n.rep}"></label><label>Capacity / replica <input id="iCap" type="number" min="1" step="50" value="${n.cap}"></label>
+ }else if(n.type==='queue'){
+  h+=`<label>Kind <select id="iFl"><option value="kafka" ${n.flavor==='kafka'?'selected':''}>Event stream · ${esc(pk().q.kafka)}</option><option value="mq" ${n.flavor==='mq'?'selected':''}>Message broker · ${esc(pk().q.mq)}</option><option value="native" ${n.flavor==='native'?'selected':''}>Managed queue · ${esc(pk().q.native)}</option></select></label>
+  ${n.flavor==='kafka'?`<label>Partitions <input id="iPa" type="number" min="1" max="1000" value="${n.partitions}"></label><label>Partition key <input id="iPk" value="${esc(n.pkey||'')}" placeholder="e.g. order_id"></label>`:''}
+  ${n.flavor!=='native'?`<label>Brokers <input id="iBr" type="number" min="1" max="60" value="${n.brokers}"></label>`:''}
+  <label>Consumers (group) <input id="iCo" type="number" min="1" max="500" value="${n.consumers}"></label>
+  <label>Msgs/s per consumer <input id="iCr" type="number" min="1" step="50" value="${n.consumerRate}"></label>`;
+  h+=remedyHTML(n);
+ }else if(n.type==='idp'){
+  h+=`<label>Audience <select id="iAud"><option value="customers" ${n.audience!=='workforce'?'selected':''}>Customers (CIAM)</option><option value="workforce" ${n.audience==='workforce'?'selected':''}>Workforce (employees)</option></select></label>
+  <label>Identity source <select id="iMode"><option value="native" ${n.idpMode==='native'?'selected':''}>Own user directory · ${esc(pk().idp.native)}</option><option value="corp" ${n.idpMode==='corp'?'selected':''}>Federated to corporate IdP (SAML/OIDC)</option><option value="social" ${n.idpMode==='social'?'selected':''}>Federated social logins</option></select></label>
+  ${n.idpMode==='corp'?`<label>Corporate IdP <input id="iFed" value="${esc(n.fedIdp||'')}" placeholder="Entra ID, Okta, ADFS…"></label>`:''}
+  <div class="why">${esc(svcName(n))}. Federation keeps passwords with the corporate IdP and reuses its MFA and joiner/leaver process; your app trusts its SAML/OIDC assertions.</div>
+  <label>Replicas <input id="iRep" type="number" min="1" max="50" value="${n.rep}"></label>`;
+ }else if(!plat&&!part){
+  h+=`<div class="row2"><label style="grid-template-columns:1fr">Replicas <input id="iRep" type="number" min="1" max="200" value="${n.rep}" ${n.auto?'disabled':''}></label><label style="grid-template-columns:1fr">rps / replica <input id="iCap" type="number" min="1" step="50" value="${n.cap}"></label></div>
+  <label>Autoscale <input id="iAuto" value="${n.auto?n.auto.min+'-'+n.auto.max:''}" placeholder="off · or min-max, e.g. 2-10"></label>
+  ${['gw','waf','lb','egw','cdn'].includes(n.type)?`<label>Rate limit (rps) <input id="iRl" type="number" min="0" step="50" value="${n.rateLimit||''}" placeholder="none"></label>`:''}
   <label>Standby <select id="iSb"><option value="0">None</option><option value="1" ${n.standby?'selected':''}>Active / passive</option></select></label>`;
- if(!ext)h+=`<label>What-if <select id="iFail"><option value="0">Healthy</option><option value="1" ${n.failed?'selected':''}>Failed</option></select></label>`;
- if(!ext){const list=instancesOf(n);h+=`<h4>Instances (${list.length})</h4><div class="inst">${list.map(m=>`<div class="${V.selInst===m.id?'on':''}"><b>${m.id}</b><br><span class="${m.idle?'':st(m.util)}">${m.idle?'standby · idle':m.role+' · '+pct(m.util)}</span></div>`).join('')}</div>`}
+  h+=remedyHTML(n);
+ }
+ if(!ext&&!plat&&!part)h+=`<label>What-if <select id="iFail"><option value="0">Healthy</option><option value="1" ${n.failed?'selected':''}>Failed</option></select></label>`;
+ if(!ext&&!plat&&!part){const list=instancesOf(n);h+=`<h4>Instances (${list.length})</h4><div class="inst">${list.map(m=>`<div class="${V.selInst===m.id?'on':''}"><b>${m.id}</b><br><span class="${m.idle?'':st(m.util)}">${esc(m.role)}${m.idle?'':' · '+pct(m.util)}</span></div>`).join('')}</div>`}
+ const md=missingDeps(n),deps=S.edges.filter(e=>e.kind==='dep'&&e.from===n.id).map(e=>S.nodes[e.to]).filter(Boolean);
+ if(DEPS[n.type]&&n.parent==='root')h+=`<h4>Platform dependencies</h4><div class="just">${deps.map(d=>`✓ ${d.id} ${esc(svcName(d))}`).join('<br>')}${deps.length&&md.length?'<br>':''}${md.map(d=>`<span class="warn">✗ ${esc(pk().svc[d])}</span> · ${esc(depWhy(n.type,d))}`).join('<br>')}${md.length?`<div class="act" style="margin-top:6px"><button class="btn" id="iDeps">Add missing dependencies</button></div>`:''}</div>`;
  h+=`<div class="just" style="font-family:var(--f-mono);font-size:10.5px"><b style="font-family:var(--f-body)">SLM enrichment</b><br>${Object.entries(n.enrich||{}).map(([k,v])=>`${esc(k)}: ${esc(v)}`).join('<br>')}</div>
-  <div class="act"><button class="btn" id="iCon">Connect…</button><button class="btn" id="iOpen">Open sub-design${kids(n.id).length?' ('+kids(n.id).length+')':''}</button><button class="btn" id="iInst">${n.expanded?'Hide':'Show'} instances</button><button class="btn danger" id="iDel">Remove</button></div></div>`;
+  <div class="act">${ext||plat||part?'':`<button class="btn" id="iOpen">Open sub-design${kids(n.id).length?' ('+kids(n.id).length+')':''}</button><button class="btn" id="iInst">${n.expanded?'Hide':'Show'} instances</button>`}<button class="btn danger" id="iDel">Remove</button></div></div>`;
  body.innerHTML=h;
- const id=n.id,set=(desc,k,v)=>act(`${id}: ${desc}`,()=>{S.nodes[id][k]=v});
- g('iName',v=>{S.nodes[id].name=v;changed()});g('iRps',v=>{S.nodes[id].rps=+v;changed()});
+ const id=n.id,set=(desc,k,v)=>act(`${id}: ${desc}`,()=>{S.nodes[id][k]=v}),direct=(desc,fn)=>{pushUndo(`${id}: ${desc}`);fn();changed()};
+ g('iName',v=>direct('rename',()=>{S.nodes[id].name=v}));g('iRps',v=>direct(`peak load ${v}`,()=>{S.nodes[id].rps=+v}));
+ g('iConn',v=>{if(v)guardedConnect(id,v)});
  g('iPl',v=>set(`private connectivity ${v==='1'?'offered':'not offered'}`,'pl',v==='1'));
- g('iRep',v=>set(`replicas → ${Math.max(1,+v)}`,'rep',Math.max(1,+v)));g('iCap',v=>set(`capacity → ${+v}`,'cap',Math.max(1,+v)));
+ g('iRep',v=>set(`replicas → ${Math.max(1,+v)}`,'rep',Math.max(1,+v)));g('iCap',v=>set(`rps per replica → ${+v}`,'cap',Math.max(1,+v)));
+ g('iAuto',v=>{const m=v.match(/(\d+)\s*[-–to ]+\s*(\d+)/);const a=m?{min:Math.max(1,+m[1]),max:Math.max(+m[1],+m[2])}:null;act(`${id}: ${a?`autoscale ${a.min}–${a.max}`:'autoscale off'}`,()=>{S.nodes[id].auto=a})});
+ g('iRl',v=>{const r=+v||null;act(`${id}: ${r?'rate limit '+r+' rps':'no rate limit'}`,()=>{S.nodes[id].rateLimit=r},{tradeoffs:r?['+ Protects downstream from overload (EA-P7)','− Requests above the limit get 429 Too Many Requests']:null})});
  g('iSb',v=>set(v==='1'?'add standby':'remove standby','standby',v==='1'));
  g('iFail',v=>{S.nodes[id].failed=v==='1';changed()});
  g('iTier',v=>act(`${id}: size → ${TIERS[v].l}`,()=>{S.nodes[id].tier=v;S.nodes[id].cap=TIERS[v].cap}));
- g('iRw',v=>{S.nodes[id].rw=Math.min(1,Math.max(0,+v/100));changed()});
+ g('iRw',v=>direct(`read share ${v}%`,()=>{S.nodes[id].rw=Math.min(1,Math.max(0,+v/100))}));
  g('iRr',v=>set(`read replicas → ${Math.min(pk().rrMax,Math.max(0,+v))}`,'readReplicas',Math.min(pk().rrMax,Math.max(0,+v))));
  g('iSh',v=>set(`shards → ${Math.max(1,+v)}`,'shards',Math.max(1,+v)));
- g('iGb',v=>{S.nodes[id].sizeGB=Math.max(1,+v);changed()});
- $('#iCon').onclick=()=>startConnect(id);$('#iOpen').onclick=()=>drill(id);$('#iInst').onclick=()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()};$('#iDel').onclick=()=>{V.sel=id;deleteSelected()};
- body.querySelectorAll('[data-dbopt]').forEach(b=>b.onclick=()=>applyDbOption(id,b.dataset.dbopt));
+ g('iGb',v=>direct(`data size ${v} GB`,()=>{S.nodes[id].sizeGB=Math.max(1,+v)}));
+ g('iFl',v=>set(`kind → ${pk().q[v]}`,'flavor',v));g('iPa',v=>act(`${id}: partitions → ${+v}`,()=>{S.nodes[id].partitions=Math.max(1,+v)},{tradeoffs:+v<n.partitions?['− Kafka cannot reduce partitions: this means a new topic and a migration']:['+ More consumer parallelism','− Keys remap to new partitions; per-key ordering breaks while it settles']}));
+ g('iPk',v=>direct(`partition key ${v}`,()=>{S.nodes[id].pkey=v}));g('iBr',v=>set(`brokers → ${Math.max(1,+v)}`,'brokers',Math.max(1,+v)));g('iCo',v=>set(`consumers → ${Math.max(1,+v)}`,'consumers',Math.max(1,+v)));g('iCr',v=>set(`msgs/s per consumer → ${+v}`,'consumerRate',Math.max(1,+v)));
+ g('iAud',v=>set(`audience → ${v}`,'audience',v));g('iMode',v=>set(`identity source → ${v}`,'idpMode',v));g('iFed',v=>direct(`corporate IdP ${v}`,()=>{S.nodes[id].fedIdp=v}));
+ const b=(i,fn)=>{const el=document.getElementById(i);if(el)el.onclick=fn};
+ b('iOpen',()=>drill(id));b('iInst',()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()});b('iDel',()=>{V.sel=id;deleteSelected()});
+ b('iDeps',()=>act(`${id}: add platform dependencies`,()=>addDeps([id]),{tradeoffs:['+ '+id+' can be built, deployed, keyed and observed','− Shared services become tier-0 for '+id]}));
+ body.querySelectorAll('[data-dbopt]').forEach(x=>x.onclick=()=>applyDbOption(id,x.dataset.dbopt));
+ body.querySelectorAll('[data-rem]').forEach(x=>x.onclick=()=>applyRemedy(id,x.dataset.rem));
+}
+function remedyHTML(n){
+ const f=F[n.id]||{util:0},o=remedyOptions(n);if(!o.length)return '';
+ return `<h4>Scaling and protection options</h4>
+ <div class="just">Now: ${fmt(f.in)} rps at <b class="${st(f.util)}">${pct(f.util)}</b>${f.thr?` · ${fmt(f.thr)} rps throttled`:''}${f.lag?` · lag +${fmt(f.lag)} msg/s`:''}. ${f.util<.6?'Below the 60% target; options shown for planning.':'Pick the simplest option that reaches ≤60% (EA-P4). Each one is previewed by the Action Guard.'}</div>
+ <table class="opt"><tr><th>Option</th><th>After</th><th>Tradeoffs</th><th></th></tr>${o.map(x=>`<tr class="${x.rec?'rec':''}"><td><b>${esc(x.name)}</b>${x.rec?' <span class="pill acc">REC</span>':''}<br><span class="why">fixes ${esc(x.fixes)}</span></td><td class="num ${x.effect==null?'':st(x.effect)}">${x.effect==null?'—':pct(x.effect)}${x.thr>0.0005?`<br><span class="warn">${(x.thr*100).toFixed(0)}% 429</span>`:''}${x.lag>0?`<br><span class="warn">lag</span>`:''}</td><td class="why">+ ${esc(x.pro)}<br>− ${esc(x.con)}</td><td><button class="btn" data-rem="${x.key}" style="padding:1px 6px;font-size:10.5px">Preview</button></td></tr>`).join('')}</table>`;
 }
 function dbDecisionHTML(n){
  const o=dbOptions(n),c=o.cur;
  return `<h4>Scaling decision</h4>
  <div class="just">${fmt(c.r)} reads/s + ${fmt(c.w)} writes/s · primary at <b>${pct(c.prim)}</b>${(n.readReplicas||0)?`, replicas at <b>${pct(c.repl)}</b>`:''} · <b>${c.bound}-bound</b><br>${esc(o.why.join(' '))}<br><span style="color:var(--muted)">There is no "write replica" in a single-primary database: writes scale <i>up</i> (bigger primary) or <i>out</i> (sharding / distributed SQL). Read replicas only add read capacity.</span></div>
- <table class="opt"><tr><th>Option</th><th>Util. after</th><th>Tradeoffs</th><th></th></tr>${o.map(x=>`<tr class="${x.rec?'rec':''}"><td><b>${esc(x.name)}</b>${x.rec?' <span class="pill acc">REC</span>':''}<br><span class="why">fixes ${esc(x.fixes)} · ${esc(x.detail)}</span></td><td class="num ${x.effect==null?'':st(x.effect)}">${x.effect==null?'bursts':pct(x.effect)}</td><td class="why">+ ${esc(x.pro)}<br>− ${esc(x.con)}</td><td><button class="btn" data-dbopt="${x.key}" style="padding:1px 6px;font-size:10.5px">Preview</button></td></tr>`).join('')}</table>
+ <table class="opt"><tr><th>Option</th><th>After</th><th>Tradeoffs</th><th></th></tr>${o.map(x=>`<tr class="${x.rec?'rec':''}"><td><b>${esc(x.name)}</b>${x.rec?' <span class="pill acc">REC</span>':''}<br><span class="why">fixes ${esc(x.fixes)} · ${esc(x.detail)}</span></td><td class="num ${x.effect==null?'':st(x.effect)}">${x.effect==null?'bursts':pct(x.effect)}</td><td class="why">+ ${esc(x.pro)}<br>− ${esc(x.con)}</td><td><button class="btn" data-dbopt="${x.key}" style="padding:1px 6px;font-size:10.5px">Preview</button></td></tr>`).join('')}</table>
  <div class="just"><b style="font-family:var(--f-body)">Shard only if at least one is true</b><br>${o.shardWhy.map(s=>`<span class="${s.v?'crit':'ok'}">${s.v?'✓':'✗'}</span> ${esc(s.t)}`).join('<br>')}<br><span style="color:var(--muted)">${o.shardWhy.some(s=>s.v)?'Sharding is justified. Choose the shard key from the main access path (e.g. customer_id).':'None apply, so do not shard yet (EA-P6).'}</span></div>`;
 }
 $('#advBody').addEventListener('click',e=>{const f=e.target.closest('[data-fix]');if(f)return applyFix(findings[+f.dataset.fix]);const g=e.target.closest('[data-go]');if(g)focusNode(g.dataset.go)});
 function focusNode(id){const n=S.nodes[id];if(!n)return;if(V.scope!==n.parent){V.scope=n.parent;renderCrumb()}V.sel=id;V.selE=null;const p=P(n.x,n.y);V.x+=W/2-p.x;V.y+=H/2-p.y;showTab('insp')}
-function logAI(model,what,why,conf){const slm=['Phi-4-mini','Llama 3.2 3B','Qwen2.5 3B'][S.settings.slm]||'SLM';const m=['Advisor','SLM enrichment','Guardian'].includes(model)?`${slm} · ${model}`:model;S.log.push({t:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}),model:m,what,why,conf});if(S.log.length>250)S.log.shift()}
+function logAI(model,what,why,conf){const slm=['Phi-4-mini','Llama 3.2 3B','Qwen2.5 3B'][S.settings.slm]||'SLM';const m=['Advisor','SLM enrichment','Guardian','Platform expert'].includes(model)?`${slm} · ${model}`:model;S.log.push({t:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}),model:m,what,why,conf});if(S.log.length>250)S.log.shift()}
 
-/* ---------- tree ---------- */
+/* ---------- tree (components, sub-designs and every instance) ---------- */
 let treeSeen=new Set();
 function renderTree(){
- const rows=[];const walk=(pid,d)=>kids(pid).forEach(n=>{rows.push({n,d});walk(n.id,d+1)});
+ const rows=[];const walk=(pid,d)=>kids(pid).forEach(n=>{rows.push({n,d});if((V.allInst||n.expanded)&&instancesOf(n).length>1&&!EXTERNAL.includes(n.type))instancesOf(n).forEach(m=>rows.push({inst:m,n:{id:m.id,parent:n.id,name:m.role},d:d+1,owner:n}));walk(n.id,d+1)});
  rows.push({n:{id:'root',name:S.project,type:'sys'},d:0});walk('root',1);
  const z=+$('#treeZoom').value,rh=19*z,svg=$('#treeSvg');
- $('#treeTag').textContent=(rows.length-1)+' nodes';
+ $('#treeTag').textContent=(rows.filter(r=>!r.inst).length-1)+' nodes'+(rows.some(r=>r.inst)?` · ${rows.filter(r=>r.inst).length} instances`:'');
  svg.setAttribute('width',320*z);svg.setAttribute('height',rows.length*rh+8);svg.setAttribute('viewBox',`0 0 320 ${(rows.length*rh+8)/z}`);
  let h='';const pos={};
  rows.forEach((r,i)=>{pos[r.n.id]={x:12+r.d*16,y:10+i*19}});
- rows.forEach(r=>{if(r.n.id==='root')return;const p=pos[r.n.parent],c=pos[r.n.id];h+=`<path d="M${p.x} ${p.y+4}V${c.y}H${c.x-5}" fill="none" stroke="var(--line)" stroke-width="1"/>`});
- rows.forEach(r=>{const c=pos[r.n.id],f=F[r.n.id],s=r.n.id==='root'||r.n.type==='user'?'accent':EXTERNAL.includes(r.n.type)?'muted':f?st(f.util):'ok',isNew=!treeSeen.has(r.n.id)&&treeSeen.size,cnt=r.n.id==='root'?1:instCount(r.n);
+ rows.forEach(r=>{if(r.n.id==='root')return;const p=pos[r.n.parent],c=pos[r.n.id];if(p)h+=`<path d="M${p.x} ${p.y+4}V${c.y}H${c.x-5}" fill="none" stroke="var(--line)" stroke-width="1" ${r.inst?'stroke-dasharray="2 2"':''}/>`});
+ rows.forEach(r=>{const c=pos[r.n.id];
+  if(r.inst){const s=r.inst.idle?'muted':st(r.inst.util);h+=`<g class="row" data-id="${r.owner.id}" data-inst="${r.inst.id}" style="transform:translate(${c.x}px,${c.y}px)"><rect x="-8" y="-8" width="${310-c.x}" height="17" rx="3" fill="${V.selInst===r.inst.id?'var(--accent-soft)':'transparent'}"/><rect x="-3" y="-3" width="6" height="6" fill="var(--${s})"/><text x="9" y="4">${r.inst.id}</text><text class="i" x="${13+r.inst.id.length*6.6}" y="4">${esc(r.inst.role)}${r.inst.idle?'':' · '+pct(r.inst.util)}</text></g>`;return}
+  const f=F[r.n.id],s=r.n.id==='root'||r.n.type==='user'?(f&&f.noRoute?'crit':'accent'):EXTERNAL.includes(r.n.type)||PLATFORM.includes(r.n.type)||r.n.type==='part'?'muted':f?st(f.util):'ok',isNew=!treeSeen.has(r.n.id)&&treeSeen.size,cnt=r.n.id==='root'?1:instCount(r.n);
   h+=`<g class="row${isNew?' new':''}" data-id="${r.n.id}" style="transform:translate(${c.x}px,${c.y}px)"><rect x="-8" y="-8" width="${310-c.x}" height="17" rx="3" fill="${V.sel===r.n.id?'var(--accent-soft)':'transparent'}"/><circle r="4" fill="var(--${s})" class="${s==='crit'?'pulse':''}"/><text x="9" y="4">${r.n.id==='root'?'':r.n.id}</text><text class="n" x="${r.n.id==='root'?9:13+r.n.id.length*6.6}" y="4">${esc(r.n.name)}${cnt>1?' ×'+cnt:''}${V.scope===r.n.id?'  ◂ in view':''}</text></g>`});
  svg.innerHTML=h;treeSeen=new Set(rows.map(r=>r.n.id));
 }
-$('#treeSvg').addEventListener('click',e=>{const g=e.target.closest('g.row');if(!g)return;const id=g.dataset.id;if(id==='root'){V.scope='root';V.sel=null;fit();changed()}else focusNode(id)});
+$('#treeSvg').addEventListener('click',e=>{const g=e.target.closest('g.row');if(!g)return;const id=g.dataset.id;if(id==='root'){V.scope='root';V.sel=null;fit();changed();return}if(g.dataset.inst){V.selInst=g.dataset.inst;S.nodes[id].expanded=true}focusNode(id)});
 $('#treeSvg').addEventListener('mouseover',e=>{const g=e.target.closest('g.row');V.hover=g?g.dataset.id:null});
 $('#treeZoom').oninput=renderTree;
 
@@ -1206,16 +1485,18 @@ function renderLists(){
  $('#verTag').textContent=S.versions.length?'v'+S.versions.length+' saved':'unsaved';
  $('#guardTag').textContent='guard: '+(S.settings.guard||'enforce');
 }
-$('#capList').addEventListener('change',e=>{const i=e.target.dataset.cap;if(i==null)return;S.caps[i].on=e.target.checked;S.ver.caps++;say(`Capability ${S.caps[i].id} ${e.target.checked?'enabled':'disabled'} · catalog v${S.ver.caps}.`,'s');changed()});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const [k,i]=b.dataset.del.split(':');S[k].splice(+i,1);S.ver[k]++;changed()});
+$('#capList').addEventListener('change',e=>{const i=e.target.dataset.cap;if(i==null)return;pushUndo(`Capability ${S.caps[i].id} ${e.target.checked?'on':'off'}`);S.caps[i].on=e.target.checked;S.ver.caps++;say(`Capability ${S.caps[i].id} ${e.target.checked?'enabled':'disabled'} · catalog v${S.ver.caps}.`,'s');changed()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const [k,i]=b.dataset.del.split(':');pushUndo(`Remove ${S[k][+i].id}`);S[k].splice(+i,1);S.ver[k]++;changed()});
 document.querySelectorAll('form[data-add]').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();const k=f.dataset.add,inp=f.querySelector('input'),v=inp.value.trim();if(!v)return;addRule(k,v);inp.value=''}));
 function addRule(k,v){
+ pushUndo(`Add ${{cap:'capability',ea:'principle',gt:'ground truth'}[k]}`);
  if(k==='cap'){const t=typeOf(v.toLowerCase());S.caps.push({id:'TC'+(S.caps.length+1),name:v,types:t?[t]:['svc'],on:true});S.ver.caps++;logAI('SLM enrichment',`Classified capability "${v}"`,`Mapped to component type ${t||'svc (default)'} by keyword`,t?.86:.5)}
  if(k==='ea'){S.ea.push({id:'P'+(S.ea.length+1),t:v});S.ver.ea++;logAI('SLM enrichment',`Parsed principle "${v.slice(0,40)}"`,'Stored as advisory text; tag it to rules for enforcement',.7)}
  if(k==='gt'){S.gt.push({id:'GT'+(S.gt.length+1),t:v,src:'Added by architect'});S.ver.gt++}
  changed();
 }
 $('#gtFile').addEventListener('change',e=>{
+ pushUndo('Ingest documents');
  [...e.target.files].forEach(f=>{
   const lc=f.name.toLowerCase(),tagsF=[];
   if(/sec|cyber|mitre|attack|threat/.test(lc))tagsF.push('Cybersecurity · MITRE ATT&CK');if(/ea|principle|architect/.test(lc))tagsF.push('EA Principle');if(/policy|opa|rego/.test(lc))tagsF.push('Policy as Code');if(/web|server|design|diagram/.test(lc)||/image/.test(f.type))tagsF.push('Reference design');if(!tagsF.length)tagsF.push('Standard');
@@ -1237,14 +1518,15 @@ const DQ=[
  ['Where will it run? local, datacenter, hybrid, aws, azure or gcp.',a=>{const m=a.toLowerCase().match(/local|datacenter|data center|hybrid|aws|azure|gcp/);disc.where=m?m[0].replace(' ',''):'aws'}],
  ['Does it store personal or regulated data? yes or no.',a=>{disc.pii=/^y/i.test(a.trim())}],
  ['Mostly reads, mostly writes, or mixed?',a=>{disc.mix=/read/i.test(a)?'read':/write/i.test(a)?'write':'mixed'}],
- ['Does it call SaaS or partner systems? Name them, or "no".',a=>{disc.saas=/^no?$/i.test(a.trim())?[]:a.split(/,|\band\b/).map(s=>s.trim()).filter(Boolean).slice(0,3)}]
+ ['Does it call SaaS or partner systems? Name them, or "no".',a=>{disc.saas=/^no?$/i.test(a.trim())?[]:a.split(/,|\band\b/).map(s=>s.trim()).filter(Boolean).slice(0,3)}],
+ ['Who signs in? "customers", "employees via Entra ID / Okta", or "both".',a=>{disc.fed=/entra|okta|adfs|ping|employee|staff|workforce|federat/i.test(a);disc.fedIdp=(a.match(/entra id|entra|okta|adfs|ping/i)||['Entra ID'])[0];disc.workforce=/employee|staff|workforce/i.test(a)&&!/customer|both/i.test(a)}]
 ];
 function startDisc(){disc={i:0};say(`Discovery: ${DQ.length} questions, then I draft a baseline grounded in your principles and ground truth. Type "skip" to stop.`,'s');say(DQ[0][0],'q')}
 function discStep(a){
  if(/^skip|^cancel/i.test(a)){disc=null;say('Discovery stopped.','s');return}
  DQ[disc.i][1](a);disc.i++;
  if(disc.i<DQ.length){say(DQ[disc.i][0],'q');return}
- const d=disc;disc=null;buildBaseline(d);
+ const d=disc;disc=null;pushUndo('Discovery baseline');buildBaseline(d);
 }
 function buildBaseline(d){
  S.nodes={};S.edges=[];V.scope='root';V.sel=null;V.selE=null;
@@ -1254,25 +1536,58 @@ function buildBaseline(d){
  if(d.mix==='read'&&d.rps>3000){const c=addNode('cdn','Static edge cache','root',{x:ZX.edge-110,y:250});connect(prev.id,c.id,'HTTPS');prev=c}
  const w=addNode('waf','Perimeter WAF','root',{x:ZX.edge,y:250});connect(prev.id,w.id,'HTTPS');
  const lb=['vmware','local'].includes(S.deploy)?addNode('lb','Site load balancer','root',{x:ZX.edge,y:420}):null;
- const gw=addNode('gw','API gateway','root',{x:ZX.dmz,y:250});const idp=addNode('idp','Identity (OIDC)','root',{x:ZX.dmz,y:420});
+ const gw=addNode('gw','API gateway','root',{x:ZX.dmz,y:250});gw.rep=2;gw.rateLimit=Math.round(d.rps*2/100)*100;
+ const idp=addNode('idp','Identity','root',{x:ZX.dmz,y:420});idp.rep=2;if(d.fed){idp.idpMode='corp';idp.fedIdp=d.fedIdp}if(d.workforce)idp.audience='workforce';
  if(lb){connect(w.id,lb.id,'HTTPS');connect(lb.id,gw.id,'HTTPS')}else connect(w.id,gw.id,'HTTPS');
- const svc=addNode('svc','Core API','root',{x:ZX.app,y:250});svc.rep=Math.max(2,Math.ceil(d.rps/(800*.6)));
+ const svc=addNode('svc','Core API','root',{x:ZX.app,y:250});svc.auto={min:2,max:Math.max(4,Math.ceil(d.rps*2/(800*.6)))};
  const db=addNode('db',d.pii?'Customer DB (PII)':'Primary DB','root',{x:ZX.data,y:250});db.standby=true;db.rw=d.mix==='read'?.9:d.mix==='write'?.35:.7;
  const tierFit=TIER_ORDER.find(t=>dbLoad({...db,cap:TIERS[t].cap},d.rps).util<=.6);if(tierFit){db.tier=tierFit;db.cap=TIERS[tierFit].cap}
  connect(gw.id,svc.id);connect(gw.id,idp.id,'HTTPS');connect(svc.id,db.id);
  if(d.mix!=='write'&&d.rps>1000){const c=addNode('cache','Read cache','root',{x:ZX.data,y:80});connect(svc.id,c.id)}
  if(d.mix==='write'||d.rps>4000){const q=addNode('queue','Write buffer','root',{x:ZX.data,y:420});connect(svc.id,q.id)}
  (d.saas||[]).forEach((nm,i)=>{const s=addNode('saas',nm.slice(0,24),'root',{x:ZX.app,y:450+i*150});connect(svc.id,s.id,'HTTPS',s.pl?'privatelink':'internet')});
- logAI('Advisor','Drafted baseline from discovery',`${d.rps} rps, ${d.where}, ${d.pii?'PII':'no PII'}, ${d.mix} workload → WAF-fronted gateway, ${svc.rep} replicas for ≤60% (P4), DB sized ${TIERS[db.tier].l} with standby (P2, P6)${d.saas&&d.saas.length?', SaaS over '+pk().pl+' (GT5)':''}`,.9);
+ addDeps();
+ logAI('Advisor','Drafted baseline from discovery',`${d.rps} rps, ${d.where}, ${d.pii?'PII':'no PII'}, ${d.mix} workload → WAF-fronted gateway with rate limit (P7), autoscaling service (P4), DB sized ${TIERS[db.tier].l} with standby (P2, P6), identity ${idpKey(idp)}, platform dependencies added${d.saas&&d.saas.length?', SaaS over '+pk().pl+' (GT5)':''}`,.9);
  say(`Baseline drafted for ${S.project}: ${Object.keys(S.nodes).join(', ')}. Review the advisor findings, then save a version.`,'s');
  fit();changed();
 }
+// Introduce a queue / event bus, e.g. "use aws managed kafka for microservice to microservice communication"
+function handleUse(l,ids){
+ const t=typeOf(l.replace(/\bfor\b.*$/,''))||typeOf(l);if(!t)return false;
+ const scope=V.scope;
+ if(t==='queue'){
+  const fl=flavorOf(l),svcs=kids(scope).filter(n=>['svc','vm','fn','api','adp','part'].includes(n.type));
+  const s2s=/service.?to.?(micro)?service|microservices?\s*(to|and|<->|-)\s*microservices?|between (micro)?services|inter.?service|east.?west|event.?driven|async|decouple/.test(l);
+  const id=nextId('queue'),nm=fl==='kafka'?'Event bus (Kafka)':fl==='mq'?'Message broker':'Work queue';
+  const direct=S.edges.filter(e=>isFlow(e)&&svcs.some(s=>s.id===e.from)&&svcs.some(s=>s.id===e.to));
+  const targets=ids.length?ids.filter(x=>S.nodes[x]&&S.nodes[x].parent===scope):svcs.map(s=>s.id);
+  const desc=`Introduce ${id} ${pk().q[fl]}${s2s?' for service-to-service events':''}`;
+  act(desc,()=>{
+   const xs=targets.map(i=>S.nodes[i].x),ys=targets.map(i=>S.nodes[i].y);
+   const q=addNode('queue',nm,scope,{x:xs.length?Math.max(...xs)+(scope==='root'?240:200):undefined,y:ys.length?Math.max(...ys)+150:undefined});
+   q.flavor=fl;if(fl==='kafka'){q.partitions=Math.max(6,targets.length*3);q.consumers=Math.min(q.partitions,3)}
+   if(s2s&&direct.length)direct.forEach(e=>{const a=e.from,b=e.to;removeEdge(a,b);connect(a,q.id);connect(q.id,b)});
+   else targets.forEach(s=>connect(s,q.id));
+  },{tradeoffs:['+ Producers no longer wait for consumers; bursts are absorbed','+ '+(fl==='kafka'?'Replay and fan-out: new consumer groups read the same events':'Competing consumers scale out easily'),'− Eventual consistency: consumers must be idempotent','− '+(fl==='kafka'?'Partition key decides ordering and spread (e.g. order_id); partitions cannot be reduced later':'No replay once a message is acknowledged'),'− One more platform to run'+(prov()!=='vmware'?` (managed: ${pk().q[fl]})`:'')],
+   adr:{title:`${desc}`,context:`Services ${targets.join(', ')||'(none yet)'} in ${scope==='root'?'the system':scope} ${direct.length?`call each other directly (${direct.map(e=>e.from+'→'+e.to).join(', ')})`:'have no direct calls yet'}.`,decision:`Use ${pk().q[fl]} as the ${s2s?'service-to-service event bus':'messaging layer'}.`,tradeoffs:'+ Decoupling, burst absorption'+(fl==='kafka'?', replay':'')+'\n− Eventual consistency; idempotent consumers; another platform',basis:['EA-P2','EA-P4','EA-P3']},after:()=>{V.sel=id}});
+  if(s2s&&!direct.length)say(`No direct service-to-service calls in this view, so ${targets.join(', ')||'no services'} will publish to the bus. Add consumers with "connect ${id} to SVCx".`,'s');
+  return true;
+ }
+ const id=nextId(t);
+ act(`Add ${id} (${T[t].label})`,()=>{const n=addNode(t);if(t==='idp'&&/federat|saml|entra|okta|adfs/.test(l)){n.idpMode='corp';n.fedIdp=(l.match(/entra|okta|adfs|ping/)||['Entra ID'])[0]}},{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id}});
+ return true;
+}
+const EXAMPLES=['use aws managed kafka for microservice to microservice communication','add redis cache between SVC2 and DB1','rate limit GW1 2000','autoscale SVC2 2-10','partitions Q1 12','consumers Q1 6','brokers Q1 3','add platform dependencies','federate IDP1 with Okta','connect SVC2 to SAAS1 via privatelink','options SVC2','decide DB1','expand DB1','instances all','what if load 3x','what if DB1 fails','undo','redo','discover'];
+function suggest(l){const w=new Set(l.split(/\W+/).filter(x=>x.length>2));return EXAMPLES.map(e=>({e,s:e.split(/\W+/).filter(x=>w.has(x)).length})).filter(x=>x.s).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.e)}
 function run(raw){
  const c=raw.trim();if(!c)return;say('› '+c,'u');
  if(disc)return discStep(c);
- const l=c.toLowerCase(),ids=(c.match(/\b[A-Za-z]{1,4}\d+\b/g)||[]).map(x=>x.toUpperCase()).filter(x=>S.nodes[x]);
+ const l=c.toLowerCase();let ids=(c.match(/\b[A-Za-z]{1,4}\d+\b/g)||[]).map(x=>x.toUpperCase()).filter(x=>S.nodes[x]);
+ if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
- if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · add saas named "Stripe" · add egress gateway · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API · scale SVC2 to 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nView: expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nOther: discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
+ if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
+ if(/^undo$/.test(l))return undo();
+ if(/^redo$/.test(l))return redo();
  if(/^discover/.test(l))return startDisc();
  if(m=l.match(/^guard\s+(enforce|advise|off)/)){S.settings.guard=m[1];changed();say(`Action Guard set to ${m[1]}.`,'s');return}
  if(m=c.match(/^(principle|truth|ground truth|capability)\s*:\s*(.+)/i)){addRule({principle:'ea',truth:'gt','ground truth':'gt',capability:'cap'}[m[1].toLowerCase()],m[2]);say('Added. Version bumped.','s');return}
@@ -1283,42 +1598,53 @@ function run(raw){
  }
  if(/^reset/.test(l)){Object.values(S.nodes).forEach(n=>n.failed=false);setMult(1);say('What-if cleared.','s');return}
  if(/^(fail|kill|take down)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=true);changed();say(`${ids.join(', ')} failed.`,'s');return}
- if(m=l.match(/^restore\s+v(\d+)/)){const v=S.versions[+m[1]-1];if(!v){say('No such version.','s');return}const keep={versions:S.versions,log:S.log};S={...JSON.parse(v.data),...keep};migrate();V.scope='root';fit();changed();say(`Restored v${m[1]} (${v.note}).`,'s');return}
+ if(m=l.match(/^restore\s+v(\d+)/)){const v=S.versions[+m[1]-1];if(!v){say('No such version.','s');return}pushUndo(`Restore v${m[1]}`);const keep={versions:S.versions,log:S.log};S={...JSON.parse(v.data),...keep};migrate();V.scope='root';fit();changed();say(`Restored v${m[1]} (${v.note}).`,'s');return}
  if(/^(restore|recover|heal)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=false);changed();say(`${ids.join(', ')} restored.`,'s');return}
- if(m=l.match(/^(?:set\s+)?(?:load|traffic|peak)\D*(\d[\d,]*)/)){const u=kids('root').find(n=>n.type==='user');if(u){u.rps=+m[1].replace(/,/g,'');changed();say(`${u.id} peak load set to ${fmt(u.rps)} rps.`,'s')}return}
- if(/^(expand|collapse)/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].expanded=/^expand/.test(l));persist();say(`${/^expand/.test(l)?'Showing':'Hiding'} instances of ${ids.join(', ')}.`,'s');return}
- if(/^(decide|scaling)/.test(l)&&ids.length){focusNode(ids[0]);say(`Scaling decision for ${ids[0]} is in the Inspector.`,'s');return}
+ if(m=l.match(/^(?:set\s+)?(?:load|traffic|peak)\D*(\d[\d,]*)/)){const u=kids('root').find(n=>n.type==='user');if(u){pushUndo(`${u.id} peak load`);u.rps=+m[1].replace(/,/g,'');changed();say(`${u.id} peak load set to ${fmt(u.rps)} rps.`,'s')}return}
+ if(/^instances?\s*(all|on|show)/.test(l)){if(!V.allInst)toggleAllInst();say('Showing every instance of every scaled component (canvas and Design Tree).','s');return}
+ if(/^instances?\s*(off|hide|none)/.test(l)){if(V.allInst)toggleAllInst();return}
+ if(/^(expand|collapse)/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].expanded=/^expand/.test(l));persist();renderTree();say(`${/^expand/.test(l)?'Showing':'Hiding'} instances of ${ids.join(', ')}: ${ids.map(i=>instancesOf(S.nodes[i]).map(x=>x.id).join(', ')).join(' · ')}.`,'s');return}
+ if(/^(decide|scaling|options?)/.test(l)&&ids.length){focusNode(ids[0]);say(`Scaling options for ${ids[0]} are in the Inspector.`,'s');return}
+ if(/rate.?limit/.test(l)&&ids.length){const r=+((l.match(/(\d[\d,]*)\s*(rps)?\s*$/)||[0,'0'])[1].replace(/,/g,''))||null;const id=ids[0];act(`${id}: ${r?'rate limit '+r+' rps':'no rate limit'}`,()=>{S.nodes[id].rateLimit=r},{tradeoffs:r?['+ Protects downstream from overload (EA-P7)','− Requests above the limit get 429 Too Many Requests']:null});return}
+ if(/^autoscal/.test(l)&&ids.length){const id=ids[0];if(/off|none|disable/.test(l)){act(`${id}: autoscale off`,()=>{S.nodes[id].auto=null});return}const mm=l.match(/(\d+)\s*(?:-|–|to)\s*(\d+)/);const a=mm?{min:+mm[1],max:+mm[2]}:{min:Math.max(2,S.nodes[id].rep),max:Math.max(4,S.nodes[id].rep*4)};act(`${id}: autoscale ${a.min}–${a.max}`,()=>{S.nodes[id].auto=a},{tradeoffs:['+ Pays for peaks only','− Scale-out lag of 30–90 s; set health checks and warm-up']});return}
+ if(/^(partitions?|consumers?|brokers?)/.test(l)&&ids.length&&S.nodes[ids[0]].type==='queue'){const id=ids[0],k=+((l.match(/(\d+)\s*$/)||[0,0])[1]),f=/^partition/.test(l)?'partitions':/^consumer/.test(l)?'consumers':'brokers';if(!k){say(`Give a number, e.g. "${f} ${id} 6".`,'s');return}act(`${id}: ${f} → ${k}`,()=>{S.nodes[id][f]=k},{tradeoffs:f==='partitions'?['+ More consumer parallelism','− Keys remap; per-key ordering breaks while it settles','− Partitions cannot be reduced later']:f==='consumers'&&S.nodes[id].flavor==='kafka'&&k>S.nodes[id].partitions?[`− Only ${S.nodes[id].partitions} consumers can be active: one per partition`]:null});return}
+ if(/^(federate|idp)/.test(l)&&ids.length&&S.nodes[ids[0]].type==='idp'){const id=ids[0];if(/workforce|employee|staff/.test(l)){act(`${id}: workforce identity`,()=>{S.nodes[id].audience='workforce'});return}if(/customer|ciam/.test(l)){act(`${id}: customer identity`,()=>{S.nodes[id].audience='customers'});return}const social=/google|apple|facebook|social/.test(l);const name=(c.match(/with\s+(.+)$/i)||[0,social?'Google':'Entra ID'])[1].trim();act(`${id}: federate with ${name}`,()=>{const n=S.nodes[id];n.idpMode=social?'social':'corp';n.fedIdp=name},{tradeoffs:['+ Passwords and MFA stay with '+name+'; joiners and leavers handled there','− '+name+' becomes a sign-in dependency; plan for its outage']});return}
+ if(/platform dep|dependenc/.test(l)&&/add|fix|resolve|create/.test(l)){const list=ids.length?ids:null;act(`Add platform dependencies${list?' for '+list.join(', '):''}`,()=>addDeps(list),{tradeoffs:['+ Every component can be built, deployed, keyed and observed','− Shared platform services become tier-0: protect and replicate them']});return}
  if(/^replicas?/.test(l)&&ids.length&&S.nodes[ids[0]].type==='db'){const k=+((l.match(/(\d+)\s*$/)||[0,1])[1]);const id=ids[0];act(`${id}: read replicas → ${k}`,()=>{S.nodes[id].readReplicas=Math.min(pk().rrMax,k)});return}
  if(/^shard/.test(l)&&ids.length&&S.nodes[ids[0]].type==='db'){const k=+((l.match(/(\d+)\s*$/)||[0,2])[1]);const id=ids[0];act(`${id}: shards → ${k}`,()=>{S.nodes[id].shards=Math.max(1,k)},{tradeoffs:['− Shard key is hard to change later','− Cross-shard joins and transactions become expensive','+ Scales writes and storage beyond one machine']});return}
  if(/^size/.test(l)&&ids.length&&S.nodes[ids[0]].type==='db'){const t=/2x|xxl/.test(l)?'xxl':/x-?large|xl/.test(l)?'xl':/large/.test(l)?'l':/small/.test(l)?'s':'m';const id=ids[0];act(`${id}: size → ${TIERS[t].l}`,()=>{S.nodes[id].tier=t;S.nodes[id].cap=TIERS[t].cap});return}
- if(/^scale/.test(l)&&ids.length){const k=+((l.match(/(?:to|x|×)\s*(\d+)/)||[0,2])[1]);const id=ids[0];if(S.nodes[id].type==='db'){focusNode(id);say(`Databases do not scale by copying the primary. Pick an option in ${id}'s scaling decision.`,'s');return}act(`${id}: replicas → ${k}`,()=>{S.nodes[id].rep=Math.max(1,k)});return}
+ if(/^scale/.test(l)&&ids.length){const k=+((l.match(/(?:to|x|×)\s*(\d+)/)||[0,2])[1]);const id=ids[0];if(S.nodes[id].type==='db'){focusNode(id);say(`Databases do not scale by copying the primary. Pick an option in ${id}'s scaling decision.`,'s');return}act(`${id}: scale out to ×${k}`,()=>{S.nodes[id].rep=Math.max(1,k);S.nodes[id].auto=null});return}
  if(/^(open|zoom|drill|enter)/.test(l)&&ids.length)return drill(ids[0]);
  if(/^(up|back|exit)$/.test(l)){V.scope=S.nodes[V.scope]?S.nodes[V.scope].parent:'root';fit();changed();return}
- if(/^(disconnect|unlink)|^(remove|delete) (flow|link|connection)/.test(l)&&ids.length>=2){const [a,b]=ids;act(`Remove flow ${a} → ${b}`,()=>removeEdge(a,b));return}
- if(/^(remove|delete|drop)/.test(l)&&ids.length){const list=ids.slice();act(`Remove ${list.join(', ')}`,()=>list.forEach(removeNode));return}
- if(/^rename/.test(l)&&ids.length&&(m=c.match(/\bto\s+(.+)$/i))){S.nodes[ids[0]].name=m[1].replace(/["']/g,'');changed();say(`${ids[0]} renamed.`,'s');return}
- if(/^(connect|link)|->|→/.test(l)&&ids.length>=2){const pm=c.match(/(?:over|using)\s+(mtls|https|http|amqps)/i);const pr=pm?{mtls:'mTLS',https:'HTTPS',http:'HTTP',amqps:'AMQPS'}[pm[1].toLowerCase()]:null;const vm=l.match(/via\s+(private ?link|private endpoint|psc|private service connect|vpn|direct connect|expressroute|interconnect|dedicated|internet)/);const via=vm?(/vpn/.test(vm[1])?'vpn':/direct|express|interconnect|dedicated/.test(vm[1])?'dedicated':/internet/.test(vm[1])?'internet':'privatelink'):null;
+ if(/^(disconnect|unlink)|^(remove|delete) (flow|link|connection)/.test(l)&&ids.length>=2){const [a,b]=ids;act(`Remove flow ${a} → ${b}`,()=>removeEdge(a,b),{remove:true});return}
+ if(/^(remove|delete|drop)/.test(l)&&ids.length){const list=ids.slice();act(`Remove ${list.join(', ')}`,()=>list.forEach(removeNode),{remove:true});return}
+ if(/^rename/.test(l)&&ids.length&&(m=c.match(/\bto\s+(.+)$/i))){pushUndo(`Rename ${ids[0]}`);S.nodes[ids[0]].name=m[1].replace(/["']/g,'');changed();say(`${ids[0]} renamed.`,'s');return}
+ if(/^(connect|link)|->|→/.test(l)&&ids.length>=2){const pm=c.match(/(?:over|using)\s+(mtls|https|http|amqps|kafka)/i);const pr=pm?{mtls:'mTLS',https:'HTTPS',http:'HTTP',amqps:'AMQPS',kafka:'Kafka/TLS'}[pm[1].toLowerCase()]:null;const vm=l.match(/via\s+(private ?link|private endpoint|psc|private service connect|vpn|direct connect|expressroute|interconnect|dedicated|internet)/);const via=vm?(/vpn/.test(vm[1])?'vpn':/direct|express|interconnect|dedicated/.test(vm[1])?'dedicated':/internet/.test(vm[1])?'internet':'privatelink'):null;
   if(S.nodes[ids[0]].parent!==S.nodes[ids[1]].parent){say('Both components must be in the same design level.','s');return}guardedConnect(ids[0],ids[1],pr,via);return}
- if(m=l.match(/^target\s+(aws|azure|gcp|vmware)/)){S.deploy=m[1];changed();say(`Deploying to ${pk().name}. Names, zones and IaC now follow the ${pk().name} pack.`,'s');return}
+ if(m=l.match(/^target\s+(aws|azure|gcp|vmware)/)){pushUndo(`Target ${m[1]}`);S.deploy=m[1];changed();say(`Deploying to ${pk().name}. Names, zones and IaC now follow the ${pk().name} pack.`,'s');return}
  if(/^save/.test(l)){saveVersion((c.match(/["“](.+?)["”]/)||[0,c.slice(4).trim()])[1]);return}
  if(/^versions?$/.test(l)){say(S.versions.length?S.versions.map((v,i)=>`v${i+1} · ${v.at} · ${v.note}`).join('\n'):'No saved versions yet.','s');return}
+ if(/^(use|adopt|introduce|switch to|move to|replace .* with|we should use|let'?s use|i want)\b/.test(l)&&handleUse(l,ids))return;
  if(/^(add|create|insert|put|need|i need|we need)/.test(l)){
-  const t=typeOf(l.replace(/\b(between|after|before|to|from|named|called)\b.*$/,''));if(!t){say('Which kind of component? e.g. add cache, add queue, add saas, add egress gateway.','s');return}
+  if(/kafka|event bus|\bmsk\b|messaging/.test(l)&&/service|async|event/.test(l)&&handleUse(l,ids))return;
+  const t=typeOf(l.replace(/\b(between|after|before|to|from|named|called)\b.*$/,''));if(!t){say('Which kind of component? e.g. add cache, add kafka, add saas, add egress gateway, add container registry.','s');return}
   const nm=(c.match(/(?:named|called)\s+["“]?([^"”]+)["”]?/i)||c.match(/["“]([^"”]+)["”]/)||[])[1];
-  const id=nextId(t),A=ids[0],B=ids[1];
-  act(`Add ${id} (${T[t].label})${/between/.test(l)&&B?` between ${A} and ${B}`:A?(/after|from|behind/.test(l)?` after ${A}`:` before ${A}`):''}`,()=>{
-   const n=addNode(t,nm);
+  const id=nextId(t),A=ids[0],B=ids[1],fl=flavorOf(l);
+  act(`Add ${id} (${t==='queue'?pk().q[fl]:T[t].label})${/between/.test(l)&&B?` between ${A} and ${B}`:A?(/after|from|behind/.test(l)?` after ${A}`:` before ${A}`):''}`,()=>{
+   const n=addNode(t,nm);if(t==='queue')n.flavor=fl;
    if(/between/.test(l)&&B){removeEdge(A,B);const a=S.nodes[A],b=S.nodes[B];n.parent=a.parent;n.x=(a.x+b.x)/2;n.y=(a.y+b.y)/2+(t==='cache'?-120:100);connect(A,n.id);connect(n.id,B)}
    else if(/after|from|behind/.test(l)&&A){n.parent=S.nodes[A].parent;connect(A,n.id)}
    else if(/\bto\b|before|in front/.test(l)&&A){n.parent=S.nodes[A].parent;connect(n.id,A)}
   },{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id}});return}
- logAI('Console intent parser',`Could not resolve "${c.slice(0,40)}"`,'No intent pattern matched; an LLM escalation would handle free-form requests',.2);
- say('I did not catch that. Type "help" for examples, or "discover" for guided setup.','s');
+ if(ids.length&&/faster|slow|scale|bottleneck|perform|capacity|overload|throughput|latency|hot|busy/.test(l)){focusNode(ids[0]);say(`Scaling and protection options for ${ids[0]} "${S.nodes[ids[0]].name}" are in the Inspector.`,'s');return}
+ if(handleUse(l,ids))return;
+ logAI('Console intent parser',`Could not resolve "${c.slice(0,50)}"`,'No intent pattern matched; with LLM escalation on, free-form requests go to the LLM',.2);
+ const sg=suggest(l);say(`I did not catch that.${sg.length?' Did you mean:\n  '+sg.join('\n  '):' Type "help" for examples.'}`,'s');
 }
 $('#conForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#conIn').value;$('#conIn').value='';run(v)});
 $('#discBtn').onclick=()=>{startDisc();$('#conIn').focus()};
 function saveVersion(note){
- const snap={...S,versions:[],log:[]};S.versions.push({at:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),note:note||'checkpoint',data:JSON.stringify(snap)});
+ const s=JSON.parse(snap());S.versions.push({at:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),note:note||'checkpoint',data:JSON.stringify(s)});
  say(`Saved v${S.versions.length}: ${note||'checkpoint'}. Includes sub-designs, decisions, capabilities v${S.ver.caps}, principles v${S.ver.ea}, ground truth v${S.ver.gt}.`,'s');changed();
 }
 $('#saveBtn').onclick=()=>saveVersion('');
@@ -1326,8 +1652,8 @@ $('#saveBtn').onclick=()=>saveVersion('');
 /* ---------- header ---------- */
 function setMult(x){S.mult=Math.max(.25,Math.min(5,x));changed()}
 $('#mult').oninput=e=>{S.mult=+e.target.value;changed()};
-$('#projName').onchange=e=>{S.project=e.target.value||'Untitled';changed()};
-$('#deploy').onchange=e=>{S.deploy=e.target.value;say(`Deployment: ${e.target.selectedOptions[0].text}. Component names, zones and IaC now follow the ${pk().name} pack.`,'s');changed()};
+$('#projName').onchange=e=>{pushUndo('Rename project');S.project=e.target.value||'Untitled';changed()};
+$('#deploy').onchange=e=>{pushUndo(`Deploy → ${e.target.value}`);S.deploy=e.target.value;say(`Deployment: ${e.target.selectedOptions[0].text}. Component names, zones and IaC now follow the ${pk().name} pack.`,'s');changed()};
 $('#viewSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;V.mode=b.dataset.v;$('#viewSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));particles=[];fit()});
 const copy=(txt,btn)=>{const done=()=>{btn.textContent='✓';setTimeout(()=>btn.textContent='⧉',1200)};try{navigator.clipboard.writeText(txt).then(done,()=>selectPre(btn))}catch(e){selectPre(btn)}};
 const selectPre=btn=>{const pre=btn.closest('.panel').querySelector('pre');const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r)};
@@ -1339,7 +1665,7 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#mClose').c
 /* ---------- render all ---------- */
 function renderKPI(){
  const e=KPI.err,ec=e>.05?'crit':e>.005?'warn':'ok',w=KPI.worst,wu=w?F[w.id].util:0;
- $('#kpis').innerHTML=`<span class="kpi"><b>Offered</b>${fmt(KPI.offered)} rps</span><span class="kpi"><b>Errors ≈</b><span class="${ec}">${(e*100).toFixed(1)}%</span></span><span class="kpi"><b>Latency est.</b>${fmt(KPI.lat)} ms</span><span class="kpi"><b>Bottleneck</b>${w?`<span class="${st(wu)}">${w.id} ${pct(wu)}</span>`:'—'}</span>`;
+ $('#kpis').innerHTML=`<span class="kpi"><b>Offered</b>${fmt(KPI.offered)} rps</span><span class="kpi"><b>Errors ≈</b><span class="${ec}">${(e*100).toFixed(1)}%</span></span>${KPI.thr>0?`<span class="kpi"><b>Throttled</b><span class="warn">${(KPI.thr*100).toFixed(1)}%</span></span>`:''}${KPI.lag>0?`<span class="kpi"><b>Queue lag</b><span class="warn">+${fmt(KPI.lag)}/s</span></span>`:''}<span class="kpi"><b>Latency est.</b>${fmt(KPI.lat)} ms</span><span class="kpi"><b>Bottleneck</b>${w?`<span class="${st(wu)}">${w.id} ${pct(wu)}</span>`:'—'}</span>`;
  $('#multV').textContent=(+S.mult.toFixed(2))+'×';
 }
 function renderCode(){
@@ -1349,7 +1675,7 @@ function renderCode(){
  $('#c4Code').innerHTML=hl(genC4(),'//');
 }
 function changed(){
- simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();
+ simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();
  $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=S.mult;
  persist();
 }
@@ -1361,7 +1687,7 @@ changed();
 placePanels(true);
 fit();
 say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
-say('Click a component for Connect / Instances / Remove. Every change is reviewed by the Action Guard first. "help" lists console commands.','s');
+say('Click ▾ on any component for actions. Every change is reviewed by the Action Guard and can be undone (Ctrl+Z). "help" lists console commands.','s');
 requestAnimationFrame(frame);
 })();
 </script>

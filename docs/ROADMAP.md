@@ -8,7 +8,7 @@
 
 | WP | Target version | Scope | Status |
 | -- | -------------- | ----- | ------ |
-| — | 0.1.x | Prototype and target architecture; Action Guard, DB scaling decisions, provider packs, connectivity (0.1.2) | **Built** |
+| — | 0.1.x | Prototype and target architecture; Action Guard, DB scaling decisions, provider packs, connectivity (0.1.2); scaling options, queues, undo/redo, platform dependencies, identity federation (0.1.3) | **Built** |
 | WP0 | 0.2.0 | Scaffold (cerebro skeleton), port prototype to Next.js, design-model JSON schema | Planned |
 | WP1 | 0.3.0 | Model service: FastAPI + PostgreSQL, event log, versions, IDs | Planned |
 | WP2 | 0.4.0 | `nexus-model` MCP server; console and Claude Desktop drive designs | Planned |

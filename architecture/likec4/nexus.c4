@@ -129,7 +129,7 @@ model {
 
     mcpProv = mcpserver 'nexus-provider packs' {
       technology 'FastMCP, one pack per provider'
-      description 'AWS, Azure, GCP, VMware and future providers: service mapping, limits, private connectivity, Terraform modules'
+      description 'AWS, Azure, GCP, VMware and future providers: service mapping, limits, private connectivity, platform dependencies, Terraform modules'
     }
 
     db = store 'Design store' {
