@@ -15,6 +15,11 @@ server {
   location /llm/ {
     proxy_pass ${NEXUS_LLM_UPSTREAM}/;
     proxy_http_version 1.1;
+    # Ollama answers 403 to browser requests whose Origin it does not know.
+    # The browser only talks to NEXUS (same origin), so drop the header and
+    # present a host Ollama accepts.
+    proxy_set_header Origin "";
+    proxy_set_header Host localhost;
     proxy_read_timeout 180s;
     proxy_send_timeout 180s;
     client_max_body_size 4m;

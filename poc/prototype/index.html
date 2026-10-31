@@ -248,7 +248,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.8</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.9</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -1493,7 +1493,7 @@ function renderAdvisor(){
  $('#advCount').innerHTML=`<span class="crit">${c}</span> · <span class="warn">${w}</span>`;
  const body=$('#advBody');
  if(advTab==='find'){
-  body.innerHTML=findings.length?findings.map((f,i)=>`<div class="fd"><div class="h"><span class="pill ${f.sev}">${f.id}</span><span class="t">${esc(f.title)}</span></div><div class="why">${esc(f.why)}</div><div class="basis">${f.basis.map(b=>`<span>${esc(b)}</span>`).join('')}</div>${f.adr?`<details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Constraints and tradeoffs</summary><div class="adr">${esc(f.adr)}</div></details>`:''}<div class="act">${f.fix?`<button class="btn" data-fix="${i}">${fixLabel(f.fix)}</button>`:''}${f.target?`<button class="btn" data-go="${f.target}">Show ${f.target}</button>`:''}</div></div>`).join(''):`<div class="empty"><b class="ok">All clear.</b> The design meets every EA principle and ground-truth rule at ${S.mult}× load.</div>`;
+  body.innerHTML=`<div class="act" style="padding:8px 10px;border-bottom:1px solid var(--line)"><button class="btn" id="compBtn">Run compliance check</button><span class="why" style="align-self:center">ground truth · EA principles · ATT&CK · constraints</span></div>`+(findings.length?findings.map((f,i)=>`<div class="fd"><div class="h"><span class="pill ${f.sev}">${f.id}</span><span class="t">${esc(f.title)}</span></div><div class="why">${esc(f.why)}</div><div class="basis">${f.basis.map(b=>`<span>${esc(b)}</span>`).join('')}</div>${f.adr?`<details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Constraints and tradeoffs</summary><div class="adr">${esc(f.adr)}</div></details>`:''}<div class="act">${f.fix?`<button class="btn" data-fix="${i}">${fixLabel(f.fix)}</button>`:''}${f.target?`<button class="btn" data-go="${f.target}">Show ${f.target}</button>`:''}</div></div>`).join(''):`<div class="empty"><b class="ok">All clear.</b> The design meets every EA principle and ground-truth rule at ${S.mult}× load.</div>`);const cb=document.getElementById('compBtn');if(cb)cb.onclick=showCompliance;
  }else if(advTab==='insp'){
   if(V.selE)return renderEdgeInspector(body);
   const n=S.nodes[V.sel];
@@ -1758,8 +1758,9 @@ function handleUse(l,ids){
 }
 const EXAMPLES=['use aws managed kafka for microservice to microservice communication','add redis cache between SVC2 and DB1','rate limit GW1 2000','autoscale SVC2 2-10','partitions Q1 12','consumers Q1 6','brokers Q1 3','add platform dependencies','federate IDP1 with Okta','connect SVC2 to SAAS1 via privatelink','options SVC2','decide DB1','expand DB1','instances all','what if load 3x','what if DB1 fails','undo','redo','discover'];
 function suggest(l){const w=new Set(l.split(/\W+/).filter(x=>x.length>2));return EXAMPLES.map(e=>({e,s:e.split(/\W+/).filter(x=>w.has(x)).length})).filter(x=>x.s).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.e)}
+const COMPLIANCE=/\b(complian\w*|validate|validation|audit|assess(ment)?|conform\w*|governance check|security review|is (the|this|my) design (secure|ok|valid|safe))\b/;
 const STRICT=/^(what if|what happens|connect|link|disconnect|scale|autoscale|rate.?limit|partitions?|consumers?|brokers?|federate|idp|remove|delete|drop|rename|restore|save|load|undo|redo|options?|decide|expand|collapse|open|up|back|target|guard|reset|fail|replicas?|shard|size|instances?|why|explain|help|versions?|discover|principle:|truth:|capability:)\b/;
-const isComplex=l=>l.split(/\s+/).length>=7&&!STRICT.test(l);
+const isComplex=l=>l.split(/\s+/).length>=7&&!STRICT.test(l)&&!COMPLIANCE.test(l);
 const MODEL={failedAt:0};
 function run(raw,opt={}){
  const c=raw.trim();if(!c)return;ENG=null;if(!opt.quiet)say('› '+c,'u');ENG='rules';
@@ -1767,7 +1768,8 @@ function run(raw,opt={}){
  const l=c.toLowerCase();let ids=(c.match(/\b[A-Za-z]{1,4}\d+\b/g)||[]).map(x=>x.toUpperCase()).filter(x=>S.nodes[x]);
  if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
- if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
+ if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
+ if(COMPLIANCE.test(l)){showCompliance();return}
  if(/^undo$/.test(l))return undo();
  if(/^redo$/.test(l))return redo();
  if(/^discover/.test(l))return startDisc();
@@ -2087,6 +2089,53 @@ async function visionOrModel(c,l,rulesOnly){
  ENG='rules · description reader';
  if(isVision(l)){const {d,notes}=parseVision(c);say(`Here is what I read:\n  • ${notes.join('\n  • ')}`,'s');applyPlan({actions:[{op:'baseline',...d}]},ENG,{prompt:c,notes});ENG=null;return}
  ENG='rules';return run(c,{noModel:true,quiet:true});
+}
+
+/* ---------- compliance check (rules decide: deterministic, explainable) ---------- */
+const ATTACK={T1190:'Exploit public-facing application',T1530:'Data from cloud storage',T1567:'Exfiltration over web service',T1040:'Network sniffing',T1021:'Lateral movement via remote services',T1078:'Valid accounts'};
+function complianceReport(){
+ const keep=S.mult;if(S.mult!==1){S.mult=1;simulate();analyze(false)}
+ const fs=findings.slice(),by=pfx=>fs.filter(f=>f.basis.some(b=>b===pfx||b.startsWith(pfx+' ')||b.startsWith(pfx)));
+ const line=(id,txt,list)=>({id,txt,ok:!list.length,ev:list.map(f=>`${f.id} ${f.title}`)});
+ const gt=S.gt.filter(g=>/^GT\d+$/.test(g.id)).map(g=>line(g.id,g.t,fs.filter(f=>f.basis.includes(g.id))));
+ const ea=S.ea.map(p=>line(p.id,p.t.split('. ')[0],fs.filter(f=>f.basis.includes('EA-'+p.id))));
+ const tech=line('Technical','Every flow is technically possible on '+pk().name,fs.filter(f=>f.basis.includes('Technical constraint')));
+ const plat=line('Platform','Platform dependencies in place',fs.filter(f=>f.basis.includes('Platform')));
+ const caps=line('Capabilities','Only catalogued technical capabilities, or an ADR',fs.filter(f=>f.basis.includes('EA-P3')));
+ const tq={};fs.forEach(f=>f.basis.filter(b=>/^ATT&CK /.test(b)).forEach(b=>{const t=b.slice(7);(tq[t]=tq[t]||[]).push(f.id)}));
+ const gtFail=gt.filter(x=>!x.ok).length,eaFail=ea.filter(x=>!x.ok).length,crit=fs.filter(f=>f.sev==='crit').length;
+ const pendingAdr=S.adrs.filter(a=>/awaiting/.test(a.status)).length,exc=S.adrs.filter(a=>/exception/i.test(a.status)).length;
+ const verdict=gtFail||!tech.ok?'NOT COMPLIANT':eaFail||!plat.ok||Object.keys(tq).length?'COMPLIANT WITH GAPS':'COMPLIANT';
+ const fix=fs.filter(f=>f.sev==='crit'&&f.fix).slice(0,5).map(f=>`${f.id}: ${fixLabel(f.fix)} (${f.title})`);
+ if(keep!==1){S.mult=keep;simulate();analyze(false)}
+ return {verdict,gt,ea,tech,plat,caps,tq,gtFail,eaFail,crit,pendingAdr,exc,fix,count:fs.length};
+}
+function showCompliance(){
+ const r=complianceReport(),m=x=>`${x.ok?'✓':'✗'} ${x.id.padEnd(5)} ${x.txt}${x.ok?'':'\n        '+x.ev.slice(0,3).join('\n        ')+(x.ev.length>3?`\n        … ${x.ev.length-3} more`:'')}`;
+ ENG='rules · compliance check';
+ say(`Compliance check · ${S.project} · ${pk().name} · ${new Date().toLocaleString()} · at nominal load (1×)
+VERDICT: ${r.verdict}  ·  ${r.gtFail} ground-truth violation${r.gtFail===1?'':'s'} · ${r.eaFail} principle gap${r.eaFail===1?'':'s'} · ${r.crit} critical finding${r.crit===1?'':'s'}
+
+Ground truth (non-negotiable)
+${r.gt.map(m).join('\n')}
+
+Enterprise architecture principles
+${r.ea.map(m).join('\n')}
+
+Security · MITRE ATT&CK exposure
+${Object.keys(r.tq).length?Object.entries(r.tq).map(([t,ids])=>`✗ ${t} ${ATTACK[t]||''} · ${ids.join(', ')}`).join('\n'):'✓ No technique exposed by the current design rules'}
+
+Platform and technology
+${[r.tech,r.plat,r.caps].map(m).join('\n')}
+
+Governance
+${r.pendingAdr?`! ${r.pendingAdr} decision${r.pendingAdr>1?'s':''} awaiting lead-architect approval`:'✓ No decisions awaiting approval'}
+${r.exc?`! ${r.exc} recorded exception${r.exc>1?'s':''} to ground truth (see Decisions)`:'✓ No exceptions recorded'}
+${r.fix.length?'\nFix first:\n  '+r.fix.join('\n  '):''}
+Rules-based: the same design always gives the same result. A model can explain it, but does not decide it.`,r.verdict==='COMPLIANT'?'s':'g');
+ ENG=null;
+ logAI('Advisor',`Compliance check: ${r.verdict}`,`${r.gtFail} GT violations, ${r.eaFail} EA gaps, ${r.crit} critical, ATT&CK ${Object.keys(r.tq).join(', ')||'none'}`,1);
+ showTab('find');
 }
 
 /* ---------- render all ---------- */

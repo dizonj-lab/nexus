@@ -5,6 +5,20 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.9] — 2026-10-31
+
+### Added
+- **Compliance check** ("validate compliance", or the button in Findings):
+  verdict, every ground-truth rule and EA principle with evidence, MITRE ATT&CK
+  exposure, technical constraints, platform dependencies, pending approvals and
+  exceptions, and what to fix first. Always rules-based, never sent to a model.
+
+### Fixed
+- Console model calls returned HTTP 403 on Buddy: Ollama rejects browser
+  requests from origins it does not know. The NEXUS proxy now drops the Origin
+  header and presents a host Ollama accepts. `buddy.sh` tests the model the same
+  way the browser calls it.
+
 ## [0.1.8] — 2026-10-31
 
 ### Changed
@@ -228,7 +242,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/dizonj-lab/nexus/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/dizonj-lab/nexus/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/dizonj-lab/nexus/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/dizonj-lab/nexus/compare/v0.1.5...v0.1.6
