@@ -248,7 +248,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.9</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.10</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -344,8 +344,9 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" id="mTest" type="button">Test connection</button><span id="mStatus" class="why"></span></div>
       <p>Exact commands always run on rules (fast and predictable). Descriptions and free-form requests go to the model, which returns a change plan; the Action Guard reviews it before anything changes. Every reply is labelled with the engine that produced it. "/llm/v1" works when NEXUS is served from Buddy; the page proxies it to the model server there.</p></div>
     <div class="msec"><h3>Second opinion and escalation</h3>
-      <div class="row2"><label>Escalation endpoint (OpenAI-compatible) <input id="eBase" placeholder="e.g. /llm/v1, or a LiteLLM proxy on Buddy"></label><label>Escalation model <input id="eModel" placeholder="claude-opus-5-5"></label></div>
+      <div class="row2"><label>Escalation endpoint (OpenAI-compatible) <input id="eBase" placeholder="empty = same as the console (/llm/v1)"></label><label>Escalation model <input id="eModel" placeholder="gpt-oss:latest"></label></div>
       <label>API key (only if the endpoint needs one) <input id="eKey" type="password" autocomplete="off"></label>
+      <label class="chkrow"><input type="checkbox" id="eAuto"> Escalate automatically when the console model fails or returns an unusable plan</label>
       <p>"Second opinion" in the Action Guard sends the proposed change, its findings and consequences to this model for an independent review. It is advisory: the architect decides. Leave the endpoint empty to use the console model. To use Claude, put a LiteLLM proxy on Buddy and point this at it; never paste a cloud API key into a shared page.</p></div>
     <div class="msec"><h3>Autoscaling policy</h3>
       <label class="chkrow"><input type="checkbox" id="aOn"> Autoscale stateless components: services, VMs, functions, gateways, load balancers, WAF, egress</label>
@@ -550,8 +551,8 @@ function seed(){
    {id:'GT5',t:'Traffic to third parties uses private connectivity or the egress gateway with an FQDN allow-list.',src:'Network Security Standard NS-07'}],
   files:[],ver:{caps:5,ea:7,gt:3},versions:[],log:[],adrs:[],settings:defaultSettings()};
 }
-function defaultSettings(){return {user:{name:'You',role:'architect'},escalation:{base:'',model:'claude-opus-5-5',key:''},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
-function ensureSettings(){const d=defaultSettings();if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
+function defaultSettings(){return {user:{name:'You',role:'architect'},escalation:{base:'',model:'gpt-oss:latest',key:'',auto:true},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
+function ensureSettings(){const d=defaultSettings();if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
 function defaultCaps(){return [
  {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
  {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
@@ -1010,8 +1011,8 @@ function showGuard(){
 }
 $('#gAlt').onclick=()=>{if(!pending||!pending.r.alt)return;const {from,to}=pending.r.alt;pending=null;$('#guard').hidden=true;act(`Insert a service between ${from} and ${to}`,()=>insertServiceBetween(from,to),{tradeoffs:['+ The service owns the data access: connection pooling, queries, validation and authorization','+ The gateway keeps doing what it does well: routing, auth and rate limits','− One more component to build, deploy and scale']})};
 $('#gSecond').onclick=async()=>{
- if(!pending)return;const E=S.settings.escalation||{},L=E.base?E:S.settings.llmApi,box=$('#gSecondOut'),r=pending.r;
- box.hidden=false;box.innerHTML=`<span class="why">Asking ${esc(L.model)}${E.base?'':' (no escalation model set; using the console model)'}…</span>`;
+ if(!pending)return;const L=escCfg(),E=S.settings.escalation||{},box=$('#gSecondOut'),r=pending.r;
+ box.hidden=false;box.innerHTML=`<span class="why">Asking ${esc(L.model)} at ${esc(L.base)}…</span>`;
  const summary={change:pending.desc,verdict:r.verdict,newRisks:r.added.map(f=>({title:f.title,why:f.why,basis:f.basis})),resolved:r.resolved.map(f=>f.title),consequences:r.cons,tradeoffs:pending.opts.tradeoffs||[],errorsBefore:r.before.err,errorsAfter:r.after.err,platform:pk().name,
   design:Object.values(S.nodes).filter(n=>n.parent==='root').map(n=>`${n.id} ${n.type} "${n.name}"`),flows:flowsIn('root').map(e=>`${e.from}->${e.to} ${e.proto}${e.via!=='net'?' via '+e.via:''}`)};
  const t0=performance.now();
@@ -1759,7 +1760,7 @@ function handleUse(l,ids){
 const EXAMPLES=['use aws managed kafka for microservice to microservice communication','add redis cache between SVC2 and DB1','rate limit GW1 2000','autoscale SVC2 2-10','partitions Q1 12','consumers Q1 6','brokers Q1 3','add platform dependencies','federate IDP1 with Okta','connect SVC2 to SAAS1 via privatelink','options SVC2','decide DB1','expand DB1','instances all','what if load 3x','what if DB1 fails','undo','redo','discover'];
 function suggest(l){const w=new Set(l.split(/\W+/).filter(x=>x.length>2));return EXAMPLES.map(e=>({e,s:e.split(/\W+/).filter(x=>w.has(x)).length})).filter(x=>x.s).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.e)}
 const COMPLIANCE=/\b(complian\w*|validate|validation|audit|assess(ment)?|conform\w*|governance check|security review|is (the|this|my) design (secure|ok|valid|safe))\b/;
-const STRICT=/^(what if|what happens|connect|link|disconnect|scale|autoscale|rate.?limit|partitions?|consumers?|brokers?|federate|idp|remove|delete|drop|rename|restore|save|load|undo|redo|options?|decide|expand|collapse|open|up|back|target|guard|reset|fail|replicas?|shard|size|instances?|why|explain|help|versions?|discover|principle:|truth:|capability:)\b/;
+const STRICT=/^(2nd opinion|second opinion|escalate|what if|what happens|connect|link|disconnect|scale|autoscale|rate.?limit|partitions?|consumers?|brokers?|federate|idp|remove|delete|drop|rename|restore|save|load|undo|redo|options?|decide|expand|collapse|open|up|back|target|guard|reset|fail|replicas?|shard|size|instances?|why|explain|help|versions?|discover|principle:|truth:|capability:)\b/;
 const isComplex=l=>l.split(/\s+/).length>=7&&!STRICT.test(l)&&!COMPLIANCE.test(l);
 const MODEL={failedAt:0};
 function run(raw,opt={}){
@@ -1768,8 +1769,10 @@ function run(raw,opt={}){
  const l=c.toLowerCase();let ids=(c.match(/\b[A-Za-z]{1,4}\d+\b/g)||[]).map(x=>x.toUpperCase()).filter(x=>S.nodes[x]);
  if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
- if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
+ if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nModels: escalate (re-run the last request on the escalation model) · escalate: <request> · 2nd opinion (review the whole design) · 2nd opinion: <focus>\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
  if(COMPLIANCE.test(l)){showCompliance();return}
+ if(/^(2nd|second) opinion\b|^review (the |this |my )?design\b/.test(l)){designOpinion(c.replace(/^(2nd|second) opinion\s*:?\s*/i,'').trim());return}
+ if(/^escalate\b/.test(l)){const q=c.replace(/^escalate\s*:?\s*/i,'').trim()||lastPrompt;if(!q){say('Nothing to escalate yet. Type "escalate: <your request>", or ask the console something first.','s');return}if(q!==c)say(`Escalating: "${q.slice(0,120)}"`,'s');return visionOrModel(q,q.toLowerCase(),false,true)}
  if(/^undo$/.test(l))return undo();
  if(/^redo$/.test(l))return redo();
  if(/^discover/.test(l))return startDisc();
@@ -1952,7 +1955,7 @@ function renderPriceTable(){
  $('#pNote').textContent=`Monthly list-price estimates in USD for ${pk().name}, per instance plus per million requests. Override any line with your negotiated or internal rates. Not a quote.`;
  $('#priceTable').innerHTML=`<tr><th>Component</th><th>${esc(pk().name)} service</th><th>$ / instance / month</th><th>$ / million requests</th></tr>`+types.map(t=>{const p=price(t);return `<tr><td>${esc(T[t].label)}</td><td>${esc(pk().svc[t]||'')}</td><td><input data-pt="${t}" data-pk="inst" type="number" min="0" step="1" value="${+p.inst.toFixed(2)}"></td><td><input data-pt="${t}" data-pk="perM" type="number" min="0" step=".05" value="${+p.perM.toFixed(2)}"></td></tr>`}).join('');
 }
-$('#modelsBtn').onclick=()=>{const st=S.settings,a=st.autoscale;$('#uName').value=who().name;$('#eBase').value=(st.escalation||{}).base||'';$('#eModel').value=(st.escalation||{}).model||'';$('#eKey').value=(st.escalation||{}).key||'';
+$('#modelsBtn').onclick=()=>{const st=S.settings,a=st.autoscale;$('#uName').value=who().name;$('#eBase').value=(st.escalation||{}).base||'';$('#eAuto').checked=(st.escalation||{}).auto!==false;$('#eModel').value=(st.escalation||{}).model||'';$('#eKey').value=(st.escalation||{}).key||'';
  $('#mGuard').value=st.guard||'enforce';$('#mSlm').selectedIndex=st.slm;$('#mMl').selectedIndex=st.ml;$('#mLlm').value=st.llm;
  $('#mEngine').value=st.engine;$('#mBase').value=st.llmApi.base;$('#mModel').value=st.llmApi.model;$('#mKey').value=st.llmApi.key||'';$('#mStatus').textContent='';
  $('#aOn').checked=!!a.on;$('#aMin').value=a.min;$('#aMax').value=a.max;$('#aTgt').value=a.target;$('#aOut').value=a.outDelay;$('#aIn').value=a.inCool;
@@ -1967,7 +1970,7 @@ $('#mClose').onclick=()=>{const st=S.settings;
  st.engine=$('#mEngine').value;st.llmApi={base:$('#mBase').value.trim()||'/llm/v1',model:$('#mModel').value.trim()||'qwen2.5:3b-instruct',key:$('#mKey').value};
  const mn=Math.max(1,+$('#aMin').value||1);st.autoscale={on:$('#aOn').checked,min:mn,max:Math.max(mn,+$('#aMax').value||mn),target:Math.min(95,Math.max(20,+$('#aTgt').value||60)),outDelay:Math.max(0,+$('#aOut').value||0),inCool:Math.max(1,+$('#aIn').value||10)};
  document.querySelectorAll('#priceTable input').forEach(i=>{const t=i.dataset.pt,k=i.dataset.pk;const base=PRICE_BASE[t],m=PRICE_MULT[prov()];const def=+(base[k]*m).toFixed(2);if(+i.value!==def||(st.price[t])){st.price[t]=st.price[t]||{inst:+(base.inst*m).toFixed(2),perM:+(base.perM*m).toFixed(2)};st.price[t][k]=+i.value}});
- st.user={...(st.user||{}),name:$('#uName').value.trim()||'You',role:who().role};st.escalation={base:$('#eBase').value.trim(),model:$('#eModel').value.trim()||'claude-opus-5-5',key:$('#eKey').value};
+ st.user={...(st.user||{}),name:$('#uName').value.trim()||'You',role:who().role};st.escalation={base:$('#eBase').value.trim(),model:$('#eModel').value.trim()||'gpt-oss:latest',key:$('#eKey').value,auto:$('#eAuto').checked};
  MODEL.failedAt=0;
  $('#modal').hidden=true;logAI('Settings','Configuration changed',`Console ${st.engine} (${st.llmApi.model} at ${st.llmApi.base}); autoscale ${st.autoscale.on?`${st.autoscale.min}–${st.autoscale.max} at ${st.autoscale.target}%`:'off'}; guard ${st.guard}`,1);changed()};
 
@@ -2061,30 +2064,49 @@ function extractJSON(t){if(!t)return null;t=String(t).replace(/<think>[\s\S]*?<\
 // Prefer an instruct/chat Qwen model when the configured one is not installed (Buddy runs Qwen on Ollama).
 function pickModel(ids){const ok=ids.filter(i=>!/embed|vl|coder|codellama/i.test(i));const q=ok.filter(i=>/qwen/i.test(i));const newer=q.filter(i=>/qwen[2-9]/i.test(i));return (newer.find(i=>/instruct|chat/i.test(i))||newer[0]||q.find(i=>/instruct|chat/i.test(i))||q[0]||ok[0]||ids[0])}
 async function listModels(base,key){const r=await fetch(base.replace(/\/$/,'')+'/models',{headers:key?{Authorization:'Bearer '+key}:{}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return (j.data||j.models||[]).map(m=>m.id||m.name).filter(Boolean)}
-async function askModel(text,retried){
- const L=S.settings.llmApi,t0=performance.now(),ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),120000);
+const escCfg=()=>{const E=S.settings.escalation||{},C=S.settings.llmApi;return {base:E.base||C.base,model:E.model||'gpt-oss:latest',key:E.base?E.key:C.key,esc:true}};
+async function askModel(text,retried,cfg){
+ const L=cfg||S.settings.llmApi,t0=performance.now(),ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),L.esc?300000:120000);
  try{const r=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},
    body:JSON.stringify({model:L.model,temperature:.1,response_format:{type:'json_object'},messages:[{role:'system',content:slmSystem()},{role:'user',content:text}]})});
   if(!r.ok){const body=await r.text().catch(()=>'');
-   if(r.status===404&&/model/i.test(body)&&!retried){const ids=await listModels(L.base,L.key).catch(()=>[]);const m=pickModel(ids);
-    if(m&&m!==L.model){const old=L.model;S.settings.llmApi.model=m;persist();ENG='model setup';say(`Model "${old}" is not installed on the server; switched to "${m}" (installed: ${ids.join(', ')}). Change it in Settings → Architect console.`,'g');return askModel(text,true)}
+   if(r.status===404&&/model/i.test(body)&&!retried&&!L.esc){const ids=await listModels(L.base,L.key).catch(()=>[]);const m=pickModel(ids);
+    if(m&&m!==L.model){const old=L.model;S.settings.llmApi.model=m;persist();ENG='model setup';say(`Model "${old}" is not installed on the server; switched to "${m}" (installed: ${ids.join(', ')}). Change it in Settings → Architect console.`,'g');return askModel(text,true,cfg)}
     throw new Error(`model "${L.model}" not found on the server${ids.length?' (installed: '+ids.join(', ')+')':''}`)}
    throw new Error('HTTP '+r.status+(r.status===404?' (no model server at '+L.base+')':r.status===502||r.status===504?' (the NEXUS proxy cannot reach the model server: check NEXUS_LLM_UPSTREAM and that Ollama listens beyond 127.0.0.1)':''))}
   const j=await r.json(),content=j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'';
   return {plan:extractJSON(content),raw:content,ms:performance.now()-t0}}
  finally{clearTimeout(to)}
 }
-let modelBusy=false;
-async function visionOrModel(c,l,rulesOnly){
- const eng=S.settings.engine,L=S.settings.llmApi;
- if(!rulesOnly&&eng!=='rules'&&!modelBusy){
-  modelBusy=true;const wait=document.createElement('div');wait.className='s';wait.textContent=`… asking ${L.model} at ${L.base}`;out.appendChild(wait);out.scrollTop=out.scrollHeight;
-  try{const r=await askModel(c);wait.remove();ENG=`model · ${L.model} · ${(r.ms/1000).toFixed(1)} s`;
-   logAI(`Model ${L.model}`,`Console: "${c.slice(0,60)}"`,r.plan?`Returned ${(r.plan.actions||[]).length} action(s) in ${Math.round(r.ms)} ms`:`Unparseable answer in ${Math.round(r.ms)} ms: ${String(r.raw).slice(0,120)}`,r.plan?.75:.2);
-   if(r.plan){applyPlan(r.plan,ENG,{prompt:c});ENG=null;modelBusy=false;return}
-   say(`The model answered, but not with a valid plan: "${String(r.raw).slice(0,160)}". Falling back to rules.`,'g')}
-  catch(e){wait.remove();MODEL.failedAt=Date.now();ENG='rules';say(`Model not reachable (${e.name==='AbortError'?'timed out after 120 s':e.message}). ${eng==='slm'?'Check Settings → Architect console.':'Using rules instead; set up the model in Settings → Architect console.'}`,'g');if(eng==='slm'){modelBusy=false;ENG=null;return}}
+let modelBusy=false,lastPrompt='';
+async function callModel(c,cfg,why){
+ const wait=document.createElement('div');wait.className='s';wait.textContent=`… ${cfg.esc?'escalating to':'asking'} ${cfg.model} at ${cfg.base}${why?' ('+why+')':''}${cfg.esc?'. Large models can take a few minutes on CPU.':''}`;out.appendChild(wait);out.scrollTop=out.scrollHeight;
+ const t0=Date.now(),tick=setInterval(()=>{wait.textContent=wait.textContent.replace(/ · \d+ s$/,'')+` · ${Math.round((Date.now()-t0)/1000)} s`},1000);
+ try{const r=await askModel(c,false,cfg);return r}finally{clearInterval(tick);wait.remove()}
+}
+async function visionOrModel(c,l,rulesOnly,forceEsc){
+ const eng=S.settings.engine,L=S.settings.llmApi,E=S.settings.escalation||{};
+ if(!rulesOnly&&(eng!=='rules'||forceEsc)&&!modelBusy){
+  modelBusy=true;lastPrompt=c;let why='';
+  if(!forceEsc){
+   try{const r=await callModel(c,L);ENG=`model · ${L.model} · ${(r.ms/1000).toFixed(1)} s`;
+    logAI(`Model ${L.model}`,`Console: "${c.slice(0,60)}"`,r.plan?`Returned ${(r.plan.actions||[]).length} action(s) in ${Math.round(r.ms)} ms`:`Unparseable answer in ${Math.round(r.ms)} ms: ${String(r.raw).slice(0,120)}`,r.plan?.75:.2);
+    if(r.plan){applyPlan(r.plan,ENG,{prompt:c});say('Not what you wanted? Type "escalate" to ask '+escCfg().model+'.','s');ENG=null;modelBusy=false;return}
+    why=`${L.model} did not return a usable plan`;say(`${why}: "${String(r.raw).slice(0,140)}".`,'g')}
+   catch(e){MODEL.failedAt=Date.now();why=`${L.model}: ${e.name==='AbortError'?'timed out':e.message}`;ENG='rules';say(`Console model failed (${why}).`,'g')}
+  }
+  if(forceEsc||E.auto!==false){
+   const X=escCfg();
+   try{const r=await callModel(c,X,forceEsc?'requested':why);ENG=`escalated · ${X.model} · ${(r.ms/1000).toFixed(1)} s`;
+    logAI(`Model ${X.model} · escalation`,`Escalated: "${c.slice(0,60)}"`,`${forceEsc?'Requested by architect':'Auto-escalation: '+why}. ${r.plan?`Returned ${(r.plan.actions||[]).length} action(s)`:'No usable plan'} in ${Math.round(r.ms)} ms`,r.plan?.8:.2);
+    if(r.plan){applyPlan(r.plan,ENG,{prompt:c});ENG=null;modelBusy=false;return}
+    say(`${X.model} answered, but not with a usable plan: "${String(r.raw).slice(0,140)}".`,'g')}
+   catch(e){ENG='rules';say(`Escalation to ${X.model} failed (${e.name==='AbortError'?'timed out after 5 min':e.message}).`,'g')}
+  }
   modelBusy=false;
+  if(eng==='slm'&&!forceEsc){say('Model-only mode: not falling back to rules. Check Settings → Architect console.','s');ENG=null;return}
+  if(forceEsc){ENG=null;return}
+  say('Falling back to rules.','s');
  }
  ENG='rules · description reader';
  if(isVision(l)){const {d,notes}=parseVision(c);say(`Here is what I read:\n  • ${notes.join('\n  • ')}`,'s');applyPlan({actions:[{op:'baseline',...d}]},ENG,{prompt:c,notes});ENG=null;return}
@@ -2136,6 +2158,32 @@ Rules-based: the same design always gives the same result. A model can explain i
  ENG=null;
  logAI('Advisor',`Compliance check: ${r.verdict}`,`${r.gtFail} GT violations, ${r.eaFail} EA gaps, ${r.crit} critical, ATT&CK ${Object.keys(r.tq).join(', ')||'none'}`,1);
  showTab('find');
+}
+
+/* ---------- second opinion on the whole design (escalation model, advisory) ---------- */
+async function designOpinion(focus){
+ if(modelBusy){say('A model request is still running.','s');return}
+ const X=escCfg(),r=complianceReport();modelBusy=true;
+ const payload={project:S.project,platform:pk().name,focus:focus||'overall architecture quality, security and enterprise-architecture compliance',
+  components:Object.values(S.nodes).filter(n=>n.parent==='root').map(n=>`${n.id} ${n.type} "${n.name}" (${svcName(n)}) x${instCount(n)} util ${pct((F[n.id]||{}).util||0)}`),
+  flows:flowsIn('root').map(e=>`${e.from}->${e.to} ${e.proto}${e.via!=='net'?' via '+e.via:''}`),
+  groundTruth:S.gt.map(g=>`${g.id}: ${g.t}`),principles:S.ea.map(p=>`${p.id}: ${p.t}`),
+  rulesVerdict:r.verdict,failing:[...r.gt,...r.ea,r.tech,r.plat].filter(x=>!x.ok).map(x=>`${x.id}: ${x.ev.join('; ')}`),attack:Object.keys(r.tq),
+  load:{offered:KPI.offered,errors:KPI.err,bottleneck:KPI.worst&&KPI.worst.id,safeUpTo:SAFE&&SAFE.m}};
+ const wait=document.createElement('div');wait.className='s';const t0=Date.now();wait.textContent=`… asking ${X.model} for a second opinion on the design`;out.appendChild(wait);out.scrollTop=out.scrollHeight;
+ const tick=setInterval(()=>{wait.textContent=wait.textContent.replace(/ · \d+ s$/,'')+` · ${Math.round((Date.now()-t0)/1000)} s`},1000);
+ try{const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),300000);
+  const res=await fetch(X.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',...(X.key?{Authorization:'Bearer '+X.key}:{})},body:JSON.stringify({model:X.model,temperature:.2,response_format:{type:'json_object'},messages:[
+   {role:'system',content:'You are a senior enterprise architect giving an independent second opinion on a system design. The rules engine has already checked ground truth and principles; do not repeat its findings, add what it may miss: architectural risks, wrong patterns, missing components, operability, cost and data concerns, and whether you agree with its verdict. Be specific and cite component IDs. Respond with JSON only: {"opinion":"agree|agree with conditions|disagree","summary":"two or three sentences","risks":["..."],"missing":["..."],"recommendations":["..."]}'},
+   {role:'user',content:JSON.stringify(payload)}]})});clearTimeout(to);
+  if(!res.ok)throw new Error('HTTP '+res.status);const j=await res.json(),o=extractJSON(j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'');if(!o)throw new Error('the model did not return a review');
+  const ms=Date.now()-t0;ENG=`second opinion · ${X.model} · ${(ms/1000).toFixed(1)} s`;
+  const list=(t,a)=>a&&a.length?`\n${t}\n  • ${a.join('\n  • ')}`:'';
+  say(`Opinion: ${String(o.opinion||'').toUpperCase()} (rules verdict: ${r.verdict})\n${o.summary||''}${list('Risks',o.risks)}${list('Missing',o.missing)}${list('Recommendations',o.recommendations)}\nAdvisory only: nothing was changed. Ask for any recommendation in the console to get a reviewed plan.`,/disagree/.test(o.opinion)?'g':'s');
+  logAI(`Model ${X.model} · second opinion`,`Design review: ${o.opinion}`,o.summary||'',.7);
+  addADR({title:`Second opinion on ${S.project} (${X.model})`,status:'Recorded · advisory',context:`Rules verdict ${r.verdict}. Focus: ${payload.focus}.`,decision:`${o.opinion}: ${o.summary||''}`,tradeoffs:[...(o.risks||[]).map(x=>'Risk · '+x),...(o.recommendations||[]).map(x=>'Rec · '+x)].join('\n'),basis:['Second opinion']});persist();
+ }catch(e){ENG='rules';say(`No second opinion: ${e.name==='AbortError'?'timed out after 5 min':e.message}. Check Settings → Second opinion and escalation.`,'g')}
+ finally{clearInterval(tick);wait.remove();ENG=null;modelBusy=false}
 }
 
 /* ---------- render all ---------- */

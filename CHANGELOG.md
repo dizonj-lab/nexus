@@ -5,6 +5,29 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.10] — 2026-10-31
+
+### Added
+- **Escalation in the console**: when the console model fails or returns no
+  usable plan, the request is sent to the escalation model (default
+  `gpt-oss:latest` on the same Ollama endpoint), labelled "escalated". Can be
+  switched off in Settings. `escalate` re-runs the last request on it;
+  `escalate: <request>` sends a request straight to it. Up to 5 minutes for
+  large models, with a running timer.
+- **Second opinion on the whole design**: `2nd opinion` (or
+  `2nd opinion: <focus>`) sends the design, the rules-based compliance result
+  and the load picture to the escalation model for an independent review:
+  opinion, risks, missing pieces, recommendations. Advisory only; recorded in
+  Decisions and the AI log.
+
+### Changed
+- The Action Guard's "Second opinion" and escalation default to `gpt-oss:latest`
+  on the console endpoint (older settings that pointed at a cloud placeholder
+  are moved over).
+
+Verified on Buddy: Ollama in Docker, `qwen2.5:7b-instruct`, through the NEXUS
+proxy (3.4 s answer).
+
 ## [0.1.9] — 2026-10-31
 
 ### Added
@@ -242,7 +265,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/dizonj-lab/nexus/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/dizonj-lab/nexus/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/dizonj-lab/nexus/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/dizonj-lab/nexus/compare/v0.1.6...v0.1.7
