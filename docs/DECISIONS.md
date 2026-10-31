@@ -83,3 +83,37 @@ cannot make a connection (API gateway → database, WAF → database, database �
 service), the Action Guard refuses it outright and offers a valid alternative.
 The constraint table lives in the provider packs so each provider's real
 integration options are used.
+
+## D18 — Architect in the loop, always
+Agents advise, simulate and propose changesets. Only people apply them, and
+decisions recorded by architects wait for a lead architect's approval. Every
+model answer is labelled with the engine that produced it and logged.
+
+## D19 — Console engines: rules, description reader, model
+Exact commands run on rules (fast, predictable). A rules-based description
+reader turns a paragraph into a baseline and states its assumptions. Free-form
+requests go to the model on Buddy through an OpenAI-compatible endpoint; it
+returns a structured change plan that is validated (technical constraints) and
+reviewed by the Action Guard before anything changes.
+
+## D20 — Domain expert agents behind one harness
+Solution, security, network, data, platform and cloud, capacity and SRE,
+FinOps and compliance agents. A harness runs every agent with tool
+permissions, budgets, traces and regression evals, so agent quality is
+measured rather than assumed.
+
+## D21 — Escalation and second opinion
+A larger model (local 70B or Claude through a LiteLLM proxy on Buddy) is used
+only by explicit setting: for escalation of hard requests and for an
+independent second opinion on a proposed change. Second opinions are advisory.
+
+## D22 — Every change is a ledger entry
+Each change records an ID, author, role, time, guard verdict, linked decision
+and an exact diff, and can be traced or reverted. In the backend the ledger is
+the event log of D1, so history, versions and audit come from one source.
+
+## D23 — Autoscaling and cost are part of every simulation
+Stateless components follow an autoscaling policy (minimum, maximum, target,
+scale-out delay, scale-in cool-down). Cost uses per-provider list-price
+estimates that teams override with their own rates; the UI always calls them
+estimates.

@@ -1,0 +1,25 @@
+# Rendered at container start by the nginx image (envsubst). Only defined
+# environment variables are substituted, so nginx's own $uri etc. stay intact.
+server {
+  listen 8080;
+  server_name _;
+  root /usr/share/nginx/html;
+
+  add_header X-Content-Type-Options nosniff always;
+  add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+  location = /healthz { return 200 "ok\n"; }
+
+  # The console's model endpoint: /llm/v1/... -> the OpenAI-compatible model
+  # server on Buddy (Ollama, vLLM, LM Studio, llama.cpp or a LiteLLM proxy).
+  location /llm/ {
+    proxy_pass ${NEXUS_LLM_UPSTREAM}/;
+    proxy_http_version 1.1;
+    proxy_read_timeout 180s;
+    proxy_send_timeout 180s;
+    client_max_body_size 4m;
+  }
+
+  location /c4/ { try_files $uri $uri/ /c4/index.html; }
+  location / { try_files $uri $uri/ /index.html; }
+}

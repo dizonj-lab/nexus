@@ -9,7 +9,8 @@ RUN npx -y likec4@1.60.0 validate likec4 \
  && npx -y likec4@1.60.0 build likec4 -o /out --base /c4/ --use-hash-history --title "NEXUS architecture"
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine
-COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+ENV NEXUS_LLM_UPSTREAM=http://host.docker.internal:11434
+COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY poc/prototype/index.html /usr/share/nginx/html/index.html
 COPY --from=c4 /out /usr/share/nginx/html/c4
 COPY VERSION /usr/share/nginx/html/version.txt

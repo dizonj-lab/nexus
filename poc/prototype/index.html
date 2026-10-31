@@ -2,7 +2,36 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<style>body{margin:0}</style>
+<style>body{margin:0}
+.modal.wide{width:min(720px,100%)}
+.msec{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.msec h3{margin:0;font-family:var(--f-display);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.modal .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal .row5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.modal input{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:5px;min-width:0}
+.modal .chkrow{display:flex;gap:8px;align-items:center;color:var(--ink)}
+table.price{width:100%;border-collapse:collapse;font-size:12px}
+table.price td,table.price th{padding:3px 4px;border-bottom:1px solid var(--line);text-align:left}
+table.price th{font-family:var(--f-display);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
+#pDem{width:440px}
+.demstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px 10px;font-family:var(--f-mono);font-size:11px;font-variant-numeric:tabular-nums}
+.demstats b{display:block;font-family:var(--f-display);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#demCharts{padding:0 10px 8px;position:relative}
+#demCharts svg{display:block;width:100%;height:auto;overflow:visible}
+#demCharts text{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+#demCharts text.v{fill:var(--ink)}
+#demTip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-family:var(--f-mono);font-size:10.5px;line-height:1.45;box-shadow:0 4px 14px rgba(10,20,40,.12);white-space:nowrap}
+#conOut .eng{font-size:10px;color:var(--accent);border:1px solid var(--accent-soft);border-radius:3px;padding:0 4px;margin-right:4px}
+@media (max-width:700px){.modal .row5{grid-template-columns:1fr 1fr}.modal .row2{grid-template-columns:1fr}.demstats{grid-template-columns:1fr 1fr}#pDem{width:calc(100% - 20px)}}
+
+.panel{resize:both;overflow:hidden;min-width:220px}
+.panel.sized .pbody{max-height:none!important;flex:1 1 auto}
+.panel.collapsed{resize:none;width:auto!important;height:auto!important;min-width:0}
+.panel.collapsed>header .ttl{white-space:nowrap}
+#gSecondOut ul{margin:2px 0 4px;padding-left:16px}
+body[data-role="reviewer"] .palette{opacity:.4;pointer-events:none}
+</style>
 <title>Project NEXUS</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -194,19 +223,41 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .ribbon .btn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .insp .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 #treeSvg text.i{font-size:9.5px;fill:var(--muted)}
+
+.modal.wide{width:min(720px,100%)}
+.msec{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.msec h3{margin:0;font-family:var(--f-display);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.modal .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal .row5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.modal input{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:5px;min-width:0}
+.modal .chkrow{display:flex;gap:8px;align-items:center;color:var(--ink)}
+table.price{width:100%;border-collapse:collapse;font-size:12px}
+table.price td,table.price th{padding:3px 4px;border-bottom:1px solid var(--line);text-align:left}
+table.price th{font-family:var(--f-display);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
+#pDem{width:440px}
+.demstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px 10px;font-family:var(--f-mono);font-size:11px;font-variant-numeric:tabular-nums}
+.demstats b{display:block;font-family:var(--f-display);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#demCharts{padding:0 10px 8px;position:relative}
+#demCharts svg{display:block;width:100%;height:auto;overflow:visible}
+#demCharts text{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+#demCharts text.v{fill:var(--ink)}
+#demTip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-family:var(--f-mono);font-size:10.5px;line-height:1.45;box-shadow:0 4px 14px rgba(10,20,40,.12);white-space:nowrap}
+#conOut .eng{font-size:10px;color:var(--accent);border:1px solid var(--accent-soft);border-radius:3px;padding:0 4px;margin-right:4px}
+@media (max-width:700px){.modal .row5{grid-template-columns:1fr 1fr}.modal .row2{grid-template-columns:1fr}.demstats{grid-template-columns:1fr 1fr}#pDem{width:calc(100% - 20px)}}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.5</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.6</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
-    <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
+    <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
       <button data-v="flow" aria-pressed="true">Flow</button><button data-v="flat" aria-pressed="false">Flat</button><button data-v="iso" aria-pressed="false">3D</button><button data-v="rel" aria-pressed="false">Relations</button>
     </span>
     <label class="ctl">Deploy
       <select id="deploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">GCP</option><option value="vmware">Datacenter (active/passive)</option><option value="hybrid">Hybrid cloud</option><option value="local">Local</option></select>
     </label>
-    <label class="ctl">What-if load <input id="mult" type="range" min="0.25" max="5" step="0.25" value="1"><span id="multV" style="font-family:var(--f-mono);min-width:34px">1×</span></label>
+    <label class="ctl">What-if load <input id="mult" type="range" min="-0.6" max="3" step="0.02" value="0" aria-label="What-if load multiplier, 0.25× to 1000×"><span id="multV" style="font-family:var(--f-mono);min-width:34px">1×</span></label>
     <div class="kpis" id="kpis"></div>
     <button class="btn" id="modelsBtn">Settings</button>
     <button class="btn primary" id="saveBtn">Save version</button>
@@ -222,7 +273,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
     <section class="panel" id="pAdv" data-k="adv">
       <header><span class="ttl">Design Advisor</span><span class="tag" id="advCount"></span><span class="sp"></span><button class="ib tuneB" title="Opacity and border" aria-label="Opacity and border">◐</button><button class="ib colB" title="Collapse" aria-label="Collapse">–</button></header>
       <div class="tune" hidden></div>
-      <div class="tabs" role="tablist"><button role="tab" data-t="find" aria-selected="true">Findings</button><button role="tab" data-t="insp" aria-selected="false">Inspector</button><button role="tab" data-t="adr" aria-selected="false">Decisions</button><button role="tab" data-t="log" aria-selected="false">AI log</button></div>
+      <div class="tabs" role="tablist"><button role="tab" data-t="find" aria-selected="true">Findings</button><button role="tab" data-t="insp" aria-selected="false">Inspector</button><button role="tab" data-t="adr" aria-selected="false">Decisions</button><button role="tab" data-t="hist" aria-selected="false">History</button><button role="tab" data-t="log" aria-selected="false">AI log</button></div>
       <div class="pbody" id="advBody" style="max-height:min(46vh,340px)"></div>
     </section>
 
@@ -237,6 +288,15 @@ table.opt tr.rec td{background:var(--accent-soft)}
       <header><span class="ttl">C4 · LikeC4</span><span class="tag">.c4</span><span class="sp"></span><button class="ib" id="c4Copy" title="Copy code" aria-label="Copy LikeC4">⧉</button><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
       <div class="tune" hidden></div>
       <div class="pbody" style="max-height:130px"><pre class="code" id="c4Code"></pre></div>
+    </section>
+
+    <section class="panel" id="pDem" data-k="dem">
+      <header><span class="ttl">Demand, autoscale and cost</span><span class="tag" id="demTag">steady state</span><span class="sp"></span><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
+      <div class="tune" hidden></div>
+      <div class="bar"><select id="dProf" aria-label="Demand profile" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="ramp">Ramp up, hold, ramp down</option><option value="daily">Daily cycle (24 h)</option><option value="spike">Flash spike</option><option value="steady">Steady at peak</option></select>
+        Peak <input id="dPeak" type="number" min="1" max="1000" step="1" value="20" aria-label="Peak multiplier" style="width:62px;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:1px 4px;font-family:var(--f-mono);font-size:11px">×
+        <button class="btn primary" id="dPlay" style="padding:2px 9px;font-size:11px">▶ Run</button><button class="btn" id="dReset" style="padding:2px 9px;font-size:11px">Reset</button></div>
+      <div class="pbody" style="max-height:330px"><div class="demstats" id="demStats"></div><div id="demCharts"></div></div>
     </section>
 
     <section class="panel" id="pTree" data-k="tree">
@@ -274,17 +334,35 @@ table.opt tr.rec td{background:var(--accent-soft)}
 </div>
 
 <div class="scrim" id="modal" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <h2 id="mTitle">Settings</h2>
-    <label>Action Guard (reviews every design change before it is applied)
-      <select id="mGuard"><option value="enforce">Enforce · ground-truth violations need a written justification</option><option value="advise">Advise · warn, but let me apply</option><option value="off">Off · apply immediately</option></select></label>
-    <label>Small language model (enrichment, advisor, guard explanations)
+    <div class="msec"><h3>You</h3><label>Name (recorded on every change and decision) <input id="uName" placeholder="Your name"></label><p>Your role is set in the toolbar. Roles are simulated in this prototype; real sign-in and access control come with the backend.</p></div>
+    <div class="msec"><h3>Architect console</h3>
+      <label>Engine <select id="mEngine"><option value="auto">Auto · model on Buddy when reachable, rules otherwise</option><option value="slm">Model only</option><option value="rules">Rules only</option></select></label>
+      <div class="row2"><label>Model endpoint (OpenAI-compatible) <input id="mBase" placeholder="/llm/v1"></label><label>Model name <input id="mModel" list="mModels" placeholder="qwen2.5:3b-instruct"><datalist id="mModels"></datalist></label></div>
+      <label>API key (only if the endpoint needs one) <input id="mKey" type="password" autocomplete="off"></label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" id="mTest" type="button">Test connection</button><span id="mStatus" class="why"></span></div>
+      <p>Exact commands always run on rules (fast and predictable). Descriptions and free-form requests go to the model, which returns a change plan; the Action Guard reviews it before anything changes. Every reply is labelled with the engine that produced it. "/llm/v1" works when NEXUS is served from Buddy; the page proxies it to the model server there.</p></div>
+    <div class="msec"><h3>Second opinion and escalation</h3>
+      <div class="row2"><label>Escalation endpoint (OpenAI-compatible) <input id="eBase" placeholder="e.g. /llm/v1, or a LiteLLM proxy on Buddy"></label><label>Escalation model <input id="eModel" placeholder="claude-opus-5-5"></label></div>
+      <label>API key (only if the endpoint needs one) <input id="eKey" type="password" autocomplete="off"></label>
+      <p>"Second opinion" in the Action Guard sends the proposed change, its findings and consequences to this model for an independent review. It is advisory: the architect decides. Leave the endpoint empty to use the console model. To use Claude, put a LiteLLM proxy on Buddy and point this at it; never paste a cloud API key into a shared page.</p></div>
+    <div class="msec"><h3>Autoscaling policy</h3>
+      <label class="chkrow"><input type="checkbox" id="aOn"> Autoscale stateless components: services, VMs, functions, gateways, load balancers, WAF, egress</label>
+      <div class="row5"><label>Minimum <input id="aMin" type="number" min="1" max="1000"></label><label>Maximum <input id="aMax" type="number" min="1" max="10000"></label><label>Target util. % <input id="aTgt" type="number" min="20" max="95"></label><label>Scale out after (min) <input id="aOut" type="number" min="0" max="60"></label><label>Scale in after (min) <input id="aIn" type="number" min="1" max="240"></label></div>
+      <p>Components start at the minimum, scale out when demand pushes them past the target utilization, and scale back in to the minimum once demand has stayed low for the scale-in cool-down. A component's own autoscale setting overrides this policy. Databases, caches and queues are scaled by decision, not by policy.</p></div>
+    <div class="msec"><h3>Cost model</h3><p id="pNote"></p><div style="overflow-x:auto"><table class="price" id="priceTable"></table></div><div><button class="btn" id="pReset" type="button">Reset to list-price estimates</button></div></div>
+    <div class="msec"><h3>Action Guard</h3>
+      <label>Review every design change before it is applied
+      <select id="mGuard"><option value="enforce">Enforce · ground-truth violations need a written justification</option><option value="advise">Advise · warn, but let me apply</option><option value="off">Off · apply immediately</option></select></label></div>
+    <div class="msec"><h3>Models</h3>
+      <div class="row2"><label>Small language model (advisor, guard explanations)
       <select id="mSlm"><option>Phi-4-mini (3.8B) · local</option><option>Llama 3.2 3B Instruct · local</option><option>Qwen2.5 3B Instruct · local</option></select></label>
-    <label>ML model (traffic forecasting, anomaly detection)
-      <select id="mMl"><option>Gradient-boosted regressor · capacity</option><option>Isolation forest · anomaly</option><option>Prophet · seasonal load</option></select></label>
-    <label>LLM escalation
+      <label>ML model (traffic forecasting)
+      <select id="mMl"><option>Gradient-boosted regressor · capacity</option><option>Isolation forest · anomaly</option><option>Prophet · seasonal load</option></select></label></div>
+      <label>LLM escalation
       <select id="mLlm"><option value="off">Off · SLM only</option><option value="claude">Claude (Anthropic API)</option><option value="azure">Azure OpenAI (private endpoint)</option><option value="local">Self-hosted 70B</option></select></label>
-    <p>In this prototype the advisor and the Action Guard run as a deterministic rules engine standing in for the SLM. The AI log shows exactly which rule fired and why.</p>
+      <p>The advisor, Action Guard and cost model are deterministic rules. Only the console calls a model, through the endpoint above.</p></div>
     <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn primary" id="mClose">Done</button></div>
   </div>
 </div>
@@ -298,10 +376,11 @@ table.opt tr.rec td{background:var(--accent-soft)}
     <div class="gsec" id="gNewWrap"><h3>New risks</h3><ul id="gNew"></ul></div>
     <div class="gsec" id="gResWrap"><h3>Resolved</h3><ul id="gRes"></ul></div>
     <div class="gsec" id="gTradeWrap"><h3>Tradeoffs</h3><ul id="gTrade"></ul></div>
+    <div class="just" id="gSecondOut" hidden></div>
     <label id="gJustWrap">Justification (recorded as an exception decision)
       <textarea id="gJust" rows="2" placeholder="Why this exception is acceptable, who approved it, and until when"></textarea></label>
     <p id="gNote"></p>
-    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" id="gCancel">Cancel</button><button class="btn" id="gAlt" hidden>Insert a service between</button><button class="btn primary" id="gApply">Apply</button></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" id="gCancel">Cancel</button><button class="btn" id="gSecond" type="button">Second opinion</button><button class="btn" id="gAlt" hidden>Insert a service between</button><button class="btn primary" id="gApply">Apply</button></div>
   </div>
 </div>
 
@@ -469,8 +548,10 @@ function seed(){
    {id:'GT3',t:'Internet-facing endpoints sit behind a WAF.',src:'CIS Controls v8 · 13.10'},
    {id:'GT4',t:'Data stores are encrypted at rest with customer-managed keys.',src:'Data Protection Policy DP-2'},
    {id:'GT5',t:'Traffic to third parties uses private connectivity or the egress gateway with an FQDN allow-list.',src:'Network Security Standard NS-07'}],
-  files:[],ver:{caps:5,ea:7,gt:3},versions:[],log:[],adrs:[],settings:{slm:0,ml:0,llm:'off',guard:'enforce'}};
+  files:[],ver:{caps:5,ea:7,gt:3},versions:[],log:[],adrs:[],settings:defaultSettings()};
 }
+function defaultSettings(){return {user:{name:'You',role:'architect'},escalation:{base:'',model:'claude-opus-5-5',key:''},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
+function ensureSettings(){const d=defaultSettings();if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
 function defaultCaps(){return [
  {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
  {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
@@ -516,20 +597,28 @@ function ensureP8(){if(!S.ea.some(g=>g.id==='P8')){S.ea.push({id:'P8',t:'Each se
 const KEY='nexus.workbench.v1';
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let normalized=[];
-function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();normalized=normalizeParts();return true}}catch(e){}return false}
+function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();ensureSettings();normalized=normalizeParts();return true}}catch(e){}return false}
 const UNDO=[],REDO=[];
-const snap=()=>JSON.stringify({...S,log:[],versions:[]});
-function pushUndo(desc,data){UNDO.push({desc,data:data||snap()});if(UNDO.length>80)UNDO.shift();REDO.length=0;renderUR()}
-function restoreSnap(data){const keep={log:S.log,versions:S.versions};S={...JSON.parse(data),...keep};normalizeParts();if(V.sel&&!S.nodes[V.sel])V.sel=null;if(V.selE&&!findEdge(V.selE.from,V.selE.to))V.selE=null;if(V.scope!=='root'&&!S.nodes[V.scope])V.scope='root'}
-function undo(){const u=UNDO.pop();if(!u)return;REDO.push({desc:u.desc,data:snap()});restoreSnap(u.data);logAI('Workbench',`Undo: ${u.desc}`,'Restored the design to the state before this change',1);say(`Undid: ${u.desc}.`,'s');changed()}
-function redo(){const r=REDO.pop();if(!r)return;UNDO.push({desc:r.desc,data:snap()});restoreSnap(r.data);logAI('Workbench',`Redo: ${r.desc}`,'Re-applied the change',1);say(`Redid: ${r.desc}.`,'s');changed()}
-function renderUR(){const u=$('#undoBtn'),r=$('#redoBtn');u.disabled=!UNDO.length;r.disabled=!REDO.length;u.title=UNDO.length?`Undo: ${UNDO[UNDO.length-1].desc} (Ctrl+Z)`:'Nothing to undo';r.title=REDO.length?`Redo: ${REDO[REDO.length-1].desc} (Ctrl+Shift+Z)`:'Nothing to redo'}
+const snap=()=>JSON.stringify({...S,log:[],versions:[],history:[]});
+let LEDGER_PENDING=null;
+const who=()=>({name:(S.settings.user&&S.settings.user.name)||'You',role:(S.settings.user&&S.settings.user.role)||'architect'});
+function pushUndo(desc,data){const d=data||snap();if(!LEDGER_PENDING)LEDGER_PENDING={desc,before:d};UNDO.push({desc,data:d});if(UNDO.length>80)UNDO.shift();REDO.length=0;renderUR()}
+function restoreSnap(data){const keep={log:S.log,versions:S.versions,history:S.history};S={...JSON.parse(data),...keep};normalizeParts();if(V.sel&&!S.nodes[V.sel])V.sel=null;if(V.selE&&!findEdge(V.selE.from,V.selE.to))V.selE=null;if(V.scope!=='root'&&!S.nodes[V.scope])V.scope='root'}
+function undo(){const u=UNDO.pop();if(!u)return;LEDGER_PENDING={desc:`Undo: ${u.desc}`,before:snap()};REDO.push({desc:u.desc,data:snap()});restoreSnap(u.data);logAI('Workbench',`Undo: ${u.desc}`,'Restored the design to the state before this change',1);say(`Undid: ${u.desc}.`,'s');changed()}
+function redo(){const r=REDO.pop();if(!r)return;LEDGER_PENDING={desc:`Redo: ${r.desc}`,before:snap()};UNDO.push({desc:r.desc,data:snap()});restoreSnap(r.data);logAI('Workbench',`Redo: ${r.desc}`,'Re-applied the change',1);say(`Redid: ${r.desc}.`,'s');changed()}
+function renderRole(){const r=$('#roleSel');if(r)r.value=who().role;document.body.dataset.role=who().role}
+function renderUR(){renderRole();const u=$('#undoBtn'),r=$('#redoBtn');u.disabled=!UNDO.length;r.disabled=!REDO.length;u.title=UNDO.length?`Undo: ${UNDO[UNDO.length-1].desc} (Ctrl+Z)`:'Nothing to undo';r.title=REDO.length?`Redo: ${REDO[REDO.length-1].desc} (Ctrl+Shift+Z)`:'Nothing to redo'}
 $('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;
+$('#roleSel').onchange=e=>{S.settings.user={...(S.settings.user||{name:'You'}),role:e.target.value};logAI('Workbench',`Role switched to ${e.target.value}`,'Simulated role in the prototype; real access control needs sign-in (WP8)',1);ENG='access';say(`You are now acting as ${e.target.selectedOptions[0].text}. ${{architect:'You can change the design; decisions you record wait for a lead architect.',lead:'You can change the design and approve or reject decisions.',security:'You can change the design; decisions you record wait for a lead architect.',reviewer:'Read-only: inspect, simulate, ask for second opinions.'}[e.target.value]}`,'s');ENG=null;changed()};
 
 /* ---------- simulation ---------- */
 const kids=pid=>Object.values(S.nodes).filter(n=>n.parent===pid);
 const edgesIn=pid=>S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent===pid&&S.nodes[e.to].parent===pid);
 const flowsIn=pid=>edgesIn(pid).filter(isFlow);
+const AUTO_TYPES=['svc','vm','fn','gw','lb','waf','egw'];
+function autoOf(n){if(n.auto)return n.auto;const p=S.settings&&S.settings.autoscale;if(p&&p.on&&AUTO_TYPES.includes(n.type)&&n.parent==='root')return {min:Math.max(1,+p.min||1),max:Math.max(+p.min||1,+p.max||1),policy:true};return null}
+const tgtUtil=()=>Math.min(.95,Math.max(.2,((S.settings&&S.settings.autoscale&&S.settings.autoscale.target)||60)/100));
+const SIM={on:false,i:0,t:0,cur:{},pend:{},hist:[],events:[],timer:null,profile:'ramp',peak:20,cost:0,outs:0,ins:0,saved:1};
 const repOf=n=>(F[n.id]&&F[n.id].rep)||n.rep||1;
 function scaleOf(n){let m=1,p=S.nodes[n.parent];while(p){m*=p.type==='db'?(1+(p.readReplicas||0))*(p.shards||1):repOf(p);p=S.nodes[p.parent]}return m}
 const instCount=n=>n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):n.type==='queue'?(n.flavor==='native'?1:n.brokers||1):(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')?1:repOf(n);
@@ -563,8 +652,8 @@ function flowScope(pid,entryIn){
  ns.forEach(n=>{if(!order.includes(n.id))order.push(n.id)});
  for(const id of order){
   const n=S.nodes[id],t=T[n.type],i0=inn[id],outs=es.filter(e=>e.from===id);
-  let rep=n.rep||1;
-  if(n.auto&&isFinite(t.cap))rep=Math.min(n.auto.max,Math.max(n.auto.min,Math.ceil(i0/(n.cap*scaleOf(n)*.6))||n.auto.min));
+  let rep=n.rep||1,desired=null;const au=isFinite(t.cap)?autoOf(n):null;
+  if(au){const lim=n.rateLimit?Math.min(i0,n.rateLimit):i0;desired=Math.min(au.max,Math.max(au.min,Math.ceil(lim/(n.cap*scaleOf(n)*tgtUtil()))||au.min));rep=SIM.on?(SIM.cur[id]??au.min):desired}
   const thr=n.rateLimit?Math.max(0,i0-n.rateLimit):0,i=i0-thr;
   let util,served,pass,lag=0,dbx=null,qx=null,noRoute=false;
   if(n.type==='user'){util=0;served=i;noRoute=i>0&&!outs.length;pass=served}
@@ -574,7 +663,7 @@ function flowScope(pid,entryIn){
   else{const c=n.cap*rep*scaleOf(n);util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
   const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
   lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95));
-  F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,lat:lat[id],db:dbx,q:qx,noRoute};
+  F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,desired,lat:lat[id],db:dbx,q:qx,noRoute};
   pass*=(t.pass??1);const hasCache=outs.some(e=>S.nodes[e.to].type==='cache');
   outs.forEach(e=>{let f=t.route?pass/outs.length:pass;const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-(tn.rw??.8)*.8;EF.set(e,f);inn[e.to]+=f});
  }
@@ -664,10 +753,10 @@ function analyze(log=true){
    const d=f.db,opts=dbOptions(n);const rec=opts.find(o=>o.rec);
    add(f.util>=.85?'crit':'warn','hot:'+n.id,n.id,`${n.id} is ${f.util>=.85?'a bottleneck':'running warm'} at ${pct(f.util)} (${d.bound}-bound)`,`${fmt(d.r)} reads/s + ${fmt(d.w)} writes/s. Recommended: ${rec?rec.name:'review options'}.`,['EA-P4','EA-P6','ML forecast'],{k:'decide',n:n.id});
   }else if(n.type!=='db'&&n.type!=='queue'&&isFinite(T[n.type].cap)){
-   if(f.util>=.85)add('crit','hot:'+n.id,n.id,`${n.id}${n.parent!=='root'?` (inside ${n.parent})`:''} is a bottleneck at ${pct(f.util)}`,`${fmt(f.in-f.thr)} rps against ${fmt(capEff(n))} rps capacity. Options: scale out, autoscale, scale up, rate limit${['svc','vm','fn'].includes(n.type)?', async via queue':''}.`,['EA-P4','EA-P7','ML forecast'],{k:'decide',n:n.id});
+   if(f.util>=.85)add('crit','hot:'+n.id,n.id,`${n.id}${n.parent!=='root'?` (inside ${n.parent})`:''} is a bottleneck at ${pct(f.util)}`,`${autoOf(n)&&f.rep>=autoOf(n).max?`Autoscale is at its maximum of ${autoOf(n).max}. `:''}${fmt(f.in-f.thr)} rps against ${fmt(capEff(n))} rps capacity. Options: scale out, autoscale, scale up, rate limit${['svc','vm','fn'].includes(n.type)?', async via queue':''}.`,['EA-P4','EA-P7','ML forecast'],{k:'decide',n:n.id});
    else if(f.util>=.6)add('warn','warm:'+n.id,n.id,`${n.id} runs at ${pct(f.util)}`,`Headroom is ${fmt(capEff(n)-f.in)} rps. A ${(1/f.util).toFixed(1)}× burst saturates it.`,['EA-P4'],{k:'decide',n:n.id});
   }
-  if(n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(n.auto?n.auto.min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
+  if(n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(autoOf(n)?autoOf(n).min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
   if(!capTypes.has(n.type))add('warn','cap:'+n.id,n.id,`${T[n.type].label} is not in Technical Capabilities`,`Recommended platform. Needs an architecture decision before build.`,['EA-P3','TC catalog v'+S.ver.caps],{k:'cap',t:n.type},
    `Context: ${n.id} "${n.name}" (${svcName(n)}) carries ${fmt(f.in)} rps; no catalogued capability covers it.\nConstraints: security review; must meet GT1–GT5; operated by the platform team.\nTradeoffs: + ${T[n.type].pro||'fills a gap'}\n           − ${T[n.type].con||'new operational surface'}`);
   if(['db','obj','cache','queue'].includes(n.type)&&n.enrich&&n.enrich.encryptRest===false)add('crit','enc:'+n.id,n.id,`${n.id} stores data unencrypted at rest`,`Classification is ${n.enrich.classification}.`,['GT4','EA-P1'],{k:'enc',n:n.id});
@@ -877,6 +966,7 @@ function preview(fn,opts={}){
 }
 let pending=null;
 function act(desc,fn,opts={}){
+ if(who().role==='reviewer'){ENG='access';say(`Reviewers can inspect, simulate and comment, but not change the design. Switch role to propose "${desc}".`,'g');ENG=null;return}
  const mode=S.settings.guard||'enforce';
  if(mode==='off'){commit(desc,fn,opts,null);return}
  const r=preview(fn,opts);
@@ -884,16 +974,17 @@ function act(desc,fn,opts={}){
  pending={desc,fn,opts,r};showGuard();
 }
 function commit(desc,fn,opts,r,just){
- pushUndo(desc);
+ pushUndo(desc);if(LEDGER_PENDING)LEDGER_PENDING.verdict=r?r.verdict:'guard off';
  fn();
  if(r)logAI('Guardian',`${r.verdict==='ok'?'Allowed':just?'Exception approved':'Applied after review'}: ${desc}`,r.verdict==='ok'?'All checks passed in dry-run':`Verdict ${r.verdict}; ${r.added.length} new finding(s)${r.added.length?': '+r.added.map(f=>f.key.split(':')[0]).join(', '):''}${just?' · justification: '+just:''}`,.93);
- if(opts.adr)addADR({...opts.adr,status:'Accepted'});
- if(just)addADR({title:`Exception: ${desc}`,status:'Accepted with exception',context:r.added.map(f=>`${f.id} ${f.title} [${f.basis.join(', ')}]`).join('\n')+(r.cons.length?'\n'+r.cons.join('\n'):''),decision:'Proceed despite guard findings.',tradeoffs:just,basis:[...new Set(r.added.flatMap(f=>f.basis))]});
+ const lead=who().role==='lead';
+ if(opts.adr){const a=addADR({...opts.adr,status:lead?'Accepted':'Proposed · awaiting approval'});if(LEDGER_PENDING)LEDGER_PENDING.adr=a.id}
+ if(just){const a=addADR({title:`Exception: ${desc}`,status:lead?'Accepted with exception':'Exception · awaiting approval',context:r.added.map(f=>`${f.id} ${f.title} [${f.basis.join(', ')}]`).join('\n')+(r.cons.length?'\n'+r.cons.join('\n'):''),decision:'Proceed despite guard findings.',tradeoffs:just ,basis:[...new Set(r.added.flatMap(f=>f.basis))]});if(LEDGER_PENDING)LEDGER_PENDING.adr=a.id}
  say(`${just?'Applied with exception':'Applied'}: ${desc}. (Undo with Ctrl+Z)`,'s');
  if(opts.after)opts.after();
  changed();
 }
-function addADR(a){S.adrs.push({id:'ADR-'+String(S.adrs.length+1).padStart(3,'0'),at:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),...a})}
+function addADR(a){const r={id:'ADR-'+String(S.adrs.length+1).padStart(3,'0'),at:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),by:who().name,byRole:who().role,...a};S.adrs.push(r);return r}
 function showGuard(){
  const {desc,opts,r}=pending,mode=S.settings.guard;
  const V2={ok:['ok','ALLOWED','No new risks.'],review:['warn','REVIEW','Check the consequences before applying.'],risk:['crit','HIGH RISK','This change removes protection or introduces critical findings.'],block:['crit','BLOCKED BY GROUND TRUTH','This change violates a non-negotiable standard.'],invalid:['crit','NOT SUPPORTED','']}[r.verdict];
@@ -914,9 +1005,22 @@ function showGuard(){
  const inv=r.verdict==='invalid';$('#gApply').hidden=inv;$('#gAlt').hidden=!r.alt;if(inv){$('#gJustWrap').hidden=true;$('#gNote').textContent='This is a technical constraint of the platform, not a policy, so no exception can override it.'+(r.alt?' Insert a service between them instead.':'');['#gImpactWrap'].forEach(s=>$(s).hidden=true)}else $('#gImpactWrap').hidden=false;
  $('#gApply').className='btn '+(r.verdict==='ok'||r.verdict==='review'?'primary':'danger');
  const upd=()=>{$('#gApply').disabled=needJ&&$('#gJust').value.trim().length<20};$('#gJust').oninput=upd;upd();
+ $('#gSecondOut').hidden=true;$('#gSecondOut').innerHTML='';$('#gSecond').hidden=r.verdict==='invalid'&&!r.alt;
  $('#guard').hidden=false;$('#gCancel').focus();
 }
 $('#gAlt').onclick=()=>{if(!pending||!pending.r.alt)return;const {from,to}=pending.r.alt;pending=null;$('#guard').hidden=true;act(`Insert a service between ${from} and ${to}`,()=>insertServiceBetween(from,to),{tradeoffs:['+ The service owns the data access: connection pooling, queries, validation and authorization','+ The gateway keeps doing what it does well: routing, auth and rate limits','− One more component to build, deploy and scale']})};
+$('#gSecond').onclick=async()=>{
+ if(!pending)return;const E=S.settings.escalation||{},L=E.base?E:S.settings.llmApi,box=$('#gSecondOut'),r=pending.r;
+ box.hidden=false;box.innerHTML=`<span class="why">Asking ${esc(L.model)}${E.base?'':' (no escalation model set; using the console model)'}…</span>`;
+ const summary={change:pending.desc,verdict:r.verdict,newRisks:r.added.map(f=>({title:f.title,why:f.why,basis:f.basis})),resolved:r.resolved.map(f=>f.title),consequences:r.cons,tradeoffs:pending.opts.tradeoffs||[],errorsBefore:r.before.err,errorsAfter:r.after.err,platform:pk().name,
+  design:Object.values(S.nodes).filter(n=>n.parent==='root').map(n=>`${n.id} ${n.type} "${n.name}"`),flows:flowsIn('root').map(e=>`${e.from}->${e.to} ${e.proto}${e.via!=='net'?' via '+e.via:''}`)};
+ const t0=performance.now();
+ try{const res=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},body:JSON.stringify({model:L.model,temperature:.2,response_format:{type:'json_object'},messages:[{role:'system',content:'You are a senior reviewing architect giving an independent second opinion on a proposed change to a system design. Judge it against zero trust, resilience, data ownership, cost and operability. Be concise and specific. Respond with JSON only: {"opinion":"agree|agree with conditions|disagree","summary":"two sentences","risks":["..."],"alternatives":["..."]}'},{role:'user',content:JSON.stringify(summary)}]})});
+  if(!res.ok)throw new Error('HTTP '+res.status);const j=await res.json(),o=extractJSON(j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'');if(!o)throw new Error('the model did not return a review');
+  const ms=performance.now()-t0;logAI(`Model ${L.model} · second opinion`,`Second opinion: ${o.opinion} on "${pending.desc}"`,o.summary||'',.7);
+  box.innerHTML=`<b>Second opinion · ${esc(L.model)} · ${(ms/1000).toFixed(1)} s · <span class="${/disagree/.test(o.opinion)?'crit':/condition/.test(o.opinion)?'warn':'ok'}">${esc(o.opinion||'')}</span></b><br>${esc(o.summary||'')}${(o.risks||[]).length?'<br><b>Risks</b><ul>'+o.risks.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':''}${(o.alternatives||[]).length?'<b>Alternatives</b><ul>'+o.alternatives.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':''}<span class="why">Advisory only. The decision stays with you.</span>`}
+ catch(e){box.innerHTML=`<span class="crit">No second opinion:</span> ${esc(e.message)}. Set an escalation model in Settings → Second opinion and escalation.`}
+};
 $('#gCancel').onclick=()=>{if(pending){logAI('Guardian',`Cancelled: ${pending.desc}`,`Architect declined after review (${pending.r.verdict})`,1);say(`Cancelled: ${pending.desc}.`,'g')}pending=null;$('#guard').hidden=true};
 $('#gApply').onclick=()=>{if(!pending)return;const p=pending;pending=null;$('#guard').hidden=true;const j=$('#gJust').value.trim();commit(p.desc,p.fn,p.opts,p.r,(p.r.verdict==='block'||p.r.verdict==='risk')&&j?j:null)};
 $('#guard').addEventListener('click',e=>{if(e.target.id==='guard')$('#gCancel').click()});
@@ -1123,7 +1227,7 @@ function instancesOf(n){
  }else if(n.type==='queue'){const q=f.q||queueLoad(n,f.in);
   if(n.flavor!=='native')for(let b=1;b<=(n.brokers||1);b++)out.push({id:nx(),role:'broker',util:q.ub});
   for(let c=1;c<=(n.consumers||1);c++){const idle=n.flavor==='kafka'&&c>(n.partitions||1);out.push({id:nx(),role:idle?'consumer · idle':'consumer',util:idle?0:q.uc,idle})}
- }else for(let i=1;i<=repOf(n);i++)out.push({id:nx(),role:n.auto?`instance (auto ${n.auto.min}–${n.auto.max})`:'instance',util:n.failed?Infinity:f.util});
+ }else for(let i=1;i<=repOf(n);i++)out.push({id:nx(),role:autoOf(n)?`instance (auto ${autoOf(n).min}–${autoOf(n).max})`:'instance',util:n.failed?Infinity:f.util});
  return out;
 }
 const showInst=n=>(n.expanded||V.allInst)&&!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)&&n.type!=='part'&&(instancesOf(n).length>1||n.expanded);
@@ -1137,7 +1241,7 @@ function details(n){
   case 'idp':L.push(`Audience: ${n.audience} · source: ${{native:'own user directory',corp:'federated to '+(n.fedIdp||'corporate IdP')+' (SAML/OIDC)',social:'social logins (OIDC)'}[n.idpMode||'native']}`,'MFA on · access 15 min / refresh 8 h');break;
   case 'db':L.push(`${n.readReplicas||0} read replica(s) · ${n.shards||1} shard(s) · ${n.standby?'standby':'no standby'}`,`Reads ${pct(n.rw??.8)} · ${fmt(n.sizeGB)} GB · CMK ${n.enrich.encryptRest!==false?'on':'off'}`);break;
   case 'queue':L.push(`${n.flavor==='kafka'?`${n.partitions} partitions · ${n.brokers} brokers`:n.flavor==='mq'?`${n.brokers} brokers`:'managed, serverless'} · ${n.consumers} consumers`,`Lag ${fmt(f.lag||0)} msg/s${n.flavor==='kafka'?` · key ${n.pkey||'not set'}`:''}`);break;
-  case 'svc':case 'vm':case 'fn':case 'api':case 'adp':L.push(`${n.auto?`Autoscale ${n.auto.min}–${n.auto.max}, now ×${repOf(n)}`:`×${n.rep} fixed`} · ${fmt(n.cap)} rps each`);if(n.enrich.runtime||n.enrich.os)L.push(n.enrich.runtime||n.enrich.os);break;
+  case 'svc':case 'vm':case 'fn':case 'api':case 'adp':L.push(`${autoOf(n)?`Autoscale ${autoOf(n).min}–${autoOf(n).max}${autoOf(n).policy?' (policy)':''}, now ×${repOf(n)}`:`×${n.rep} fixed`} · ${fmt(n.cap)} rps each`);if(n.enrich.runtime||n.enrich.os)L.push(n.enrich.runtime||n.enrich.os);break;
   case 'lb':case 'cdn':case 'egw':L.push(`×${repOf(n)} · ${fmt(n.cap)} rps each${n.rateLimit?' · limit '+fmt(n.rateLimit)+' rps':''}`);break;
  }
  if(!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)){L.push(`In: ${ins.join(', ')||'—'}`,`Out: ${outs.join(', ')||'—'}`)}
@@ -1231,7 +1335,7 @@ function drawNode(n,now,rel){
  ctx.fillStyle=sel||hov?colors.accent:colors.muted;ctx.font=`${9*k}px sans-serif`;ctx.textAlign='center';ctx.fillText('▾',cx+cs_/2,cy+cs_*.75);ctx.textAlign='left';ctx.globalAlpha=baseA;
  chipHits.push({x:cx-3,y:cy-3,w:cs_+6,h:cs_+6,node:n.id});
  if(k>.5){
-  const tg=[cnt>1?'×'+cnt:'',n.auto?'AUTO':'',n.rateLimit?'RL':'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.type==='queue'&&n.flavor==='kafka'?`${n.partitions}P`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
+  const tg=[cnt>1?'×'+cnt:'',autoOf(n)?'AUTO':'',n.rateLimit?'RL':'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.type==='queue'&&n.flavor==='kafka'?`${n.partitions}P`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
   ctx.font=`600 ${9*k}px "IBM Plex Mono",monospace`;const tgw=tg?ctx.measureText(tg).width+6*k:0;
   const iw=kids(n.id).length?innerWorst(n.id):null,ist=iw?st(iw.util):'ok';
   if(tg){ctx.textAlign='right';ctx.fillStyle=ist!=='ok'?colors[ist]:colors.accent;ctx.fillText(tg+(ist!=='ok'?' !':''),x+w-8*k,y+33*k);ctx.textAlign='left'}
@@ -1353,7 +1457,7 @@ function renderCrumb(){
 $('#crumb').addEventListener('click',e=>{const b=e.target.closest('button');if(b){V.scope=b.dataset.s;V.sel=null;V.selE=null;fit();changed()}});
 
 /* ---------- panels ---------- */
-const panels=['pAdv','pIac','pC4','pTree'].map(id=>document.getElementById(id));
+const panels=['pAdv','pIac','pC4','pTree','pDem'].map(id=>document.getElementById(id));
 panels.forEach(p=>{
  const tune=p.querySelector('.tune');
  tune.innerHTML=`Opacity <input type="range" min="0.35" max="1" step="0.05" value="1" aria-label="Card opacity"> Border <select aria-label="Card border"><option value="hair">Hairline</option><option value="strong">Strong</option><option value="none">None</option></select>`;
@@ -1366,14 +1470,17 @@ panels.forEach(p=>{
  hd.addEventListener('pointermove',e=>{if(!d)return;p.style.left=(d.l+e.clientX-d.x)+'px';p.style.top=(d.t+e.clientY-d.y)+'px';p._moved=true;clampPanel(p)});
  hd.addEventListener('pointerup',()=>d=null);
 });
+panels.forEach(p=>new ResizeObserver(()=>{if(p.style.height&&!p.classList.contains('collapsed'))p.classList.add('sized')}).observe(p));
 function clampPanel(p){const x=Math.max(0,Math.min(W-60,p.offsetLeft)),y=Math.max(0,Math.min(H-32,p.offsetTop));p.style.left=x+'px';p.style.top=y+'px'}
 function placePanels(first){
  if(!W)return;
  const narrow=W<760;
  if(first&&narrow)panels.forEach(p=>{p.classList.add('collapsed');p.querySelector('.colB').textContent='+'});
  if(first&&!narrow&&H<720){const c=$('#pC4');c.classList.add('collapsed');c.querySelector('.colB').textContent='+'}
+ if(first&&!narrow&&H<620){const c=$('#pDem');c.classList.add('collapsed');c.querySelector('.colB').textContent='+'}
  let y=10;const rx=Math.max(10,W-360);
  ['pIac','pC4','pTree'].forEach((id,i)=>{const p=document.getElementById(id);if(p._moved){clampPanel(p);return}p.style.left=(narrow?10:rx)+'px';p.style.top=(narrow?H-40*(i+2):y)+'px';y+=p.offsetHeight+8});
+ const dm=$('#pDem');if(!dm._moved){dm.style.left=(narrow?10:Math.max(240,Math.min(W-370-dm.offsetWidth-10,(W-dm.offsetWidth)/2)))+'px';dm.style.top=(narrow?H-200:44)+'px'}else clampPanel(dm);
  const a=$('#pAdv');if(!a._moved){a.style.left=(narrow?10:58)+'px';a.style.top=narrow?(H-40)+'px':Math.max(50,H-a.offsetHeight-36)+'px'}else clampPanel(a);
 }
 
@@ -1393,7 +1500,11 @@ function renderAdvisor(){
   if(!n){body.innerHTML='<div class="empty">Select a component or a flow on the canvas. Its ID is how you refer to it in reviews and in the console.<br><br><b>Actions:</b> click ▾ on any component, or right-click it.<br><b>Undo:</b> Ctrl+Z, or ↶ in the toolbar.<br>Every change goes through the Action Guard first.</div>';return}
   renderNodeInspector(body,n);
  }else if(advTab==='adr'){
-  body.innerHTML=S.adrs.length?S.adrs.slice().reverse().map(a=>`<div class="fd"><div class="h"><span class="pill ${/exception/.test(a.status)?'warn':'acc'}">${a.id}</span><span class="t">${esc(a.title)}</span></div><div class="why">${esc(a.status)} · ${esc(a.at)}${a.basis?' · '+a.basis.join(', '):''}</div><details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Context, decision, tradeoffs</summary><div class="adr">Context: ${esc(a.context||'')}\nDecision: ${esc(a.decision||'')}${a.options?'\nOptions considered:\n'+esc(a.options):''}\nTradeoffs:\n${esc(a.tradeoffs||'')}</div></details></div>`).join(''):'<div class="empty">No architecture decisions yet. Applying a scaling option, accepting a new capability, or approving a guard exception records one here.</div>';
+  body.innerHTML=S.adrs.length?S.adrs.slice().reverse().map(a=>`<div class="fd"><div class="h"><span class="pill ${/awaiting/.test(a.status)?'warn':/Rejected/.test(a.status)?'crit':/exception/i.test(a.status)?'warn':'acc'}">${a.id}</span><span class="t">${esc(a.title)}</span></div>${/awaiting/.test(a.status)?`<div class="act"><button class="btn" data-appr="${a.id}" ${who().role!=='lead'?'disabled title="Only a lead architect can approve"':''}>Approve</button><button class="btn danger" data-rej="${a.id}" ${who().role!=='lead'?'disabled':''}>Reject</button></div>`:''}<div class="why">${esc(a.status)} · ${esc(a.at)}${a.by?' · by '+esc(a.by)+' ('+esc(a.byRole)+')':''}${a.basis?' · '+a.basis.join(', '):''}</div><details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Context, decision, tradeoffs</summary><div class="adr">Context: ${esc(a.context||'')}\nDecision: ${esc(a.decision||'')}${a.options?'\nOptions considered:\n'+esc(a.options):''}\nTradeoffs:\n${esc(a.tradeoffs||'')}</div></details></div>`).join(''):'<div class="empty">No architecture decisions yet. Applying a scaling option, accepting a new capability, or approving a guard exception records one here.</div>';
+ }else if(advTab==='hist'){
+  const H=(S.history||[]).slice().reverse();
+  body.innerHTML=H.length?H.map(h=>{const d=h.diff,parts=[...d.added.map(x=>'+ '+x),...d.removed.map(x=>'− '+x),...d.flows,...d.changed.map(x=>'~ '+x),...d.other.map(x=>'· '+x)];
+   return `<div class="fd"><div class="h"><span class="pill ${h.verdict==='block'||h.verdict==='risk'?'crit':h.verdict==='review'?'warn':'acc'}">${h.id}</span><span class="t">${esc(h.desc)}</span></div><div class="why">${new Date(h.at).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'})} · ${esc(h.who)} (${esc(h.role)})${h.verdict?' · guard: '+esc(h.verdict):''}${h.adr?' · '+esc(h.adr):''}</div><div class="adr">${esc(parts.slice(0,12).join('\n'))}${parts.length>12?'\n… '+(parts.length-12)+' more':''}</div>${h.before?`<div class="act"><button class="btn" data-revert="${h.id}">Restore design to before ${h.id}</button></div>`:''}</div>`}).join(''):'<div class="empty">No changes yet. Every change is recorded here with who made it, their role, the Action Guard verdict, the decision record, and exactly what changed. You can restore the design to before any recent change.</div>';
  }else{
   body.innerHTML=S.log.length?S.log.slice().reverse().map(l=>`<div class="logi"><div class="m">${l.t} · ${esc(l.model)} · confidence ${Math.round(l.conf*100)}%</div><div><b>${esc(l.what)}</b></div><div style="color:var(--muted)">Why: ${esc(l.why)}</div></div>`).join(''):'<div class="empty">No model activity yet.</div>';
  }
@@ -1445,8 +1556,8 @@ function renderNodeInspector(body,n){
   <div class="why">${esc(svcName(n))}. Federation keeps passwords with the corporate IdP and reuses its MFA and joiner/leaver process; your app trusts its SAML/OIDC assertions.</div>
   <label>Replicas <input id="iRep" type="number" min="1" max="50" value="${n.rep}"></label>`;
  }else if(!plat&&!part){
-  h+=`<div class="row2"><label style="grid-template-columns:1fr">Replicas <input id="iRep" type="number" min="1" max="200" value="${n.rep}" ${n.auto?'disabled':''}></label><label style="grid-template-columns:1fr">rps / replica <input id="iCap" type="number" min="1" step="50" value="${n.cap}"></label></div>
-  <label>Autoscale <input id="iAuto" value="${n.auto?n.auto.min+'-'+n.auto.max:''}" placeholder="off · or min-max, e.g. 2-10"></label>
+  h+=`<div class="row2"><label style="grid-template-columns:1fr">Replicas <input id="iRep" type="number" min="1" max="200" value="${n.rep}" ${autoOf(n)?'disabled title="Autoscaled: set min and max instead"':''}></label><label style="grid-template-columns:1fr">rps / replica <input id="iCap" type="number" min="1" step="50" value="${n.cap}"></label></div>
+  <label>Autoscale <input id="iAuto" value="${n.auto?n.auto.min+'-'+n.auto.max:''}" placeholder="${autoOf(n)?'policy '+autoOf(n).min+'-'+autoOf(n).max+' · override: min-max':'off · or min-max, e.g. 2-10'}"></label>
   ${['gw','waf','lb','egw','cdn'].includes(n.type)?`<label>Rate limit (rps) <input id="iRl" type="number" min="0" step="50" value="${n.rateLimit||''}" placeholder="none"></label>`:''}
   <label>Standby <select id="iSb"><option value="0">None</option><option value="1" ${n.standby?'selected':''}>Active / passive</option></select></label>`;
   h+=remedyHTML(n);
@@ -1494,7 +1605,11 @@ function dbDecisionHTML(n){
  <table class="opt"><tr><th>Option</th><th>After</th><th>Tradeoffs</th><th></th></tr>${o.map(x=>`<tr class="${x.rec?'rec':''}"><td><b>${esc(x.name)}</b>${x.rec?' <span class="pill acc">REC</span>':''}<br><span class="why">fixes ${esc(x.fixes)} · ${esc(x.detail)}</span></td><td class="num ${x.effect==null?'':st(x.effect)}">${x.effect==null?'bursts':pct(x.effect)}</td><td class="why">+ ${esc(x.pro)}<br>− ${esc(x.con)}</td><td><button class="btn" data-dbopt="${x.key}" style="padding:1px 6px;font-size:10.5px">Preview</button></td></tr>`).join('')}</table>
  <div class="just"><b style="font-family:var(--f-body)">Shard only if at least one is true</b><br>${o.shardWhy.map(s=>`<span class="${s.v?'crit':'ok'}">${s.v?'✓':'✗'}</span> ${esc(s.t)}`).join('<br>')}<br><span style="color:var(--muted)">${o.shardWhy.some(s=>s.v)?'Sharding is justified. Choose the shard key from the main access path (e.g. customer_id).':'None apply, so do not shard yet (EA-P6).'}</span></div>`;
 }
-$('#advBody').addEventListener('click',e=>{const f=e.target.closest('[data-fix]');if(f)return applyFix(findings[+f.dataset.fix]);const g=e.target.closest('[data-go]');if(g)focusNode(g.dataset.go)});
+$('#advBody').addEventListener('click',e=>{
+ const ap=e.target.closest('[data-appr]'),rj=e.target.closest('[data-rej]'),rv=e.target.closest('[data-revert]');
+ if(ap||rj){const a=S.adrs.find(x=>x.id===(ap||rj).dataset[ap?'appr':'rej']);if(!a||who().role!=='lead')return;pushUndo(`${ap?'Approve':'Reject'} ${a.id}`);a.status=ap?`Approved by ${who().name}`:`Rejected by ${who().name}`;a.decidedAt=new Date().toLocaleString();logAI('Workbench',`${a.id} ${ap?'approved':'rejected'}`,`Decided by ${who().name} (lead architect)`,1);changed();return}
+ if(rv){const h=(S.history||[]).find(x=>x.id===rv.dataset.revert);if(!h||!h.before)return;if(who().role==='reviewer'){ENG='access';say('Reviewers cannot restore designs.','g');ENG=null;return}pushUndo(`Restore to before ${h.id}`);restoreSnap(h.before);ENG='history';say(`Restored the design to before ${h.id} (${h.desc}). This restore is itself recorded and can be undone.`,'s');ENG=null;fit();changed();return}
+ const f=e.target.closest('[data-fix]');if(f)return applyFix(findings[+f.dataset.fix]);const g=e.target.closest('[data-go]');if(g)focusNode(g.dataset.go)});
 function focusNode(id){const n=S.nodes[id];if(!n)return;if(V.scope!==n.parent){V.scope=n.parent;renderCrumb()}V.sel=id;V.selE=null;const p=P(n.x,n.y);V.x+=W/2-p.x;V.y+=H/2-p.y;showTab('insp')}
 function logAI(model,what,why,conf){const slm=['Phi-4-mini','Llama 3.2 3B','Qwen2.5 3B'][S.settings.slm]||'SLM';const m=['Advisor','SLM enrichment','Guardian','Platform expert'].includes(model)?`${slm} · ${model}`:model;S.log.push({t:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}),model:m,what,why,conf});if(S.log.length>250)S.log.shift()}
 
@@ -1562,7 +1677,8 @@ $('#dtabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!
 
 /* ---------- console ---------- */
 const out=$('#conOut');
-function say(t,cls=''){out.insertAdjacentHTML('beforeend',`<div class="${cls}">${esc(t)}</div>`);out.scrollTop=out.scrollHeight}
+let ENG=null;
+function say(t,cls=''){const tag=ENG&&cls!=='u'&&cls!=='q'?`<span class="eng">${esc(ENG)}</span>`:'';out.insertAdjacentHTML('beforeend',`<div class="${cls}">${tag}${esc(t)}</div>`);out.scrollTop=out.scrollHeight}
 let disc=null;
 const DQ=[
  ['What are you designing? Give it a name.',a=>{S.project=a.trim()||S.project}],
@@ -1580,26 +1696,37 @@ function discStep(a){
  if(disc.i<DQ.length){say(DQ[disc.i][0],'q');return}
  const d=disc;disc=null;pushUndo('Discovery baseline');buildBaseline(d);
 }
-function buildBaseline(d){
+function buildBaselineCore(d){
  S.nodes={};S.edges=[];V.scope='root';V.sel=null;V.selE=null;
- S.deploy={datacenter:'vmware',local:'local',hybrid:'hybrid'}[d.where]||d.where;
- const u=addNode('user',d.who.replace(/^\w/,c=>c.toUpperCase()).slice(0,24)||'Users','root',{x:ZX.internet,y:250});u.rps=d.rps;
+ if(d.name)S.project=String(d.name).slice(0,40);
+ const w0=String(d.where||'').toLowerCase();S.deploy={datacenter:'vmware',onprem:'vmware','on-prem':'vmware',vmware:'vmware',local:'local',hybrid:'hybrid',aws:'aws',azure:'azure',gcp:'gcp'}[w0]||S.deploy;
+ const rps=Math.max(1,Math.round(+d.rps||1000)),mix=['read','write','mixed'].includes(d.mix)?d.mix:'mixed';
+ const u=addNode('user',String(d.who||'Users').replace(/^\w/,c=>c.toUpperCase()).slice(0,24),'root',{x:ZX.internet,y:250});u.rps=rps;
  let prev=u;
- if(d.mix==='read'&&d.rps>3000){const c=addNode('cdn','Static edge cache','root',{x:ZX.edge-110,y:250});connect(prev.id,c.id,'HTTPS');prev=c}
+ if(d.cdn||(mix==='read'&&rps>3000)){const c=addNode('cdn','Edge cache','root',{x:ZX.edge,y:80});connect(prev.id,c.id,'HTTPS');prev=c}
  const w=addNode('waf','Perimeter WAF','root',{x:ZX.edge,y:250});connect(prev.id,w.id,'HTTPS');
- const lb=['vmware','local'].includes(S.deploy)?addNode('lb','Site load balancer','root',{x:ZX.edge,y:420}):null;
- const gw=addNode('gw','API gateway','root',{x:ZX.dmz,y:250});gw.rep=2;gw.rateLimit=Math.round(d.rps*2/100)*100;
- const idp=addNode('idp','Identity','root',{x:ZX.dmz,y:420});idp.rep=2;if(d.fed){idp.idpMode='corp';idp.fedIdp=d.fedIdp}if(d.workforce)idp.audience='workforce';
+ const lb=['vmware','local','hybrid'].includes(S.deploy)?addNode('lb','Site load balancer','root',{x:ZX.edge,y:420}):null;
+ const gw=addNode('gw','API gateway','root',{x:ZX.dmz,y:250});gw.rateLimit=Math.round(rps*2/100)*100||200;
+ const idp=addNode('idp','Identity','root',{x:ZX.dmz,y:420});idp.rep=2;if(d.fed){idp.idpMode='corp';idp.fedIdp=d.fedIdp||'Entra ID'}if(d.workforce)idp.audience='workforce';
  if(lb){connect(w.id,lb.id,'HTTPS');connect(lb.id,gw.id,'HTTPS')}else connect(w.id,gw.id,'HTTPS');
- const svc=addNode('svc','Core API','root',{x:ZX.app,y:250});svc.auto={min:2,max:Math.max(4,Math.ceil(d.rps*2/(800*.6)))};
- const db=addNode('db',d.pii?'Customer DB (PII)':'Primary DB','root',{x:ZX.data,y:250});db.standby=true;db.rw=d.mix==='read'?.9:d.mix==='write'?.35:.7;
- const tierFit=TIER_ORDER.find(t=>dbLoad({...db,cap:TIERS[t].cap},d.rps).util<=.6);if(tierFit){db.tier=tierFit;db.cap=TIERS[tierFit].cap}
- connect(gw.id,svc.id);connect(gw.id,idp.id,'HTTPS');connect(svc.id,db.id);
- if(d.mix!=='write'&&d.rps>1000){const c=addNode('cache','Read cache','root',{x:ZX.data,y:80});connect(svc.id,c.id)}
- if(d.mix==='write'||d.rps>4000){const q=addNode('queue','Write buffer','root',{x:ZX.data,y:420});connect(svc.id,q.id)}
- (d.saas||[]).forEach((nm,i)=>{const s=addNode('saas',nm.slice(0,24),'root',{x:ZX.app,y:450+i*150});connect(svc.id,s.id,'HTTPS',s.pl?'privatelink':'internet')});
+ connect(gw.id,idp.id,'HTTPS');
+ const names=(Array.isArray(d.services)&&d.services.length?d.services:['Core']).map(x=>String(x).trim()).filter(Boolean).slice(0,5);
+ const share=rps/names.length,rw=mix==='read'?.9:mix==='write'?.35:.7;
+ const svcs=names.map((nm,i)=>{const sv=addNode('svc',`${nm.replace(/^\w/,c=>c.toUpperCase())} service`,'root',{x:ZX.app,y:90+i*170});connect(gw.id,sv.id);return sv});
+ svcs.forEach((sv,i)=>{const db=addNode('db',`${names[i].replace(/^\w/,c=>c.toUpperCase())} DB${d.pii?' (PII)':''}`,'root',{x:ZX.data,y:90+i*170});db.standby=true;db.rw=rw;
+  const tf=TIER_ORDER.find(t=>dbLoad({...db,cap:TIERS[t].cap},share).util<=.6);if(tf){db.tier=tf;db.cap=TIERS[tf].cap}connect(sv.id,db.id)});
+ const side=ZX.data+240;
+ if(mix!=='write'&&rps>1000){const c=addNode('cache','Read cache','root',{x:side,y:90});svcs.forEach(sv=>connect(sv.id,c.id))}
+ if(d.events||mix==='write'||rps>4000){const q=addNode('queue',d.events?'Event bus':'Write buffer','root',{x:side,y:260});q.flavor=d.events?'kafka':'native';if(d.events){q.partitions=Math.max(6,svcs.length*3);q.consumers=Math.min(q.partitions,3)}
+  connect(svcs[0].id,q.id);svcs.slice(1).forEach(sv=>connect(q.id,sv.id))}
+ if(d.files){const o=addNode('obj','Files and media','root',{x:side,y:430});connect(svcs[0].id,o.id)}
+ (Array.isArray(d.saas)?d.saas:[]).slice(0,4).forEach((nm,i)=>{const sx=addNode('saas',String(nm).slice(0,24),'root',{x:ZX.app,y:90+svcs.length*170+i*150});connect(svcs[0].id,sx.id,'HTTPS',sx.pl?'privatelink':'internet')});
  addDeps();
- logAI('Advisor','Drafted baseline from discovery',`${d.rps} rps, ${d.where}, ${d.pii?'PII':'no PII'}, ${d.mix} workload → WAF-fronted gateway with rate limit (P7), autoscaling service (P4), DB sized ${TIERS[db.tier].l} with standby (P2, P6), identity ${idpKey(idp)}, platform dependencies added${d.saas&&d.saas.length?', SaaS over '+pk().pl+' (GT5)':''}`,.9);
+ return {u,svcs,idp};
+}
+function buildBaseline(d){
+ const r=buildBaselineCore(d);
+ logAI('Advisor','Drafted baseline',`${r.u.rps} rps, ${S.deploy}, ${d.pii?'PII':'no PII'}, ${d.mix||'mixed'} workload, ${r.svcs.length} service(s) each owning its database (P8), WAF + rate-limited gateway (P7), autoscaling by policy, identity ${idpKey(r.idp)}, platform dependencies`,.9);
  say(`Baseline drafted for ${S.project}: ${Object.keys(S.nodes).join(', ')}. Review the advisor findings, then save a version.`,'s');
  fit();changed();
 }
@@ -1631,22 +1758,28 @@ function handleUse(l,ids){
 }
 const EXAMPLES=['use aws managed kafka for microservice to microservice communication','add redis cache between SVC2 and DB1','rate limit GW1 2000','autoscale SVC2 2-10','partitions Q1 12','consumers Q1 6','brokers Q1 3','add platform dependencies','federate IDP1 with Okta','connect SVC2 to SAAS1 via privatelink','options SVC2','decide DB1','expand DB1','instances all','what if load 3x','what if DB1 fails','undo','redo','discover'];
 function suggest(l){const w=new Set(l.split(/\W+/).filter(x=>x.length>2));return EXAMPLES.map(e=>({e,s:e.split(/\W+/).filter(x=>w.has(x)).length})).filter(x=>x.s).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.e)}
-function run(raw){
- const c=raw.trim();if(!c)return;say('› '+c,'u');
+const STRICT=/^(what if|what happens|connect|link|disconnect|scale|autoscale|rate.?limit|partitions?|consumers?|brokers?|federate|idp|remove|delete|drop|rename|restore|save|load|undo|redo|options?|decide|expand|collapse|open|up|back|target|guard|reset|fail|replicas?|shard|size|instances?|why|explain|help|versions?|discover|principle:|truth:|capability:)\b/;
+const isComplex=l=>l.split(/\s+/).length>=7&&!STRICT.test(l);
+const MODEL={failedAt:0};
+function run(raw,opt={}){
+ const c=raw.trim();if(!c)return;ENG=null;if(!opt.quiet)say('› '+c,'u');ENG='rules';
  if(disc)return discStep(c);
  const l=c.toLowerCase();let ids=(c.match(/\b[A-Za-z]{1,4}\d+\b/g)||[]).map(x=>x.toUpperCase()).filter(x=>S.nodes[x]);
  if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
- if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
+ if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
  if(/^undo$/.test(l))return undo();
  if(/^redo$/.test(l))return redo();
  if(/^discover/.test(l))return startDisc();
  if(m=l.match(/^guard\s+(enforce|advise|off)/)){S.settings.guard=m[1];changed();say(`Action Guard set to ${m[1]}.`,'s');return}
+ if(!opt.noModel&&S.settings.engine!=='rules'&&!(S.settings.engine==='auto'&&Date.now()-MODEL.failedAt<60000)&&(isVision(l)||isComplex(l)))return visionOrModel(c,l);
+ if(isVision(l))return visionOrModel(c,l,true);
+ if(/^(why|explain|what is wrong|what's wrong)/.test(l)&&ids.length){const fs=findings.filter(f=>f.target===ids[0]||f.why.includes(ids[0]));say(fs.length?fs.map(f=>`${f.id} ${f.title}: ${f.why} [${f.basis.join(', ')}]`).join('\n'):`${ids[0]} has no findings: ${fmt((F[ids[0]]||{}).in||0)} rps at ${pct((F[ids[0]]||{}).util||0)}.`,'s');return}
  if(m=c.match(/^(principle|truth|ground truth|capability)\s*:\s*(.+)/i)){addRule({principle:'ea',truth:'gt','ground truth':'gt',capability:'cap'}[m[1].toLowerCase()],m[2]);say('Added. Version bumped.','s');return}
  if(/what if|what happens|simulate/.test(l)){
   if(ids.length&&/fail|down|lost|outage|dies/.test(l)){ids.forEach(id=>S.nodes[id].failed=true);say(`Simulating failure of ${ids.join(', ')}. See the red paths and the advisor.`,'s');changed();return}
   let x=null;if(m=l.match(/(\d+(?:\.\d+)?)\s*(x|×|times)/))x=+m[1];else if(/double/.test(l))x=2;else if(/triple/.test(l))x=3;else if(/half|halve/.test(l))x=.5;else if(m=l.match(/(\d[\d,]*)\s*rps/)){const r=+m[1].replace(/,/g,''),base=kids('root').filter(n=>n.type==='user').reduce((a,n)=>a+n.rps,0)||1;x=r/base}
-  if(x){setMult(x);say(`Load set to ${S.mult}× (${fmt(KPI.offered)} rps). Bottleneck: ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}.`,'s');return}
+  if(x){setMult(x);say(`Load set to ${fmtMult(S.mult)} (${fmt(KPI.offered)} rps). Autoscaled to ${fmt(totalInst())} instances, ≈$${fmt(totalCost())}/month. Bottleneck: ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}.`,'s');return}
  }
  if(/^reset/.test(l)){Object.values(S.nodes).forEach(n=>n.failed=false);setMult(1);say('What-if cleared.','s');return}
  if(/^(fail|kill|take down)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=true);changed();say(`${ids.join(', ')} failed.`,'s');return}
@@ -1678,20 +1811,22 @@ function run(raw){
  if(/^versions?$/.test(l)){say(S.versions.length?S.versions.map((v,i)=>`v${i+1} · ${v.at} · ${v.note}`).join('\n'):'No saved versions yet.','s');return}
  if(/^(use|adopt|introduce|switch to|move to|replace .* with|we should use|let'?s use|i want)\b/.test(l)&&handleUse(l,ids))return;
  if(/^(add|create|insert|put|need|i need|we need)/.test(l)){
+  if(isComplex(l)&&!/\b(between|after|before|behind \w+\d|named|called)\b/.test(l)&&(l.match(/\b(and|with|then|plus)\b/g)||[]).length>=1){say('That is a multi-step request. The rules engine does one step at a time, so it will not guess. Connect the model (Settings → Architect console), or split it: add service named "Payments" · add database named "Payments DB" · connect GW1 to SVC3 · connect SVC3 to DB2.','s');return}
   if(/kafka|event bus|\bmsk\b|messaging/.test(l)&&/service|async|event/.test(l)&&handleUse(l,ids))return;
   const t=typeOf(l.replace(/\b(between|after|before|to|from|named|called)\b.*$/,''));if(!t){say('Which kind of component? e.g. add cache, add kafka, add saas, add egress gateway, add container registry.','s');return}
   const nm=(c.match(/(?:named|called)\s+["“]?([^"”]+)["”]?/i)||c.match(/["“]([^"”]+)["”]/)||[])[1];
   const id=nextId(t),A=ids[0],B=ids[1],fl=flavorOf(l);
   act(`Add ${id} (${t==='queue'?pk().q[fl]:T[t].label})${/between/.test(l)&&B?` between ${A} and ${B}`:A?(/after|from|behind/.test(l)?` after ${A}`:` before ${A}`):''}`,()=>{
    const n=addNode(t,nm);if(t==='queue')n.flavor=fl;
-   if(/between/.test(l)&&B){removeEdge(A,B);const a=S.nodes[A],b=S.nodes[B];n.parent=a.parent;n.x=(a.x+b.x)/2;n.y=(a.y+b.y)/2+(t==='cache'?-120:100);connect(A,n.id);connect(n.id,B)}
+   if(/between/.test(l)&&B){const a=S.nodes[A],b=S.nodes[B];n.parent=a.parent;n.x=(a.x+b.x)/2;n.y=(a.y+b.y)/2+(t==='cache'?-120:100);if(canConnect(n,b).ok){removeEdge(A,B);connect(A,n.id);connect(n.id,B)}else{connect(A,n.id)}}
    else if(/after|from|behind/.test(l)&&A){n.parent=S.nodes[A].parent;connect(A,n.id)}
    else if(/\bto\b|before|in front/.test(l)&&A){n.parent=S.nodes[A].parent;connect(n.id,A)}
-  },{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id}});return}
+  },{tradeoffs:[...(T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:[]),...(/between/.test(l)&&B&&!canConnect({type:t},S.nodes[B]).ok?[`Placed as ${t==='cache'?'cache-aside':'a side component'}: ${A} talks to both ${id} and ${B}, because a ${T[t].label.toLowerCase()} cannot call a ${T[S.nodes[B].type].label.toLowerCase()}`]:[])],after:()=>{V.sel=id}});return}
  if(ids.length&&/faster|slow|scale|bottleneck|perform|capacity|overload|throughput|latency|hot|busy/.test(l)){focusNode(ids[0]);say(`Scaling and protection options for ${ids[0]} "${S.nodes[ids[0]].name}" are in the Inspector.`,'s');return}
+ if(!opt.noModel&&S.settings.engine!=='rules')return visionOrModel(c,l);
  if(handleUse(l,ids))return;
  logAI('Console intent parser',`Could not resolve "${c.slice(0,50)}"`,'No intent pattern matched; with LLM escalation on, free-form requests go to the LLM',.2);
- const sg=suggest(l);say(`I did not catch that.${sg.length?' Did you mean:\n  '+sg.join('\n  '):' Type "help" for examples.'}`,'s');
+ const sg=suggest(l);say(`I did not catch that.${sg.length?' Did you mean:\n  '+sg.join('\n  '):' Type "help" for examples.'}${S.settings.engine==='rules'||Date.now()-MODEL.failedAt<60000?' Free-form requests need the model: Settings → Architect console.':''}`,'s');
 }
 $('#conForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#conIn').value;$('#conIn').value='';run(v)});
 $('#discBtn').onclick=()=>{startDisc();$('#conIn').focus()};
@@ -1702,8 +1837,9 @@ function saveVersion(note){
 $('#saveBtn').onclick=()=>saveVersion('');
 
 /* ---------- header ---------- */
-function setMult(x){S.mult=Math.max(.25,Math.min(5,x));changed()}
-$('#mult').oninput=e=>{S.mult=+e.target.value;changed()};
+function setMult(x){S.mult=Math.max(.25,Math.min(1000,x));changed()}
+const fmtMult=m=>m>=10?Math.round(m).toLocaleString('en-US')+'×':(+m.toFixed(2))+'×';
+$('#mult').oninput=e=>{const v=10**+e.target.value;S.mult=v>=10?Math.round(v):+v.toFixed(2);changed()};
 $('#projName').onchange=e=>{pushUndo('Rename project');S.project=e.target.value||'Untitled';changed()};
 $('#deploy').onchange=e=>{pushUndo(`Deploy → ${e.target.value}`);S.deploy=e.target.value;say(`Deployment: ${e.target.selectedOptions[0].text}. Component names, zones and IaC now follow the ${pk().name} pack.`,'s');changed()};
 $('#viewSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;V.mode=b.dataset.v;$('#viewSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));particles=[];fit()});
@@ -1714,11 +1850,246 @@ $('#modelsBtn').onclick=()=>{$('#mGuard').value=S.settings.guard||'enforce';$('#
 $('#mClose').onclick=()=>{S.settings={...S.settings,guard:$('#mGuard').value,slm:$('#mSlm').selectedIndex,ml:$('#mMl').selectedIndex,llm:$('#mLlm').value};$('#modal').hidden=true;logAI('Settings','Configuration changed',`Guard ${S.settings.guard}; SLM ${$('#mSlm').value}; ML ${$('#mMl').value}; LLM ${$('#mLlm').value}`,1);changed()};
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#mClose').click()});
 
+
+/* ---------- cost model (list-price estimates, editable in Settings) ---------- */
+const PRICE_BASE={cdn:{inst:0,perM:.85},waf:{inst:5,perM:.6},lb:{inst:18,perM:.25},egw:{inst:320,perM:.04},gw:{inst:0,perM:1},idp:{inst:55,perM:0},svc:{inst:36,perM:0},vm:{inst:70,perM:0},fn:{inst:0,perM:2.2},queue:{inst:150,perM:.4},cache:{inst:160,perM:0},db:{inst:380,perM:0},obj:{inst:0,perM:.4},reg:{inst:10,perM:0},art:{inst:5,perM:0},kms:{inst:3,perM:0},sec:{inst:2,perM:0},mon:{inst:60,perM:0}};
+const PRICE_MULT={aws:1,azure:1.06,gcp:.97,vmware:.8};
+const TIER_COST={s:.5,m:1,l:2,xl:4,xxl:8};
+const SEC_MONTH=2.628e6;
+function price(t){const o=(S.settings.price||{})[t];if(o)return {inst:+o.inst||0,perM:+o.perM||0,custom:true};const b=PRICE_BASE[t]||{inst:0,perM:0},m=PRICE_MULT[prov()];return {inst:b.inst*m,perM:b.perM*m}}
+function costOf(n){
+ if(EXTERNAL.includes(n.type)||['part','api','adp'].includes(n.type))return 0;
+ const p=price(n.type),f=F[n.id]||{in:0,served:0};let inst;
+ if(n.type==='db')inst=instCount(n)*p.inst*(TIER_COST[n.tier]||1);
+ else if(n.type==='queue')inst=n.flavor==='native'?0:(n.brokers||1)*p.inst*(n.flavor==='mq'?1.5:1);
+ else inst=instCount(n)*p.inst;
+ return inst+p.perM*(f.served||0)*SEC_MONTH/1e6;
+}
+const totalCost=()=>Object.values(S.nodes).reduce((a,n)=>a+costOf(n),0);
+const totalInst=()=>Object.values(S.nodes).filter(n=>n.parent==='root'&&!EXTERNAL.includes(n.type)).reduce((a,n)=>a+instCount(n),0);
+let SAFE=null;
+// Highest load multiplier at which every component stays under 85% with autoscaling free to reach its maximum.
+function safeLimit(){
+ const keep=S.mult,simOn=SIM.on;SIM.on=false;
+ const ok=m=>{S.mult=m;simulate();return KPI.err<.001&&kids('root').every(n=>EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||!F[n.id]||F[n.id].util<.85)};
+ let res;
+ if(!ok(.01))res={m:0};else if(ok(2000))res={m:Infinity};
+ else{let lo=.01,hi=2000;for(let i=0;i<28;i++){const mid=Math.sqrt(lo*hi);if(ok(mid))lo=mid;else hi=mid}
+  ok(hi);const by=kids('root').filter(n=>!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)&&F[n.id]).sort((a,b)=>F[b.id].util-F[a.id].util)[0];res={m:lo,by:by&&by.id}}
+ S.mult=keep;SIM.on=simOn;simulate();return res;
+}
+
+/* ---------- demand player: autoscaling over time, with scale-out lag and scale-in cool-down ---------- */
+const PROFILES={
+ ramp:{steps:120,dt:2,label:'4 h',shape:t=>t<.3?t/.3:t<.5?1:t<.8?1-(t-.5)/.3:0},
+ daily:{steps:144,dt:10,label:'24 h',shape:t=>{const h=t*24;return Math.min(1,.05+.95*Math.exp(-(((h-11)/2.6)**2))+.7*Math.exp(-(((h-20)/1.8)**2)))}},
+ spike:{steps:120,dt:1,label:'2 h',shape:t=>t>=.3&&t<.4?1:0},
+ steady:{steps:90,dt:2,label:'3 h',shape:()=>1}
+};
+const hhmm=m=>`${String(Math.floor(m/60)).padStart(2,'0')}:${String(Math.round(m%60)).padStart(2,'0')}`;
+function simStart(){
+ if(SIM.on)return simStop(false);
+ SIM.profile=$('#dProf').value;SIM.peak=Math.max(1,Math.min(1000,+$('#dPeak').value||10));
+ Object.assign(SIM,{on:true,i:0,t:0,cur:{},pend:{},hist:[],events:[],cost:0,outs:0,ins:0,saved:S.mult});
+ $('#dPlay').textContent='■ Stop';$('#demTag').textContent=`running · ${PROFILES[SIM.profile].label}`;
+ logAI('ML forecast',`Demand profile "${SIM.profile}" to ${fmtMult(SIM.peak)}`,'Synthetic profile; autoscaler uses the policy in Settings (target utilization, scale-out delay, scale-in cool-down)',.8);
+ SIM.timer=setInterval(simTick,reduce.matches?40:170);
+}
+function simStop(done){
+ clearInterval(SIM.timer);SIM.on=false;S.mult=SIM.saved;$('#dPlay').textContent='▶ Run';
+ const h=SIM.hist;if(done&&h.length){const a=S.settings.autoscale,peakI=Math.max(...h.map(x=>x.inst)),bad=h.filter(x=>x.err>.005).length;
+  $('#demTag').textContent='finished';
+  ENG='simulation';say(`Demand run finished (${PROFILES[SIM.profile].label}, peak ${fmtMult(SIM.peak)} = ${fmt(Math.max(...h.map(x=>x.rps)))} rps). Instances ${h[0].inst} → ${peakI} → ${h[h.length-1].inst}; ${SIM.outs} scale-outs, ${SIM.ins} scale-ins (back to the minimum of ${a.min} after ${a.inCool} min of low demand). Cost for the run ≈$${fmt(SIM.cost)}. ${bad?(()=>{const cnt={};h.forEach(x=>{if(x.by)cnt[x.by]=(cnt[x.by]||0)+1});const top=Object.entries(cnt).sort((p,q)=>q[1]-p[1]).slice(0,3).map(([id,k])=>{const n=S.nodes[id],au=n&&isFinite(T[n.type].cap)?autoOf(n):null;return `${id} in ${k} (${!n?'removed':au?(SIM.hist.length&&Math.max(...h.map(()=>0))>=0&&'autoscaled; limited by max '+au.max+' or the '+a.outDelay+' min scale-out delay'):n.type==='db'?'database: not autoscaled, scale it by decision':'not autoscaled'})`});return `Errors in ${bad} of ${h.length} intervals, caused by ${top.join('; ')}.`})():'No errors.'}`,'s');ENG=null}
+ else $('#demTag').textContent='steady state';
+ changed();renderDem();
+}
+function simTick(){
+ const P=PROFILES[SIM.profile];if(SIM.i>=P.steps)return simStop(true);
+ const tt=SIM.i/(P.steps-1);SIM.t=SIM.i*P.dt;S.mult=+(.2+(SIM.peak-.2)*P.shape(tt)).toFixed(3);
+ simulate();
+ const costH=totalCost()/730;SIM.cost+=costH*P.dt/60;
+ SIM.hist.push({t:SIM.t,mult:S.mult,rps:KPI.offered,inst:totalInst(),costH,err:KPI.err,by:KPI.err>.005&&KPI.worst?KPI.worst.id:null});
+ const a=S.settings.autoscale;
+ Object.values(S.nodes).forEach(n=>{const au=isFinite(T[n.type].cap)?autoOf(n):null,f=F[n.id];if(!au||!f||f.desired==null)return;
+  const d=f.desired,c=SIM.cur[n.id]??au.min,p=SIM.pend[n.id];
+  if(d>c){if(!p||p.dir<0)SIM.pend[n.id]={dir:1,since:SIM.t};if(SIM.t+P.dt-(SIM.pend[n.id].since)>=Math.max(P.dt,+a.outDelay||0)){SIM.cur[n.id]=d;delete SIM.pend[n.id];SIM.outs++;SIM.events.push({t:SIM.t,id:n.id,from:c,to:d})}}
+  else if(d<c){if(!p||p.dir>0)SIM.pend[n.id]={dir:-1,since:SIM.t};if(SIM.t+P.dt-(SIM.pend[n.id].since)>=Math.max(P.dt,+a.inCool||1)){const to=Math.max(au.min,d);SIM.cur[n.id]=to;delete SIM.pend[n.id];SIM.ins++;SIM.events.push({t:SIM.t,id:n.id,from:c,to})}}
+  else delete SIM.pend[n.id]});
+ SIM.i++;renderKPI(true);renderDem();
+ if(SIM.i%6===0){renderTree()}
+}
+let demHover=null;
+function renderDem(){
+ const h=SIM.hist,box=$('#demCharts'),a=S.settings.autoscale;
+ const last=h[h.length-1];
+ const stat=(l,v,c='')=>`<span><b>${l}</b><span class="${c}">${v}</span></span>`;
+ if(!h.length){
+  $('#demStats').innerHTML=stat('Demand now',`${fmt(KPI.offered)} rps`)+stat('Instances',`${fmt(totalInst())}`)+stat('Cost est.',`$${fmt(totalCost())}/mo`)+stat('Safe up to',SAFE?(SAFE.m===Infinity?'≥2,000×':fmtMult(SAFE.m)):'—');
+  box.innerHTML=`<p class="why" style="margin:4px 0 0">Pick a profile and a peak (up to 1,000×), then Run. Components start at the policy minimum (${a.min}), scale out ${a.outDelay} min after demand passes ${a.target}% utilization, and scale back in to the minimum after ${a.inCool} min of low demand. Change the policy in Settings.</p>`;return}
+ const P=PROFILES[SIM.profile],N=P.steps,i0=demHover??h.length-1,pt=h[Math.min(i0,h.length-1)];
+ $('#demStats').innerHTML=stat(demHover!=null?'Demand at '+hhmm(pt.t):'Demand now',`${fmt(pt.rps)} rps`)+stat('Instances',`${fmt(pt.inst)}`)+stat('Cost',`$${fmt(pt.costH)}/h`)+stat(SIM.on?'Run so far':'Run total',`$${fmt(SIM.cost)}`)+stat('Scale-outs',`${SIM.outs}`)+stat('Scale-ins',`${SIM.ins}`)+stat('Errors',`${(pt.err*100).toFixed(1)}%`,pt.err>.05?'crit':pt.err>.005?'warn':'ok')+stat('Elapsed',hhmm(last.t));
+ const Wd=420,Hd=46,x=i=>i/(N-1)*Wd;
+ const chart=(key,title,fmtv,opt={})=>{const vals=h.map(r=>r[key]),max=Math.max(1,...vals,opt.ref||0)*1.12,y=v=>Hd-(v/max)*Hd;
+  let d='';if(opt.step){h.forEach((r,i)=>{d+=(i?`H${x(i).toFixed(1)}V${y(r[key]).toFixed(1)}`:`M0 ${y(r[key]).toFixed(1)}`)})}else d=h.map((r,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(r[key]).toFixed(1)}`).join('');
+  const area=opt.area?`<path d="${d}L${x(h.length-1).toFixed(1)} ${Hd}L0 ${Hd}Z" fill="var(--accent)" opacity=".12"/>`:'';
+  const errs=opt.errs?h.map((r,i)=>r.err>.005?`<rect x="${(x(i)-1).toFixed(1)}" y="${Hd-3}" width="3" height="3" fill="var(--crit)"/>`:'').join(''):'';
+  const ref=opt.ref?`<line x1="0" x2="${Wd}" y1="${y(opt.ref)}" y2="${y(opt.ref)}" stroke="var(--muted)" stroke-dasharray="3 3" stroke-width="1"/><text x="${Wd-2}" y="${y(opt.ref)-3}" text-anchor="end">min ${opt.ref}</text>`:'';
+  const hv=demHover!=null&&demHover<h.length?`<line x1="${x(demHover)}" x2="${x(demHover)}" y1="0" y2="${Hd}" stroke="var(--ink)" stroke-width="1" opacity=".5"/><circle cx="${x(demHover)}" cy="${y(h[demHover][key])}" r="3.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`:`<circle cx="${x(h.length-1)}" cy="${y(vals[vals.length-1])}" r="3.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`;
+  return `<svg viewBox="-2 -16 ${Wd+4} ${Hd+20}" role="img" aria-label="${title} over time"><text x="0" y="-5">${title}</text><text class="v" x="${Wd}" y="-5" text-anchor="end">${fmtv(pt[key])}</text><line x1="0" x2="${Wd}" y1="${Hd}" y2="${Hd}" stroke="var(--line)"/>${area}${ref}<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>${errs}${hv}</svg>`};
+ box.innerHTML=chart('rps','Demand (rps) · red ticks = errors',v=>fmt(v)+' rps',{area:1,errs:1})+chart('inst','Instances (all components)',v=>fmt(v),{step:1,ref:totalMin()})+chart('costH','Cost ($ per hour)',v=>'$'+fmt(v))+`<div style="display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:9.5px;color:var(--muted)"><span>00:00</span><span>${hhmm((N-1)*P.dt)}</span></div>`;
+}
+function totalMin(){const keep=SIM.on;return kids('root').filter(n=>!EXTERNAL.includes(n.type)).reduce((a,n)=>{const au=isFinite(T[n.type].cap)?autoOf(n):null;return a+(au?au.min:instCount(n))},0)}
+$('#demCharts').addEventListener('pointermove',e=>{if(!SIM.hist.length)return;const svg=e.currentTarget.querySelector('svg');if(!svg)return;const r=svg.getBoundingClientRect(),N=PROFILES[SIM.profile].steps;const i=Math.round((e.clientX-r.left)/r.width*(N-1));demHover=Math.max(0,Math.min(SIM.hist.length-1,i));renderDem()});
+$('#demCharts').addEventListener('pointerleave',()=>{demHover=null;renderDem()});
+$('#dPlay').onclick=simStart;
+$('#dReset').onclick=()=>{if(SIM.on)simStop(false);SIM.hist=[];SIM.cost=0;SIM.outs=0;SIM.ins=0;demHover=null;$('#demTag').textContent='steady state';renderDem()};
+
+/* ---------- settings dialog ---------- */
+function renderPriceTable(){
+ const types=[...new Set(Object.values(S.nodes).map(n=>n.type))].filter(t=>PRICE_BASE[t]);
+ $('#pNote').textContent=`Monthly list-price estimates in USD for ${pk().name}, per instance plus per million requests. Override any line with your negotiated or internal rates. Not a quote.`;
+ $('#priceTable').innerHTML=`<tr><th>Component</th><th>${esc(pk().name)} service</th><th>$ / instance / month</th><th>$ / million requests</th></tr>`+types.map(t=>{const p=price(t);return `<tr><td>${esc(T[t].label)}</td><td>${esc(pk().svc[t]||'')}</td><td><input data-pt="${t}" data-pk="inst" type="number" min="0" step="1" value="${+p.inst.toFixed(2)}"></td><td><input data-pt="${t}" data-pk="perM" type="number" min="0" step=".05" value="${+p.perM.toFixed(2)}"></td></tr>`}).join('');
+}
+$('#modelsBtn').onclick=()=>{const st=S.settings,a=st.autoscale;$('#uName').value=who().name;$('#eBase').value=(st.escalation||{}).base||'';$('#eModel').value=(st.escalation||{}).model||'';$('#eKey').value=(st.escalation||{}).key||'';
+ $('#mGuard').value=st.guard||'enforce';$('#mSlm').selectedIndex=st.slm;$('#mMl').selectedIndex=st.ml;$('#mLlm').value=st.llm;
+ $('#mEngine').value=st.engine;$('#mBase').value=st.llmApi.base;$('#mModel').value=st.llmApi.model;$('#mKey').value=st.llmApi.key||'';$('#mStatus').textContent='';
+ $('#aOn').checked=!!a.on;$('#aMin').value=a.min;$('#aMax').value=a.max;$('#aTgt').value=a.target;$('#aOut').value=a.outDelay;$('#aIn').value=a.inCool;
+ renderPriceTable();$('#modal').hidden=false};
+$('#pReset').onclick=()=>{S.settings.price={};renderPriceTable()};
+$('#mTest').onclick=async()=>{const base=$('#mBase').value.trim()||'/llm/v1',key=$('#mKey').value;$('#mStatus').textContent='Testing…';
+ try{const r=await fetch(base.replace(/\/$/,'')+'/models',{headers:key?{Authorization:'Bearer '+key}:{}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();const ids=(j.data||j.models||[]).map(m=>m.id||m.name).filter(Boolean);
+  $('#mModels').innerHTML=ids.map(i=>`<option value="${esc(i)}">`).join('');$('#mStatus').innerHTML=`<span class="ok">Connected.</span> ${ids.length} model${ids.length===1?'':'s'}: ${esc(ids.slice(0,6).join(', '))}${ids.length>6?'…':''}`;if(ids.length&&!ids.includes($('#mModel').value))$('#mModel').value=ids[0]}
+ catch(e){$('#mStatus').innerHTML=`<span class="crit">Not reachable</span> (${esc(e.message)}). From Buddy, check that the model server is running and that NEXUS_LLM_UPSTREAM in deploy/compose.yml points to it. This page cannot reach it when opened from claude.ai.`}};
+$('#mClose').onclick=()=>{const st=S.settings;
+ st.guard=$('#mGuard').value;st.slm=$('#mSlm').selectedIndex;st.ml=$('#mMl').selectedIndex;st.llm=$('#mLlm').value;
+ st.engine=$('#mEngine').value;st.llmApi={base:$('#mBase').value.trim()||'/llm/v1',model:$('#mModel').value.trim()||'qwen2.5:3b-instruct',key:$('#mKey').value};
+ const mn=Math.max(1,+$('#aMin').value||1);st.autoscale={on:$('#aOn').checked,min:mn,max:Math.max(mn,+$('#aMax').value||mn),target:Math.min(95,Math.max(20,+$('#aTgt').value||60)),outDelay:Math.max(0,+$('#aOut').value||0),inCool:Math.max(1,+$('#aIn').value||10)};
+ document.querySelectorAll('#priceTable input').forEach(i=>{const t=i.dataset.pt,k=i.dataset.pk;const base=PRICE_BASE[t],m=PRICE_MULT[prov()];const def=+(base[k]*m).toFixed(2);if(+i.value!==def||(st.price[t])){st.price[t]=st.price[t]||{inst:+(base.inst*m).toFixed(2),perM:+(base.perM*m).toFixed(2)};st.price[t][k]=+i.value}});
+ st.user={...(st.user||{}),name:$('#uName').value.trim()||'You',role:who().role};st.escalation={base:$('#eBase').value.trim(),model:$('#eModel').value.trim()||'claude-opus-5-5',key:$('#eKey').value};
+ MODEL.failedAt=0;
+ $('#modal').hidden=true;logAI('Settings','Configuration changed',`Console ${st.engine} (${st.llmApi.model} at ${st.llmApi.base}); autoscale ${st.autoscale.on?`${st.autoscale.min}–${st.autoscale.max} at ${st.autoscale.target}%`:'off'}; guard ${st.guard}`,1);changed()};
+
+/* ---------- architect console: description reader (rules) and model planner ---------- */
+const DOMAINS=['orders','payments','catalog','inventory','accounts','profiles','notifications','search','billing','shipping','claims','policies','appointments','bookings','reservations','products','checkout','cart','reporting','analytics','messaging','documents','tickets','loans','transfers','enrolment','enrollment','courses','patients','prescriptions','listings','reviews','subscriptions','rewards','fulfilment','fulfillment'];
+const SAAS_KNOWN={stripe:'Stripe',paypal:'PayPal',adyen:'Adyen',salesforce:'Salesforce',hubspot:'HubSpot',twilio:'Twilio',sendgrid:'SendGrid',mailgun:'Mailgun',servicenow:'ServiceNow',workday:'Workday',zendesk:'Zendesk',docusign:'DocuSign',shopify:'Shopify',sap:'SAP',segment:'Segment',algolia:'Algolia',auth0:'Auth0'};
+function isVision(l){const w=l.split(/\s+/).length;return w>=7&&/\b(design|build|create|need|want|platform|system|portal|app|application|website|solution|architecture|marketplace|service for)\b/.test(l)&&/\b(users?|customers?|employees?|staff|patients?|rps|tps|requests?|aws|azure|gcp|google cloud|cloud|on.?prem|data ?cent|data|payments?|pii|traffic|global|million|\d+k?)\b/.test(l)}
+function toNum(m){let n=parseFloat(String(m[1]).replace(/,/g,''));const u=(m[2]||'').toLowerCase();if(u==='k'||u==='thousand')n*=1e3;if(u==='m'||u==='million')n*=1e6;return n}
+function parseVision(c){
+ const l=c.toLowerCase(),d={who:'Users',mix:'mixed',saas:[],services:[]},notes=[];let m;
+ if(m=l.match(/([\d.,]+)\s*(k|m|million|thousand)?\s*(?:peak\s*)?(rps|tps|req\/s|requests? (?:per|\/|a) ?(?:second|sec)|transactions? (?:per|a) second)/)){d.rps=Math.round(toNum(m));notes.push(`Load: ${fmt(d.rps)} requests/s at peak (as stated).`)}
+ else if(m=l.match(/([\d.,]+)\s*(k|m|million|thousand)?\s*(daily |monthly |active |concurrent |registered )?(users|customers|members|employees|agents|patients|students|subscribers|visitors|shoppers|drivers|merchants)/)){const n=toNum(m),conc=/concurrent/.test(m[3]||'');d.rps=Math.max(20,Math.round(conc?n*.5:n*.02));d.who=m[4];notes.push(`Load: ${fmt(n)} ${m[3]||''}${m[4]} → about ${fmt(d.rps)} requests/s at peak (assumes ${conc?'half of concurrent users send one request a second':'2% are active at peak, one request a second each'}). Correct it with "load N".`)}
+ else{d.rps=1000;notes.push('Load: none given, so I assumed 1,000 requests/s at peak. Correct it with "load N".')}
+ if(d.who==='Users'&&(m=l.match(/\b(customers|employees|staff|patients|students|members|agents|partners|citizens|shoppers|drivers|merchants)\b/)))d.who=m[1];
+ d.where=/\baws\b|amazon web/.test(l)?'aws':/azure|microsoft cloud/.test(l)?'azure':/\bgcp\b|google cloud/.test(l)?'gcp':/hybrid/.test(l)?'hybrid':/on.?prem|data ?cent|vmware|our own servers/.test(l)?'vmware':/\blocal\b|laptop/.test(l)?'local':S.deploy;
+ notes.push(`Platform: ${({aws:'AWS',azure:'Azure',gcp:'GCP',vmware:'datacenter (active/passive)',hybrid:'hybrid cloud',local:'local'})[d.where]||d.where}${/\baws\b|azure|gcp|google|hybrid|prem|data ?cent|vmware|local/.test(l)?'':' (not stated, kept the current target)'}.`);
+ d.pii=/\bpii\b|personal|patient|health|medical|payment|card|pci|gdpr|financial|bank|kyc|identity data|salary|payroll/.test(l);if(d.pii)notes.push('Data: personal or regulated, so databases are marked PII and encrypted with customer-managed keys (GT4).');
+ d.mix=/read.heavy|mostly read|browse|catalog|content|news|media|search|portal|dashboard/.test(l)?'read':/write.heavy|mostly write|ingest|telemetry|iot|sensor|clickstream|logging|tracking/.test(l)?'write':'mixed';notes.push(`Workload: ${d.mix==='read'?'read-heavy':d.mix==='write'?'write-heavy':'mixed reads and writes'}.`);
+ d.events=/kafka|event|stream|async|message|queue|notification|pub.?sub|decoupl/.test(l);if(d.events)notes.push('Integration: asynchronous events, so an event bus is added between services.');
+ d.files=/upload|file|document|image|photo|video|media|attachment|pdf|receipt/.test(l);if(d.files)notes.push('Files: an object store for uploads and media.');
+ d.cdn=/global|worldwide|international|static|\bcdn\b|video|images/.test(l);if(d.cdn)notes.push('Reach: global or media-heavy, so a CDN fronts the WAF.');
+ Object.keys(SAAS_KNOWN).forEach(k=>{if(new RegExp('\\b'+k+'\\b').test(l))d.saas.push(SAAS_KNOWN[k])});
+ if(!d.saas.length&&/\bpayments?\b/.test(l)&&!/payments? service/.test(l))d.saas.push('Payment provider');
+ if(d.saas.length)notes.push(`Third parties: ${d.saas.join(', ')} (private connectivity where offered, GT5).`);
+ d.fed=/employee|staff|workforce|internal|entra|okta|azure ad|active directory|adfs|\bsso\b|single sign/.test(l);d.fedIdp=(l.match(/entra id|entra|okta|adfs|ping|google workspace/)||['Entra ID'])[0].replace(/^\w/,x=>x.toUpperCase());d.workforce=d.fed&&!/customer|public|citizen|patient|shopper|member/.test(l);
+ if(d.fed)notes.push(`Identity: ${d.workforce?'employees':'customers plus staff'} sign in through ${d.fedIdp} (federation).`);
+ if(m=l.match(/services?\s*(?:for|:|like|such as|including)\s*([a-z ,&-]+?)(?:\.|;|$| on | with | using )/))d.services=m[1].split(/,|\band\b|&/).map(x=>x.trim()).filter(x=>x&&x.length<24).slice(0,5);
+ if(!d.services.length)d.services=DOMAINS.filter(w=>new RegExp('\\b'+w+'\\b').test(l)).slice(0,5);
+ notes.push(d.services.length?`Services: ${d.services.join(', ')}, each owning its own database (P8).`:'Services: none named, so one core service; name them to split ("services: orders, payments").');
+ if(m=c.match(/(?:called|named)\s+["“']?([A-Za-z0-9][\w\s-]{2,30}?)["”']?(?:[,.]|\s+(?:for|on|with|that)\b|$)/i))d.name=m[1].trim();
+ else if(m=l.match(/\b(?:a|an)\s+((?:[a-z-]+\s){0,2}(?:portal|platform|app|application|website|marketplace|system|service))\b/))d.name=m[1].replace(/\b\w/g,x=>x.toUpperCase());
+ return {d,notes};
+}
+function describeAction(a){switch(a.op){case 'baseline':return `draft a baseline: ${a.services&&a.services.length?a.services.join(', '):'core'} service(s), ${fmt(a.rps)} rps on ${a.where}`;case 'add':return `add ${a.type}${a.flavor?' ('+a.flavor+')':''} "${a.name||''}"${a.ref?' as '+a.ref:''}`;case 'connect':return `connect ${a.from} → ${a.to}${a.via&&a.via!=='net'?' via '+a.via:''}`;case 'disconnect':return `disconnect ${a.from} → ${a.to}`;case 'remove':return `remove ${a.id}`;case 'set':return `set ${a.id}.${a.field} = ${JSON.stringify(a.value)}`;case 'deps':return 'add platform dependencies';case 'whatif':return `what-if load ${a.mult}×`;case 'deploy':return `deploy to ${a.target}`;default:return JSON.stringify(a)}}
+const SETTABLE=['name','rep','cap','rateLimit','readReplicas','shards','tier','partitions','consumers','brokers','consumerRate','flavor','idpMode','audience','fedIdp','rps','rw','standby','pl','pkey','auto','sizeGB'];
+function coerce(f,v){if(f==='auto'){if(v==null||v===false||v==='off')return null;if(typeof v==='object')return {min:Math.max(1,+v.min||1),max:Math.max(+v.min||1,+v.max||1)};const m=String(v).match(/(\d+)\D+(\d+)/);return m?{min:+m[1],max:+m[2]}:null}
+ if(['name','flavor','idpMode','audience','fedIdp','tier','pkey'].includes(f))return String(v).slice(0,40);if(['standby','pl'].includes(f))return !!v&&v!=='false';if(f==='rw')return Math.min(1,Math.max(0,+v>1?+v/100:+v));return Math.max(0,+v||0)}
+function planRunner(plan){
+ const acts=(Array.isArray(plan.actions)?plan.actions:[]).filter(a=>a&&typeof a==='object').slice(0,40),rejected=[];
+ const fn=()=>{rejected.length=0;const ref={};const rid=x=>{if(x==null)return null;const k=String(x);if(ref[k])return ref[k];const u=k.toUpperCase();return S.nodes[u]?u:null};
+  acts.forEach((a,i)=>{try{switch(a.op){
+   case 'baseline':buildBaselineCore(a);break;
+   case 'add':{const t=T[a.type]?a.type:typeOf(String(a.type||'').toLowerCase());if(!t)throw new Error(`unknown type "${a.type}"`);const n=addNode(t,String(a.name||T[t].label).slice(0,40),a.parent&&rid(a.parent)?rid(a.parent):V.scope);if(t==='queue')n.flavor=['kafka','mq','native'].includes(a.flavor)?a.flavor:flavorOf(String(a.flavor||a.name||''));if(a.ref)ref[a.ref]=n.id;break}
+   case 'connect':{const f=rid(a.from),t=rid(a.to);if(!f||!t)throw new Error(`unknown component ${!f?a.from:a.to}`);if(!connect(f,t,PROTOS.includes(a.proto)?a.proto:null,VIAS.includes(a.via)?a.via:null))throw new Error(`${f} and ${t} are not in the same view`);break}
+   case 'disconnect':{const f=rid(a.from),t=rid(a.to);if(!f||!t)throw new Error('unknown component');removeEdge(f,t);break}
+   case 'remove':{const id=rid(a.id);if(!id)throw new Error(`unknown component ${a.id}`);removeNode(id);break}
+   case 'set':{const id=rid(a.id);if(!id)throw new Error(`unknown component ${a.id}`);if(!SETTABLE.includes(a.field))throw new Error(`"${a.field}" cannot be set`);S.nodes[id][a.field]=coerce(a.field,a.value);if(a.field==='tier'&&TIERS[S.nodes[id].tier])S.nodes[id].cap=TIERS[S.nodes[id].tier].cap;break}
+   case 'deploy':if(!['aws','azure','gcp','vmware','hybrid','local'].includes(a.target))throw new Error(`unknown target ${a.target}`);S.deploy=a.target;break;
+   case 'deps':addDeps(a.id&&rid(a.id)?[rid(a.id)]:null);break;
+   case 'whatif':break;
+   default:throw new Error(`unknown operation "${a.op}"`)}}catch(e){rejected.push(`step ${i+1} (${describeAction(a)}): ${e.message}`)}})};
+ return {fn,rejected,acts};
+}
+function applyPlan(plan,source,meta={}){
+ const {fn,rejected,acts}=planRunner(plan);
+ const design=acts.filter(a=>a.op!=='whatif'),wi=acts.find(a=>a.op==='whatif'&&+a.mult>0);
+ if(plan.reply)say(plan.reply,'s');
+ if(!acts.length){if(!plan.reply)say('No changes proposed.','s');return}
+ say(`Plan (${acts.length} step${acts.length>1?'s':''}):\n${acts.map((a,i)=>`  ${i+1}. ${describeAction(a)}`).join('\n')}`,'s');
+ if(design.length){
+  preview(fn);const skipped=rejected.slice();
+  if(skipped.length)say(`Skipped by validation:\n  ${skipped.join('\n  ')}`,'g');
+  const replaces=design.some(a=>a.op==='baseline');
+  act(`${replaces?'Replace the design with a baseline':'Apply a '+design.length+'-step plan'} (${source})`,fn,{tradeoffs:[...(meta.notes||[]).map(n=>'Assumption · '+n),...(replaces?['Replaces the current design. Undo (Ctrl+Z) brings it back.']:[]),...skipped.map(x=>'Skipped · '+x)],
+   adr:{title:`Console plan: ${String(meta.prompt||'').slice(0,60)}`,context:`Prompt: ${meta.prompt||''}\nEngine: ${source}`,decision:acts.map((a,i)=>`${i+1}. ${describeAction(a)}`).join('\n'),tradeoffs:(meta.notes||[]).join('\n')||'See Action Guard review.',basis:['Console']},
+   after:()=>{fit();if(wi)setMult(+wi.mult)}});
+ }else if(wi)setMult(+wi.mult);
+}
+function slmSystem(){
+ const ns=Object.values(S.nodes).filter(n=>n.parent===V.scope).map(n=>`${n.id} ${n.type}${n.type==='queue'?'/'+n.flavor:''} "${n.name}" zone=${zoneOf(n)}${instCount(n)>1?' x'+instCount(n):''}`).join('\n');
+ const fl=flowsIn(V.scope).map(e=>`${e.from}->${e.to} ${e.proto}${e.via!=='net'?' via '+e.via:''}`).join('\n');
+ return `You are NEXUS, an expert systems architect. Turn the architect's request into a JSON change plan for the design below. Respond with one JSON object only, no prose outside it.
+Target platform: ${pk().name}. Current view: ${V.scope==='root'?'whole system':'inside '+V.scope}.
+Component types: user, saas, ext, cdn, waf, lb, egw (egress gateway), gw (API gateway), idp, svc (container service), vm, fn (function), queue (flavor kafka | mq | native), cache, db, obj (object storage), reg, art, kms, sec, mon.
+Rules: users enter through waf or cdn; waf -> lb or gw; gw -> svc, fn or idp, never gw -> db or cache; services call db, cache, queue, obj and other services; queues deliver to services; calls from inside to saas or ext use via "privatelink" or go through an egw; each service owns its own database; use TLS protocols only.
+Components:
+${ns||'(none)'}
+Flows:
+${fl||'(none)'}
+Output schema: {"reply": "one or two sentences for the architect", "actions": [ ... ]}. Allowed actions:
+{"op":"baseline","name":"...","rps":1000,"where":"aws|azure|gcp|vmware|hybrid","pii":true,"mix":"read|write|mixed","services":["orders","payments"],"saas":["Stripe"],"events":true,"files":false,"cdn":false,"fed":false,"fedIdp":"Entra ID","who":"customers"}   (only when asked to design a new system; it replaces the design)
+{"op":"add","ref":"n1","type":"svc","name":"Payments service","flavor":"kafka"}
+{"op":"connect","from":"GW1 or n1","to":"SVC1 or n1","proto":"HTTPS|mTLS|SQL/TLS|RESP/TLS|AMQPS|Kafka/TLS","via":"net|privatelink|vpn|dedicated|internet"}
+{"op":"disconnect","from":"A","to":"B"}  {"op":"remove","id":"X"}
+{"op":"set","id":"SVC1","field":"rep|auto|rateLimit|readReplicas|shards|tier|partitions|consumers|brokers|flavor|idpMode|fedIdp|audience|name|rps","value":3}
+{"op":"deps"}  {"op":"whatif","mult":3}  {"op":"deploy","target":"aws"}
+Use existing IDs exactly as listed. For a question, answer in "reply" and return "actions": [].
+Example: request "add a payments service behind the gateway with its own database" -> {"reply":"Adds SVC3 behind GW1 with its own database.","actions":[{"op":"add","ref":"p","type":"svc","name":"Payments service"},{"op":"add","ref":"pd","type":"db","name":"Payments DB"},{"op":"connect","from":"GW1","to":"p"},{"op":"connect","from":"p","to":"pd"}]}`;
+}
+function extractJSON(t){if(!t)return null;const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)return null;try{return JSON.parse(t.slice(a,b+1))}catch(e){return null}}
+async function askModel(text){
+ const L=S.settings.llmApi,t0=performance.now(),ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),90000);
+ try{const r=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},
+   body:JSON.stringify({model:L.model,temperature:.1,response_format:{type:'json_object'},messages:[{role:'system',content:slmSystem()},{role:'user',content:text}]})});
+  if(!r.ok)throw new Error('HTTP '+r.status+(r.status===404?' (no model server at '+L.base+')':''));
+  const j=await r.json(),content=j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'';
+  return {plan:extractJSON(content),raw:content,ms:performance.now()-t0}}
+ finally{clearTimeout(to)}
+}
+let modelBusy=false;
+async function visionOrModel(c,l,rulesOnly){
+ const eng=S.settings.engine,L=S.settings.llmApi;
+ if(!rulesOnly&&eng!=='rules'&&!modelBusy){
+  modelBusy=true;const wait=document.createElement('div');wait.className='s';wait.textContent=`… asking ${L.model} at ${L.base}`;out.appendChild(wait);out.scrollTop=out.scrollHeight;
+  try{const r=await askModel(c);wait.remove();ENG=`model · ${L.model} · ${(r.ms/1000).toFixed(1)} s`;
+   logAI(`Model ${L.model}`,`Console: "${c.slice(0,60)}"`,r.plan?`Returned ${(r.plan.actions||[]).length} action(s) in ${Math.round(r.ms)} ms`:`Unparseable answer in ${Math.round(r.ms)} ms: ${String(r.raw).slice(0,120)}`,r.plan?.75:.2);
+   if(r.plan){applyPlan(r.plan,ENG,{prompt:c});ENG=null;modelBusy=false;return}
+   say(`The model answered, but not with a valid plan: "${String(r.raw).slice(0,160)}". Falling back to rules.`,'g')}
+  catch(e){wait.remove();MODEL.failedAt=Date.now();ENG='rules';say(`Model not reachable (${e.name==='AbortError'?'timed out after 90 s':e.message}). ${eng==='slm'?'Check Settings → Architect console.':'Using rules instead; set up the model in Settings → Architect console.'}`,'g');if(eng==='slm'){modelBusy=false;ENG=null;return}}
+  modelBusy=false;
+ }
+ ENG='rules · description reader';
+ if(isVision(l)){const {d,notes}=parseVision(c);say(`Here is what I read:\n  • ${notes.join('\n  • ')}`,'s');applyPlan({actions:[{op:'baseline',...d}]},ENG,{prompt:c,notes});ENG=null;return}
+ ENG='rules';return run(c,{noModel:true,quiet:true});
+}
+
 /* ---------- render all ---------- */
-function renderKPI(){
+function renderKPI(fast){
+ if(!fast&&!SIM.on)SAFE=safeLimit();
  const e=KPI.err,ec=e>.05?'crit':e>.005?'warn':'ok',w=KPI.worst,wu=w?F[w.id].util:0;
  $('#kpis').innerHTML=`<span class="kpi"><b>Offered</b>${fmt(KPI.offered)} rps</span><span class="kpi"><b>Errors ≈</b><span class="${ec}">${(e*100).toFixed(1)}%</span></span>${KPI.thr>0?`<span class="kpi"><b>Throttled</b><span class="warn">${(KPI.thr*100).toFixed(1)}%</span></span>`:''}${KPI.lag>0?`<span class="kpi"><b>Queue lag</b><span class="warn">+${fmt(KPI.lag)}/s</span></span>`:''}<span class="kpi"><b>Latency est.</b>${fmt(KPI.lat)} ms</span><span class="kpi"><b>Bottleneck</b>${w?`<span class="${st(wu)}">${w.id} ${pct(wu)}</span>`:'—'}</span>`;
- $('#multV').textContent=(+S.mult.toFixed(2))+'×';
+  const inst=totalInst(),cost=totalCost(),sf=SAFE||{m:0};
+ $('#kpis').insertAdjacentHTML('beforeend',`<span class="kpi"><b>Instances</b>${fmt(inst)}</span><span class="kpi"><b>Cost est.</b>$${fmt(cost)}/mo</span><span class="kpi" title="Highest load multiplier at which every component stays under 85% with autoscaling at its maximum"><b>Safe up to</b><span class="${sf.m>=S.mult*1.6?'ok':sf.m>=S.mult?'warn':'crit'}">${sf.m===Infinity?'≥2,000×':fmtMult(sf.m)}</span>${sf.by?` <span style="color:var(--muted)">${sf.by}</span>`:''}</span>`);
+ $('#multV').textContent=fmtMult(S.mult);
 }
 function renderCode(){
  $('#iacTag').textContent='terraform · '+pk().name;
@@ -1726,14 +2097,34 @@ function renderCode(){
  $('#iacChecks').innerHTML=tfChecks().map(([n,ok])=>`<span class="chk ${ok?'ok':'crit'}">${ok?'✓':'✗'} ${n}</span>`).join('');
  $('#c4Code').innerHTML=hl(genC4(),'//');
 }
+function diffDesign(b,a){
+ const bn=b.nodes||{},an=a.nodes||{},be=(b.edges||[]).filter(isFlow),ae=(a.edges||[]).filter(isFlow),k=e=>e.from+'→'+e.to;
+ const added=Object.keys(an).filter(i=>!bn[i]),removed=Object.keys(bn).filter(i=>!an[i]),changed=[];
+ const F_=['name','type','rep','cap','auto','rateLimit','tier','readReplicas','shards','standby','flavor','partitions','consumers','brokers','idpMode','fedIdp','audience','rps','rw','pl','failed'];
+ Object.keys(an).filter(i=>bn[i]).forEach(i=>{const f=F_.filter(x=>JSON.stringify(bn[i][x])!==JSON.stringify(an[i][x]));if(f.length)changed.push(`${i}: ${f.map(x=>`${x} ${JSON.stringify(bn[i][x])??'–'} → ${JSON.stringify(an[i][x])??'–'}`).join(', ')}`)});
+ const bk=new Set(be.map(k)),ak=new Set(ae.map(k));
+ const fl=[...ae.filter(e=>!bk.has(k(e))).map(e=>'+ '+k(e)),...be.filter(e=>!ak.has(k(e))).map(e=>'− '+k(e))];
+ ae.forEach(e=>{const o=be.find(x=>k(x)===k(e));if(o&&(o.proto!==e.proto||o.via!==e.via))fl.push(`~ ${k(e)} ${o.proto}/${o.via} → ${e.proto}/${e.via}`)});
+ const other=[];if(b.deploy!==a.deploy)other.push(`deploy ${b.deploy} → ${a.deploy}`);if(b.project!==a.project)other.push(`project renamed`);
+ if(JSON.stringify(b.caps)!==JSON.stringify(a.caps))other.push('capabilities');if(JSON.stringify(b.ea)!==JSON.stringify(a.ea))other.push('EA principles');if(JSON.stringify(b.gt)!==JSON.stringify(a.gt))other.push('ground truth');
+ return {added,removed,changed,flows:fl,other};
+}
+function flushLedger(){
+ if(!LEDGER_PENDING)return;const p=LEDGER_PENDING;LEDGER_PENDING=null;
+ const b=JSON.parse(p.before),d=diffDesign(b,S);if(!d.added.length&&!d.removed.length&&!d.changed.length&&!d.flows.length&&!d.other.length)return;
+ S.history=S.history||[];const u=who();
+ S.history.push({id:'CH-'+String(S.history.length+1).padStart(4,'0'),at:new Date().toISOString(),who:u.name,role:u.role,desc:p.desc,verdict:p.verdict||null,adr:p.adr||null,diff:d,before:p.before});
+ S.history.slice(0,-30).forEach(h=>{h.before=null});
+}
 function changed(){
- simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();
- $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=S.mult;
+ flushLedger();
+ simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
+ $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=Math.log10(S.mult);
  persist();
 }
 
 /* ---------- boot ---------- */
-if(!load())seed();
+if(!load()){seed();ensureSettings()}
 resize();
 changed();
 placePanels(true);

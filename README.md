@@ -47,6 +47,8 @@ bash deploy/buddy.sh
 
 Prototype at `http://192.168.1.93:8088/`, LikeC4 at `http://192.168.1.93:8088/c4/`.
 
+The architect console calls the model server on Buddy at `/llm/v1` (nginx proxies it to `NEXUS_LLM_UPSTREAM`, default Ollama on port 11434). Ollama must listen on all interfaces for the container to reach it (`OLLAMA_HOST=0.0.0.0`).
+
 ## Versioning
 
 Semantic Versioning. `0.x` while the work packages in `docs/ROADMAP.md` are being

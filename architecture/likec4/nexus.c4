@@ -54,6 +54,9 @@ model {
   architect = actor 'Systems Architect' {
     description 'Designs, runs what-ifs, accepts or rejects agent changesets'
   }
+  lead = actor 'Lead architect' {
+    description 'Approves or rejects decisions and exceptions'
+  }
   reviewer = actor 'Reviewer / Stakeholder' {
     description 'Views shared designs and comments by component ID'
   }
@@ -85,6 +88,41 @@ model {
     orchestrator = agent 'Advisor orchestrator' {
       technology 'Python, MCP client'
       description 'Plans, calls tools, proposes changesets; never applies them'
+    }
+    harness = container 'Agent harness' {
+      technology 'Python, MCP client, eval suite'
+      description 'Runs every agent with tool permissions, budgets, traces and regression evals; nothing reaches the design without an approval gate'
+    }
+    experts = agent 'Domain expert agents' {
+      description 'Specialists consulted by the orchestrator; each cites its basis'
+      solution = agent 'Solution architect' {
+        description 'Decomposition, service boundaries, data ownership'
+      }
+      security = agent 'Security architect' {
+        description 'Zero trust, MITRE ATT&CK, ground-truth policies'
+      }
+      network = agent 'Network architect' {
+        description 'Perimeters, private connectivity, egress'
+      }
+      data = agent 'Data architect' {
+        description 'Database choice, replication, sharding, retention'
+      }
+      platform = agent 'Platform and cloud' {
+        description 'Provider packs, platform dependencies, technical constraints'
+      }
+      sre = agent 'Capacity and SRE' {
+        description 'Load, autoscaling, failure modes, SLOs'
+      }
+      finops = agent 'FinOps' {
+        description 'Cost model, cost per request, commitments'
+      }
+      compliance = agent 'Compliance' {
+        description 'Standards, regulations, evidence for audit'
+      }
+    }
+    workflow = container 'Review and approval service' {
+      technology 'FastAPI'
+      description 'Roles, changesets, ADR workflow, approvals, comments and the change ledger'
     }
     guardian = agent 'Action Guard' {
       technology 'Python, MCP client'
@@ -149,6 +187,7 @@ model {
   // people and clients
   architect -> nexus.web 'designs, asks in plain language'
   reviewer -> nexus.web 'views, comments'
+  lead -> nexus.web 'approves decisions'
   extAgent -[mcp]-> nexus.gateway 'calls NEXUS tools'
 
   // core
@@ -156,6 +195,16 @@ model {
   nexus.api -> nexus.db 'reads / appends events'
   nexus.api -> nexus.orchestrator 'console intents, review requests'
   nexus.api -> nexus.guardian 'every proposed change'
+  nexus.api -> nexus.workflow 'changesets, approvals'
+  nexus.workflow -> nexus.db 'ledger, ADRs, comments'
+  nexus.harness -> nexus.orchestrator 'runs with tool policy'
+  nexus.harness -> nexus.experts 'runs with tool policy'
+  nexus.orchestrator -> nexus.experts 'consults'
+  nexus.experts -> nexus.router 'reason, explain'
+  nexus.experts -[mcp]-> nexus.mcpGov 'evaluate'
+  nexus.experts -[mcp]-> nexus.mcpSim 'simulate'
+  nexus.experts -[mcp]-> nexus.mcpProv 'provider facts'
+  nexus.guardian -> nexus.router 'second opinion on escalation model'
   nexus.orchestrator -> nexus.guardian 'changesets for review'
   nexus.guardian -[mcp]-> nexus.mcpModel 'dry-run changeset'
   nexus.guardian -[mcp]-> nexus.mcpSim 'impact'
@@ -213,6 +262,12 @@ views {
       extAgent,
       thirdParty,
       element.kind = mcpserver
+  }
+
+  view agents of nexus.experts {
+    title 'NEXUS · Expert agents and harness'
+    include *
+    include nexus.harness, nexus.orchestrator, nexus.router, nexus.mcpGov, nexus.mcpSim, nexus.mcpProv
   }
 
   dynamic view whatIf {

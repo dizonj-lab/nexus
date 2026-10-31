@@ -5,6 +5,48 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.6] — 2026-10-31
+
+### Added
+- **What-if up to 1,000×** (log slider and console), with Instances, Cost
+  estimate and "Safe up to" (the highest load at which every component stays
+  under 85% with autoscaling at its maximum, and which component limits it).
+- **Autoscaling policy** in Settings: minimum, maximum, target utilization,
+  scale-out delay, scale-in cool-down. Stateless components start at the
+  minimum, scale out with demand and scale back in to the minimum.
+- **Demand player**: ramp, daily cycle, flash spike or steady profiles up to
+  1,000×, simulated over time with scale-out lag and scale-in cool-down. Three
+  charts (demand, instances, cost per hour) on one time axis with hover, plus
+  scale events, run cost and which component caused any errors.
+- **Cost model**: list-price estimates per provider (per instance and per
+  million requests), editable in Settings. Estimates, not quotes.
+- **Architect console engines**, labelled on every reply: rules for exact
+  commands; a description reader that turns a paragraph ("a claims portal for
+  200k customers on Azure with Stripe…") into a baseline and states every
+  assumption; and the model on Buddy (any OpenAI-compatible server) for
+  free-form requests. The model returns a change plan; impossible steps are
+  skipped with the reason; the Action Guard reviews the rest.
+- **Second opinion**: the Action Guard can send a proposed change to an
+  escalation model for an independent review (advisory only).
+- **Change ledger** (History tab): every change gets an ID (CH-0001…), who,
+  role, time, Guard verdict, linked ADR and an exact diff; restore the design
+  to before any recent change.
+- **Roles** (simulated until sign-in exists): architect, lead architect,
+  security architect, reviewer (read-only). Decisions recorded by non-leads
+  wait for a lead architect to approve or reject.
+- Windows are resizable; minimized windows become small movable tabs.
+- Deployment: nginx proxies `/llm/` to the model server on Buddy
+  (`NEXUS_LLM_UPSTREAM`, default Ollama on port 11434); `deploy/buddy.sh`
+  reports whether the model server is reachable.
+- Architecture: domain expert agents, agent harness, and a review and approval
+  service in the LikeC4 model (new `agents` view).
+
+### Fixed
+- "Add a cache between SVC1 and DB1" was refused; it now places the cache
+  cache-aside (the service talks to both).
+- Multi-step requests were mis-parsed by the single-step add rule; they now go
+  to the model, or the console says it will not guess.
+
 ## [0.1.5] — 2026-10-31
 
 ### Fixed
@@ -167,7 +209,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/dizonj-lab/nexus/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/dizonj-lab/nexus/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/dizonj-lab/nexus/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/dizonj-lab/nexus/compare/v0.1.2...v0.1.3
