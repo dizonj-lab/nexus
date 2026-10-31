@@ -5,6 +5,35 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.12] — 2026-10-31
+
+Readability of the canvas.
+
+### Added
+- **Right-angle routing** with rounded corners: flows leave the side of a
+  component, run in the gap between columns and enter the target's side.
+  Fan-out from one component shares a trunk; flows from different components
+  get separate lanes. Straight lines remain an option.
+- **Line jumps**: a horizontal run hops over a vertical run of another flow
+  where they cross.
+- **Legend** window (toolbar → Legend): flow thickness, jumps, internet or
+  plaintext, private connectivity, platform dependencies, label format, load
+  colours, component styles and badges; with the line style, dependency toggle
+  and Tidy layout.
+- **Tidy layout** (toolbar, legend, or console "tidy"): columns by trust zone
+  (internet, edge, ingress, app, data, third parties), ordered to reduce
+  crossings, shared platform services in a row below. Sub-designs are laid
+  out by flow order. One Ctrl+Z restores the previous layout.
+- Hovering a flow highlights it and shows its label.
+
+### Changed
+- Platform dependency lines are hidden until a component is selected or
+  hovered (or "All dependency lines" is ticked).
+- SaaS and external systems have their own "Third parties" zone instead of
+  stretching the Internet zone across the canvas.
+- Flow labels sit on the longest straight run and never cover a component or
+  another label; crowded labels appear on hover.
+
 ## [0.1.11] — 2026-10-31
 
 ### Added
@@ -278,7 +307,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.12...HEAD
+[0.1.12]: https://github.com/dizonj-lab/nexus/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/dizonj-lab/nexus/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/dizonj-lab/nexus/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/dizonj-lab/nexus/compare/v0.1.8...v0.1.9

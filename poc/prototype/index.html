@@ -248,9 +248,9 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.11</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.12</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
-    <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
+    <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange by trust zone and reduce crossings (undoable)">Tidy layout</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
       <button data-v="flow" aria-pressed="true">Flow</button><button data-v="flat" aria-pressed="false">Flat</button><button data-v="iso" aria-pressed="false">3D</button><button data-v="rel" aria-pressed="false">Relations</button>
     </span>
@@ -288,6 +288,34 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <header><span class="ttl">C4 · LikeC4</span><span class="tag">.c4</span><span class="sp"></span><button class="ib" id="c4Copy" title="Copy code" aria-label="Copy LikeC4">⧉</button><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
       <div class="tune" hidden></div>
       <div class="pbody" style="max-height:130px"><pre class="code" id="c4Code"></pre></div>
+    </section>
+
+    <section class="panel" id="pLeg" data-k="leg" style="width:300px">
+      <header><span class="ttl">Legend</span><span class="sp"></span><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
+      <div class="tune" hidden></div>
+      <div class="pbody" style="max-height:340px">
+        <div class="bar"><label style="display:flex;gap:4px;align-items:center">Lines <select id="lgLines" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="ortho">Right-angle, jump at crossings</option><option value="straight">Straight</option></select></label>
+          <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="lgDeps"> All dependency lines</label><button class="btn" id="lgTidy" style="padding:1px 7px;font-size:11px">Tidy layout</button></div>
+        <svg class="lg" viewBox="0 0 280 300" width="100%" role="img" aria-label="Legend of line styles, colours and badges">
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--ink)">
+          <text x="0" y="12" fill="var(--muted)" font-size="9.5" letter-spacing=".08em">FLOWS (arrow = direction)</text>
+          <line x1="2" y1="26" x2="46" y2="26" stroke="var(--ok)" stroke-width="5"/><text x="56" y="30">Thicker = more requests/s</text>
+          <path d="M2 44 H18 a5 5 0 0 1 10 0 H46" stroke="var(--ok)" stroke-width="2" fill="none"/><line x1="23" y1="36" x2="23" y2="54" stroke="var(--muted)" stroke-width="2"/><text x="56" y="48">Jumps over a crossing line</text>
+          <line x1="2" y1="64" x2="46" y2="64" stroke="var(--crit)" stroke-width="2" stroke-dasharray="5 4"/><text x="56" y="68">Public internet or plaintext: fix</text>
+          <line x1="2" y1="82" x2="46" y2="82" stroke="var(--ok)" stroke-width="2" stroke-dasharray="10 3 2 3"/><text x="56" y="86">Private link, VPN or dedicated</text>
+          <line x1="2" y1="100" x2="46" y2="100" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="2 4"/><text x="56" y="104">Uses a shared platform service</text>
+          <rect x="2" y="112" width="44" height="14" rx="3" fill="var(--surface)" stroke="var(--line)"/><text x="7" y="122" font-family="IBM Plex Mono, monospace" font-size="8.5">HTTPS·40</text><text x="56" y="123">Protocol · connectivity · rps</text>
+          <text x="0" y="146" fill="var(--muted)" font-size="9.5" letter-spacing=".08em">LOAD AT THE TARGET</text>
+          <circle cx="8" cy="160" r="5" fill="var(--ok)"/><text x="18" y="164">under 60%</text><circle cx="88" cy="160" r="5" fill="var(--warn)"/><text x="98" y="164">60–85%</text><circle cx="160" cy="160" r="5" fill="var(--crit)"/><text x="170" y="164">over 85% or failed</text>
+          <text x="0" y="186" fill="var(--muted)" font-size="9.5" letter-spacing=".08em">COMPONENTS</text>
+          <rect x="2" y="194" width="44" height="18" rx="4" fill="var(--surface)" stroke="var(--muted)" stroke-dasharray="4 3"/><text x="56" y="207">External or shared platform service</text>
+          <rect x="6" y="216" width="40" height="16" rx="4" fill="var(--surface)" stroke="var(--ok)"/><rect x="2" y="220" width="40" height="16" rx="4" fill="var(--surface)" stroke="var(--ok)"/><text x="56" y="231">Stacked = several instances</text>
+          <text x="0" y="254" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--accent)">×N AUTO RL SB RR SH P ▸N</text>
+          <text x="0" y="270" font-size="9.5" fill="var(--muted)">instances · autoscaled · rate-limited · standby ·</text>
+          <text x="0" y="283" font-size="9.5" fill="var(--muted)">read replicas · shards · partitions · sub-design</text>
+          <text x="0" y="297" font-size="9.5" fill="var(--muted)">▸N turns orange or red with ! when a part inside is hot</text>
+          </g></svg>
+      </div>
     </section>
 
     <section class="panel" id="pDem" data-k="dem">
@@ -467,7 +495,7 @@ const PACK={
   dbClass:{s:'2 vCPU / 8 GiB',m:'4 vCPU / 16 GiB',l:'8 vCPU / 32 GiB',xl:'16 vCPU / 64 GiB',xxl:'32 vCPU / 128 GiB'},shard:'Citus',
   waf:'Avi CRS signatures'}
 };
-Object.values(PACK).forEach(p=>{p.zone.platform='SHARED PLATFORM SERVICES';p.svc.part='Part'});
+Object.values(PACK).forEach(p=>{p.zone.platform='SHARED PLATFORM SERVICES';p.zone.third='THIRD PARTIES · OUTSIDE YOUR BOUNDARY';p.svc.part='Part'});
 const prov=()=>({aws:'aws',azure:'azure',gcp:'gcp'}[S.deploy]||'vmware');
 const pk=()=>PACK[prov()];
 const VIAS=['net','internet','privatelink','vpn','dedicated'];
@@ -551,8 +579,8 @@ function seed(){
    {id:'GT5',t:'Traffic to third parties uses private connectivity or the egress gateway with an FQDN allow-list.',src:'Network Security Standard NS-07'}],
   files:[],ver:{caps:5,ea:7,gt:3},versions:[],log:[],adrs:[],settings:defaultSettings()};
 }
-function defaultSettings(){return {user:{name:'You',role:'architect'},escalation:{base:'',model:'gpt-oss:latest',key:'',auto:true},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
-function ensureSettings(){const d=defaultSettings();if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
+function defaultSettings(){return {view:{lines:'ortho',deps:false},user:{name:'You',role:'architect'},escalation:{base:'',model:'gpt-oss:latest',key:'',auto:true},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
+function ensureSettings(){const d=defaultSettings();S.settings=S.settings||{};S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
 function defaultCaps(){return [
  {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
  {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
@@ -1199,7 +1227,7 @@ function fit(){
  V.k=1;V.x=0;V.y=0;
  const qs=ns.map(n=>P(n.x,n.y));const minX=Math.min(...qs.map(p=>p.x))-NW,maxX=Math.max(...qs.map(p=>p.x))+NW,minY=Math.min(...qs.map(p=>p.y))-NH,maxY=Math.max(...qs.map(p=>p.y))+NH+40;
  const adv=$('#pAdv'),leftPad=W>1150&&!adv.classList.contains('collapsed')&&!adv._moved?adv.offsetLeft+adv.offsetWidth+10:W>900?60:20;
- const rightPad=W>900&&!$('#pIac').classList.contains('collapsed')?370:20;
+ const rightPad=W>900&&['#pIac','#pTree','#pLeg'].some(id=>{const el=$(id);return el&&!el.hidden&&!el.classList.contains('collapsed')&&el.offsetLeft>W/2})?370:20;
  const aw=Math.max(200,W-leftPad-rightPad),ah=Math.max(150,H-90);
  V.k=Math.min(1.25,Math.max(.35,Math.min(aw/(maxX-minX),ah/(maxY-minY))));
  V.x=leftPad+(aw-(maxX-minX)*V.k)/2-minX*V.k;V.y=46+(ah-(maxY-minY)*V.k)/2-minY*V.k;
@@ -1210,10 +1238,33 @@ function nodeAt(sx,sy){
   if(V.mode==='iso'){if(Math.hypot(sx-p.x,sy-p.y)<44*V.k)return n}
   else if(Math.abs(sx-p.x)<NW/2*V.k&&Math.abs(sy-p.y)<NH/2*V.k)return n}
  return null}
+function segDist(px,py,a,b){const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy||1;let t=((px-a.x)*dx+(py-a.y)*dy)/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy))}
 function edgeAt(sx,sy){
  let best=null,bd=7;
- edgesIn(V.scope).forEach(e=>{const g=e._g;if(!g)return;const dx=g.ex-g.sx,dy=g.ey-g.sy,l2=dx*dx+dy*dy||1;let t=((sx-g.sx)*dx+(sy-g.sy)*dy)/l2;t=Math.max(0,Math.min(1,t));const d=Math.hypot(sx-(g.sx+t*dx),sy-(g.sy+t*dy));if(d<bd){bd=d;best=e}});
+ edgesIn(V.scope).forEach(e=>{const p=e._pts;if(!p||!e._drawn)return;for(let i=0;i<p.length-1;i++){const d=segDist(sx,sy,p[i],p[i+1]);if(d<bd){bd=d;best=e}}});
  return best;
+}
+const drawZone=n=>['saas','ext'].includes(n.type)?'third':zoneOf(n);
+// Orthogonal routing: leave the source side, run in the gap between columns, enter the target side.
+function routeEdge(a,b){
+ const pa=P(a.x,a.y),pb=P(b.x,b.y),hw=NW/2*V.k,hh=NH/2*V.k,dx=pb.x-pa.x,dy=pb.y-pa.y;
+ if(V.mode==='iso'||S.settings.view.lines==='straight'){const len=Math.hypot(dx,dy)||1,cut=V.mode==='iso'?40*V.k:Math.min(hw/Math.abs(dx/len||1e-9),hh/Math.abs(dy/len||1e-9));
+  return [{x:pa.x+dx/len*cut,y:pa.y+dy/len*cut},{x:pb.x-dx/len*(cut+3),y:pb.y-dy/len*(cut+3)}]}
+ if(Math.abs(dx)>=hw*2+14*V.k){const sg=Math.sign(dx),sx=pa.x+sg*hw,ex=pb.x-sg*(hw+3);
+  if(Math.abs(dy)<2)return [{x:sx,y:pa.y},{x:ex,y:pb.y}];const mx=(sx+ex)/2;return [{x:sx,y:pa.y},{x:mx,y:pa.y},{x:mx,y:pb.y},{x:ex,y:pb.y}]}
+ const sg=Math.sign(dy)||1,sy=pa.y+sg*hh,ey=pb.y-sg*(hh+3);
+ if(Math.abs(dx)<2)return [{x:pa.x,y:sy},{x:pb.x,y:ey}];const my=(sy+ey)/2;return [{x:pa.x,y:sy},{x:pa.x,y:my},{x:pb.x,y:my},{x:pb.x,y:ey}];
+}
+function polyLen(p){let L=0;for(let i=0;i<p.length-1;i++)L+=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);return L}
+function pointAt(p,t){const L=polyLen(p)*t;let acc=0;for(let i=0;i<p.length-1;i++){const s=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);if(acc+s>=L){const u=s?(L-acc)/s:0;return {x:p[i].x+(p[i+1].x-p[i].x)*u,y:p[i].y+(p[i+1].y-p[i].y)*u}}acc+=s}return p[p.length-1]}
+// Trace a route with rounded corners; horizontal runs hop over vertical runs of other flows.
+function tracePath(e,vsegs){
+ const p=e._pts,Rr=Math.min(9*V.k,12),J=Math.max(3.5,5*V.k);ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);
+ for(let i=0;i<p.length-1;i++){const A=p[i],B=p[i+1],horiz=Math.abs(A.y-B.y)<.5&&Math.abs(A.x-B.x)>1;
+  if(horiz&&vsegs){const dir=Math.sign(B.x-A.x),lo=Math.min(A.x,B.x)+Rr+J,hi=Math.max(A.x,B.x)-Rr-J;
+   const xs=vsegs.filter(v=>v.e!==e&&v.e.from!==e.from&&v.e.to!==e.to&&v.x>lo&&v.x<hi&&A.y>v.y1+J&&A.y<v.y2-J).map(v=>v.x).sort((a,b)=>dir*(a-b));
+   let last=-1e9;xs.forEach(x=>{if(Math.abs(x-last)<J*2.2)return;last=x;ctx.lineTo(x-dir*J,A.y);dir>0?ctx.arc(x,A.y,J,Math.PI,2*Math.PI,false):ctx.arc(x,A.y,J,0,Math.PI,true)})}
+  if(i<p.length-2)ctx.arcTo(B.x,B.y,p[i+2].x,p[i+2].y,Rr);else ctx.lineTo(B.x,B.y)}
 }
 const colOf=n=>{const f=F[n.id];if(n.type==='user')return f&&f.noRoute?colors.crit:colors.accent;if(!f||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return colors.muted;return colors[st(f.util)]};
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
@@ -1256,50 +1307,64 @@ function frame(now){
  ctx.fillStyle=colors.grid;const g=40*V.k;if(g>12&&V.mode!=='iso'){for(let x=V.x%g;x<W;x+=g)for(let y=V.y%g;y<H;y+=g)ctx.fillRect(x-1,y-1,2,2)}
  const ns=kids(V.scope),es=edgesIn(V.scope),fls=es.filter(isFlow);
  const rel=V.mode==='rel'&&V.sel?new Set([V.sel,...es.filter(e=>e.from===V.sel||e.to===V.sel).flatMap(e=>[e.from,e.to])]):null;
- const byZ={};ns.forEach(n=>{const z=zoneOf(n);(byZ[z]=byZ[z]||[]).push(P(n.x,n.y))});
+ const byZ={};ns.forEach(n=>{const z=drawZone(n);(byZ[z]=byZ[z]||[]).push(P(n.x,n.y))});
  ctx.font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;
  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
  const boxes={};Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
- const inner=Object.entries(boxes).filter(([z])=>z!=='internet').map(([,b])=>b);
+ const inner=Object.entries(boxes).filter(([z])=>z!=='internet'&&z!=='third').map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-14*V.k,x1:Math.max(...inner.map(b=>b.x1))+14*V.k,y0:Math.min(...inner.map(b=>b.y0))-24*V.k,y1:Math.max(...inner.map(b=>b.y1))+12*V.k};
   ctx.strokeStyle=colors.accent;ctx.globalAlpha=.45;ctx.lineWidth=1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(pk().outer,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1}
  Object.entries(boxes).forEach(([z,b])=>{
-  ctx.setLineDash([4,4]);ctx.strokeStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.globalAlpha=.55;ctx.lineWidth=1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);
+  ctx.setLineDash([4,4]);ctx.strokeStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.globalAlpha=z==='third'?.4:.55;ctx.lineWidth=1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);
   ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.fillText(pk().zone[z]||z.toUpperCase(),b.x0+8*V.k,b.y0+13*V.k);ctx.globalAlpha=1;
  });
+ const VW=S.settings.view,focus=id=>V.sel===id||V.hover===id;
+ const drawn=es.filter(e=>isFlow(e)||VW.deps||focus(e.from)||focus(e.to));
+ es.forEach(e=>{e._drawn=false});
+ drawn.forEach(e=>{e._pts=routeEdge(S.nodes[e.from],S.nodes[e.to]);e._drawn=true});
+ // separate lanes where flows from different sources share the same vertical run
+ const lanes={};drawn.filter(isFlow).forEach(e=>{const p=e._pts;if(p.length===4&&Math.abs(p[1].x-p[2].x)<.5){const k=Math.round(p[1].x/(6*V.k));(lanes[k]=lanes[k]||[]).push(e)}});
+ Object.values(lanes).forEach(g=>{const src=[...new Set(g.map(e=>e.from))].sort((x,y)=>S.nodes[x].y-S.nodes[y].y);if(src.length<2)return;g.forEach(e=>{const o=(src.indexOf(e.from)-(src.length-1)/2)*10*V.k;e._pts[1].x+=o;e._pts[2].x+=o})});
+ const vsegs=[];drawn.filter(isFlow).forEach(e=>{const p=e._pts;for(let i=0;i<p.length-1;i++)if(Math.abs(p[i].x-p[i+1].x)<.5&&Math.abs(p[i].y-p[i+1].y)>1)vsegs.push({e,x:p[i].x,y1:Math.min(p[i].y,p[i+1].y),y2:Math.max(p[i].y,p[i+1].y)})});
  const labels=[];
- es.forEach(e=>{
-  const a=S.nodes[e.from],b=S.nodes[e.to],pa=P(a.x,a.y),pb=P(b.x,b.y),f=EF.get(e)||0,dep=!isFlow(e),c=dep?colors.muted:colOf(b);
-  const dx=pb.x-pa.x,dy=pb.y-pa.y,len=Math.hypot(dx,dy)||1;
-  const cut=V.mode==='iso'?40*V.k:Math.min(NW/2*V.k/Math.abs(dx/len||1e-9),NH/2*V.k/Math.abs(dy/len||1e-9));
-  const sx=pa.x+dx/len*cut,sy=pa.y+dy/len*cut,ex=pb.x-dx/len*(cut+3),ey=pb.y-dy/len*(cut+3);
-  e._g={sx,sy,ex,ey};
-  const sel=V.selE&&V.selE.from===e.from&&V.selE.to===e.to&&isFlow(e);
+ drawn.forEach(e=>{
+  const a=S.nodes[e.from],b=S.nodes[e.to],f=EF.get(e)||0,dep=!isFlow(e),c=dep?colors.muted:colOf(b),p=e._pts,s0=p[0],e0=p[p.length-1],pe=p[p.length-2];
+  e._g={sx:s0.x,sy:s0.y,ex:e0.x,ey:e0.y};
+  const sel=V.selE&&V.selE.from===e.from&&V.selE.to===e.to&&isFlow(e),hovE=V.hoverE===e;
   const dim=rel&&!(rel.has(e.from)&&rel.has(e.to)&&(e.from===V.sel||e.to===V.sel));
-  if(dep){const hot=V.sel===e.from||V.sel===e.to||V.hover===e.from||V.hover===e.to;ctx.globalAlpha=dim?.08:hot?.7:.28;ctx.strokeStyle=hot?colors.accent:colors.muted;ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;return}
-  const w=Math.max(1.3,Math.min(11,1+Math.log10(1+f)*1.8))*Math.min(1,V.k+.25);
-  const a0=Math.max(.22,.88-(w-1.3)*.075);
-  ctx.globalAlpha=dim?.15:1;
-  if(sel){ctx.strokeStyle=hexA(colors.accent,.35);ctx.lineWidth=w+8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke()}
-  const gr=ctx.createLinearGradient(sx,sy,ex,ey);gr.addColorStop(0,hexA(c,a0*.25));gr.addColorStop(.55,hexA(c,a0*.7));gr.addColorStop(1,hexA(c,a0));
+  if(dep){ctx.globalAlpha=dim?.08:.75;ctx.strokeStyle=colors.accent;ctx.lineWidth=1.2;ctx.setLineDash([2,4]);tracePath(e,null);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;return}
+  const w=Math.max(1.3,Math.min(9,1+Math.log10(1+f)*1.5))*Math.min(1,V.k+.25);
+  const a0=Math.max(.3,.9-(w-1.3)*.07);
+  ctx.globalAlpha=dim?.15:1;ctx.lineJoin='round';
+  if(sel||hovE){ctx.strokeStyle=hexA(colors.accent,sel?.35:.2);ctx.lineWidth=w+8;ctx.lineCap='round';tracePath(e,vsegs);ctx.stroke()}
+  const gr=ctx.createLinearGradient(s0.x,s0.y,e0.x,e0.y);gr.addColorStop(0,hexA(c,a0*.35));gr.addColorStop(.6,hexA(c,a0*.75));gr.addColorStop(1,hexA(c,a0));
   ctx.strokeStyle=gr;ctx.lineWidth=w;ctx.lineCap='butt';
-  if(e.proto==='HTTP'||e.via==='internet')ctx.setLineDash([4,4]);else if(['privatelink','vpn','dedicated'].includes(e.via))ctx.setLineDash([10,3,2,3]);
-  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.setLineDash([]);
-  const an=Math.atan2(ey-sy,ex-sx),ah=Math.max(7,w*1.4)*Math.min(1.2,V.k+.2);ctx.fillStyle=hexA(c,Math.min(1,a0+.25));ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-ah*Math.cos(an-.45),ey-ah*Math.sin(an-.45));ctx.lineTo(ex-ah*Math.cos(an+.45),ey-ah*Math.sin(an+.45));ctx.closePath();ctx.fill();
+  if(e.proto==='HTTP'||e.via==='internet')ctx.setLineDash([5,4]);else if(['privatelink','vpn','dedicated'].includes(e.via))ctx.setLineDash([10,3,2,3]);
+  tracePath(e,vsegs);ctx.stroke();ctx.setLineDash([]);
+  const an=Math.atan2(e0.y-pe.y,e0.x-pe.x),ah=Math.max(7,w*1.3)*Math.min(1.2,V.k+.2);ctx.fillStyle=hexA(c,Math.min(1,a0+.25));ctx.beginPath();ctx.moveTo(e0.x,e0.y);ctx.lineTo(e0.x-ah*Math.cos(an-.45),e0.y-ah*Math.sin(an-.45));ctx.lineTo(e0.x-ah*Math.cos(an+.45),e0.y-ah*Math.sin(an+.45));ctx.closePath();ctx.fill();
   ctx.globalAlpha=1;
-  if(V.k>.45||sel)labels.push({e,f,mx:(sx+ex)/2,my:(sy+ey)/2,dim,sel,bad:e.proto==='HTTP'||(e.via==='internet'&&EXTERNAL.includes(b.type)&&a.type!=='egw')});
+  labels.push({e,f,dim,sel:sel||hovE,bad:e.proto==='HTTP'||(e.via==='internet'&&EXTERNAL.includes(b.type)&&a.type!=='egw')});
   if(V.mode!=='flat'&&!reduce.matches&&f>0){e._acc=(e._acc||0)+dt*Math.min(28,f/45);while(e._acc>1&&particles.length<900){e._acc-=1;particles.push({e,t:0})}}
  });
  if(V.mode!=='flat'){
-  particles=particles.filter(p=>p.e._g&&fls.includes(p.e));
-  particles.forEach(p=>{const b=S.nodes[p.e.to],u=F[b.id]?F[b.id].util:0;const sp=.15+.55*(1-Math.min(1,isFinite(u)?u:1)*.8);p.t+=dt*sp;
-   const g=p.e._g;const x=g.sx+(g.ex-g.sx)*p.t,y=g.sy+(g.ey-g.sy)*p.t;ctx.fillStyle=colOf(b);ctx.globalAlpha=rel&&!(rel.has(p.e.from)&&rel.has(p.e.to))?.1:.95;ctx.beginPath();ctx.arc(x,y,2.3*Math.min(1.3,V.k+.3),0,7);ctx.fill()});
+  particles=particles.filter(p=>p.e._drawn&&fls.includes(p.e));
+  particles.forEach(p=>{const b=S.nodes[p.e.to],u=F[b.id]?F[b.id].util:0;const sp=.15+.55*(1-Math.min(1,isFinite(u)?u:1)*.8);p.t+=dt*sp*Math.min(2,300/Math.max(120,polyLen(p.e._pts)/V.k));
+   const q=pointAt(p.e._pts,Math.min(1,p.t));ctx.fillStyle=colOf(b);ctx.globalAlpha=rel&&!(rel.has(p.e.from)&&rel.has(p.e.to))?.1:.95;ctx.beginPath();ctx.arc(q.x,q.y,2.3*Math.min(1.3,V.k+.3),0,7);ctx.fill()});
   ctx.globalAlpha=1;particles=particles.filter(p=>p.t<1);
  }
+ // labels: on the longest run, never over a component or another label; crowded ones appear on hover
  const fs=Math.max(10,10*Math.min(1.1,V.k));ctx.font=`500 ${fs}px "IBM Plex Mono",monospace`;ctx.textAlign='center';
- labels.forEach(l=>{const v=viaShort(l.e.via);const t=`${l.e.proto}${v?' · '+v:''} · ${fmt(l.f)}`,tw=ctx.measureText(t).width;
-  ctx.globalAlpha=l.dim?.25:1;ctx.fillStyle=hexA(colors.surface,l.sel?.92:.68);ctx.strokeStyle=hexA(l.sel?colors.accent:l.bad?colors.crit:colors.line,.8);ctx.lineWidth=1;rr(l.mx-tw/2-5,l.my-fs*.75,tw+10,fs*1.5,4);ctx.fill();ctx.stroke();
-  ctx.fillStyle=l.bad?colors.crit:colors.ink;ctx.fillText(t,l.mx,l.my+fs*.35)});
+ const taken=ns.map(n=>{const q=P(n.x,n.y);return {x0:q.x-NW/2*V.k-2,x1:q.x+NW/2*V.k+2,y0:q.y-NH/2*V.k-2,y1:q.y+NH/2*V.k+2}});
+ const hit=r=>taken.some(t=>r.x0<t.x1&&r.x1>t.x0&&r.y0<t.y1&&r.y1>t.y0);
+ labels.sort((x,y)=>(y.sel?1:0)-(x.sel?1:0)||(y.f-x.f)).forEach(l=>{
+  if(V.k<.5&&!l.sel)return;
+  const v=viaShort(l.e.via),t=`${l.e.proto}${v?' · '+v:''} · ${fmt(l.f)}`,tw=ctx.measureText(t).width+10,th=fs*1.5,p=l.e._pts;
+  let bi=0,bl=-1;for(let i=0;i<p.length-1;i++){const L=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);if(L>bl){bl=L;bi=i}}
+  let spot=null;for(const u of [.5,.3,.7,.15,.85]){const mx=p[bi].x+(p[bi+1].x-p[bi].x)*u,my=p[bi].y+(p[bi+1].y-p[bi].y)*u,r={x0:mx-tw/2,x1:mx+tw/2,y0:my-th/2,y1:my+th/2};if(!hit(r)){spot={mx,my,r};break}}
+  if(!spot&&l.sel){const mx=(p[bi].x+p[bi+1].x)/2,my=(p[bi].y+p[bi+1].y)/2;spot={mx,my,r:{x0:mx-tw/2,x1:mx+tw/2,y0:my-th/2,y1:my+th/2}}}
+  if(!spot)return;taken.push(spot.r);
+  ctx.globalAlpha=l.dim?.25:1;ctx.fillStyle=hexA(colors.surface,l.sel?.95:.82);ctx.strokeStyle=hexA(l.sel?colors.accent:l.bad?colors.crit:colors.line,.9);ctx.lineWidth=1;rr(spot.r.x0,spot.r.y0,tw,th,4);ctx.fill();ctx.stroke();
+  ctx.fillStyle=l.bad?colors.crit:colors.ink;ctx.fillText(t,spot.mx,spot.my+fs*.35)});
  ctx.textAlign='left';ctx.globalAlpha=1;
  if(connecting||V.connectFrom){const from=S.nodes[connecting?connecting.id:V.connectFrom];if(from){const p=P(from.x,from.y);ctx.strokeStyle=colors.accent;ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}}
  const order=V.mode==='iso'?[...ns].sort((a,b)=>(a.x+a.y)-(b.x+b.y)):ns;
@@ -1414,7 +1479,7 @@ cv.addEventListener('pointerdown',ev=>{
 cv.addEventListener('contextmenu',ev=>{const {sx,sy}=local(ev);const n=nodeAt(sx,sy);if(n){ev.preventDefault();openMenu(n.id,sx,sy)}});
 cv.addEventListener('pointermove',ev=>{
  const {sx,sy}=local(ev);mouse={x:sx,y:sy};
- if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;cv.style.cursor=V.connectFrom?'crosshair':chipHits.some(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h)||n||edgeAt(sx,sy)?'pointer':'grab';return}
+ if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;V.hoverE=n?null:edgeAt(sx,sy);cv.style.cursor=V.connectFrom?'crosshair':chipHits.some(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h)||n||edgeAt(sx,sy)?'pointer':'grab';return}
  if(!drag)return;
  if(drag.pan){V.x=drag.ox+sx-drag.sx;V.y=drag.oy+sy-drag.sy;cv.style.cursor='grabbing';return}
  if(ev.shiftKey&&!connecting){drag.n.x=drag.ox;drag.n.y=drag.oy;connecting=drag.n;drag=null;return}
@@ -1446,6 +1511,24 @@ document.addEventListener('keydown',ev=>{
  if(ev.key==='i'||ev.key==='I'){if(V.sel){S.nodes[V.sel].expanded=!S.nodes[V.sel].expanded;persist();renderAdvisor()}else toggleAllInst()}
 });
 
+/* ---------- tidy layout ---------- */
+function tidyLayout(){
+ const ns=kids(V.scope).filter(n=>!PLATFORM.includes(n.type)),plat=kids(V.scope).filter(n=>PLATFORM.includes(n.type));if(!ns.length)return;
+ pushUndo('Tidy layout');
+ const es=flowsIn(V.scope);let cols;
+ if(V.scope==='root'){const ORDER=['internet','edge','dmz','app','data','third'];const col=n=>n.type==='user'?'internet':drawZone(n);cols=ORDER.map(z=>ns.filter(n=>col(n)===z))}
+ else{const lay={};ns.forEach(n=>lay[n.id]=0);for(let k=0;k<ns.length;k++)es.forEach(e=>{if(lay[e.to]!=null&&lay[e.from]!=null&&lay[e.to]<lay[e.from]+1)lay[e.to]=Math.min(ns.length,lay[e.from]+1)});const mx=Math.max(...Object.values(lay));cols=[...Array(mx+1)].map((_,i)=>ns.filter(n=>lay[n.id]===i))}
+ cols=cols.filter(c=>c.length);cols.forEach(c=>c.sort((a,b)=>a.y-b.y));
+ const nb=id=>es.filter(e=>e.from===id||e.to===id).map(e=>e.from===id?e.to:e.from);
+ for(let it=0;it<6;it++){const idx={};cols.forEach(c=>c.forEach((n,i)=>idx[n.id]=i-(c.length-1)/2));
+  (it%2?cols.slice().reverse():cols).forEach(c=>{c.forEach(n=>{const ys=nb(n.id).filter(x=>idx[x]!=null&&!c.includes(S.nodes[x])).map(x=>idx[x]);n._b=ys.length?ys.reduce((a,b)=>a+b,0)/ys.length:idx[n.id]});c.sort((a,b)=>a._b-b._b)})}
+ const rows=Math.max(...cols.map(c=>c.length)),GX=250,GY=150;
+ cols.forEach((c,ci)=>{const off=(rows-c.length)/2;c.forEach((n,i)=>{n.x=80+ci*GX;n.y=110+(i+off)*GY;delete n._b})});
+ plat.forEach((n,i)=>{n.x=80+GX+i*200;n.y=110+rows*GY+70});
+ logAI('Workbench','Tidy layout',`${cols.length} columns by trust zone, ordered to reduce crossings; ${plat.length} shared services in a row below`,1);
+ fit();changed();
+}
+
 /* ---------- palette & crumb ---------- */
 const PAL=['user','saas','ext','cdn','waf','lb','egw','gw','idp','svc','vm','fn','api','adp','queue','cache','db','obj','reg','art','kms','sec','mon'];
 $('#palette').innerHTML=PAL.map((t,i)=>([3,9,14,18].includes(i)?'<hr>':'')+`<button data-t="${t}" title="Add ${T[t].label}" aria-label="Add ${T[t].label}">${T[t].p}</button>`).join('');
@@ -1458,7 +1541,7 @@ function renderCrumb(){
 $('#crumb').addEventListener('click',e=>{const b=e.target.closest('button');if(b){V.scope=b.dataset.s;V.sel=null;V.selE=null;fit();changed()}});
 
 /* ---------- panels ---------- */
-const panels=['pAdv','pIac','pC4','pTree','pDem'].map(id=>document.getElementById(id));
+const panels=['pAdv','pIac','pC4','pTree','pDem','pLeg'].map(id=>document.getElementById(id));
 panels.forEach(p=>{
  const tune=p.querySelector('.tune');
  tune.innerHTML=`Opacity <input type="range" min="0.35" max="1" step="0.05" value="1" aria-label="Card opacity"> Border <select aria-label="Card border"><option value="hair">Hairline</option><option value="strong">Strong</option><option value="none">None</option></select>`;
@@ -1481,6 +1564,7 @@ function placePanels(first){
  if(first&&!narrow&&H<620){const c=$('#pDem');c.classList.add('collapsed');c.querySelector('.colB').textContent='+'}
  let y=10;const rx=Math.max(10,W-360);
  ['pIac','pC4','pTree'].forEach((id,i)=>{const p=document.getElementById(id);if(p._moved){clampPanel(p);return}p.style.left=(narrow?10:rx)+'px';p.style.top=(narrow?H-40*(i+2):y)+'px';y+=p.offsetHeight+8});
+ const lg=$('#pLeg');if(!lg._moved){if(first&&!narrow&&H<760){lg.classList.add('collapsed');lg.querySelector('.colB').textContent='+'}lg.style.left=(narrow?10:Math.max(10,W-lg.offsetWidth-10))+'px';lg.style.top=Math.max(44,H-lg.offsetHeight-10)+'px'}else clampPanel(lg);
  const dm=$('#pDem');if(!dm._moved){dm.style.left=(narrow?10:Math.max(240,Math.min(W-370-dm.offsetWidth-10,(W-dm.offsetWidth)/2)))+'px';dm.style.top=(narrow?H-200:44)+'px'}else clampPanel(dm);
  const a=$('#pAdv');if(!a._moved){a.style.left=(narrow?10:58)+'px';a.style.top=narrow?(H-40)+'px':Math.max(50,H-a.offsetHeight-36)+'px'}else clampPanel(a);
 }
@@ -1760,7 +1844,7 @@ function handleUse(l,ids){
 const EXAMPLES=['use aws managed kafka for microservice to microservice communication','add redis cache between SVC2 and DB1','rate limit GW1 2000','autoscale SVC2 2-10','partitions Q1 12','consumers Q1 6','brokers Q1 3','add platform dependencies','federate IDP1 with Okta','connect SVC2 to SAAS1 via privatelink','options SVC2','decide DB1','expand DB1','instances all','what if load 3x','what if DB1 fails','undo','redo','discover'];
 function suggest(l){const w=new Set(l.split(/\W+/).filter(x=>x.length>2));return EXAMPLES.map(e=>({e,s:e.split(/\W+/).filter(x=>w.has(x)).length})).filter(x=>x.s).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.e)}
 const COMPLIANCE=/\b(complian\w*|validate|validation|audit|assess(ment)?|conform\w*|governance check|security review|is (the|this|my) design (secure|ok|valid|safe))\b/;
-const STRICT=/^(redesign|re-design|fix the|improve the|apply the|2nd opinion|second opinion|escalate|what if|what happens|connect|link|disconnect|scale|autoscale|rate.?limit|partitions?|consumers?|brokers?|federate|idp|remove|delete|drop|rename|restore|save|load|undo|redo|options?|decide|expand|collapse|open|up|back|target|guard|reset|fail|replicas?|shard|size|instances?|why|explain|help|versions?|discover|principle:|truth:|capability:)\b/;
+const STRICT=/^(tidy|clean up|arrange|redesign|re-design|fix the|improve the|apply the|2nd opinion|second opinion|escalate|what if|what happens|connect|link|disconnect|scale|autoscale|rate.?limit|partitions?|consumers?|brokers?|federate|idp|remove|delete|drop|rename|restore|save|load|undo|redo|options?|decide|expand|collapse|open|up|back|target|guard|reset|fail|replicas?|shard|size|instances?|why|explain|help|versions?|discover|principle:|truth:|capability:)\b/;
 const isComplex=l=>l.split(/\s+/).length>=7&&!STRICT.test(l)&&!COMPLIANCE.test(l);
 const MODEL={failedAt:0};
 function run(raw,opt={}){
@@ -1771,6 +1855,7 @@ function run(raw,opt={}){
  let m;
  if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nRedesign: redesign · redesign: <goal> · fix the weak points · apply the second opinion\nModels: escalate (re-run the last request on the escalation model) · escalate: <request> · 2nd opinion (review the whole design) · 2nd opinion: <focus>\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
  if(COMPLIANCE.test(l)){showCompliance();return}
+ if(/^(tidy|tidy up|clean up|auto.?layout|arrange)\b/.test(l)){tidyLayout();ENG='rules';say('Arranged by trust zone, ordered to reduce crossings. Ctrl+Z restores your layout.','s');return}
  if(/^(redesign|re-design|fix (the |all )?(weak points|findings|issues)|improve (the |this |my )?design|apply (the )?(2nd|second) opinion|apply (the )?recommendations)\b/.test(l)){
   const so=S.adrs.slice().reverse().find(a=>/^Second opinion/.test(a.title)),before=complianceReport();
   const goal=c.replace(/^(redesign|re-design)\s*:?\s*/i,'').trim();
@@ -2195,6 +2280,13 @@ async function designOpinion(focus){
  finally{clearInterval(tick);wait.remove();ENG=null;modelBusy=false}
 }
 
+/* ---------- legend and line options ---------- */
+function renderLegendCtl(){const v=S.settings.view;const a=$('#lgLines'),b=$('#lgDeps');if(a)a.value=v.lines;if(b)b.checked=!!v.deps}
+$('#lgLines').onchange=e=>{S.settings.view.lines=e.target.value;persist()};
+$('#lgDeps').onchange=e=>{S.settings.view.deps=e.target.checked;persist()};
+$('#lgTidy').onclick=tidyLayout;$('#tidyBtn').onclick=tidyLayout;
+$('#legBtn').onclick=()=>{const l=$('#pLeg');l.hidden=!l.hidden;$('#legBtn').setAttribute('aria-pressed',!l.hidden);if(!l.hidden)placePanels(false)};
+
 /* ---------- render all ---------- */
 function renderKPI(fast){
  if(!fast&&!SIM.on)SAFE=safeLimit();
@@ -2231,7 +2323,7 @@ function flushLedger(){
 }
 function changed(){
  flushLedger();
- simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
+ renderLegendCtl();simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
  $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=Math.log10(S.mult);
  persist();
 }
