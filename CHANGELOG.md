@@ -5,6 +5,14 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.8] — 2026-10-31
+
+### Changed
+- Reasoning models that "think out loud" (deepseek-r1, qwen3 thinking) and
+  answers wrapped in code fences no longer break the console's plan reader.
+- Automatic model choice prefers Qwen 2.5 or newer over Qwen 1.5, and skips
+  code models.
+
 ## [0.1.7] — 2026-10-31
 
 ### Changed
@@ -220,7 +228,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/dizonj-lab/nexus/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/dizonj-lab/nexus/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/dizonj-lab/nexus/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/dizonj-lab/nexus/compare/v0.1.4...v0.1.5

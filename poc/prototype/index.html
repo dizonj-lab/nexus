@@ -248,7 +248,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.7</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.8</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -2055,9 +2055,9 @@ Output schema: {"reply": "one or two sentences for the architect", "actions": [ 
 Use existing IDs exactly as listed. For a question, answer in "reply" and return "actions": [].
 Example: request "add a payments service behind the gateway with its own database" -> {"reply":"Adds SVC3 behind GW1 with its own database.","actions":[{"op":"add","ref":"p","type":"svc","name":"Payments service"},{"op":"add","ref":"pd","type":"db","name":"Payments DB"},{"op":"connect","from":"GW1","to":"p"},{"op":"connect","from":"p","to":"pd"}]}`;
 }
-function extractJSON(t){if(!t)return null;const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)return null;try{return JSON.parse(t.slice(a,b+1))}catch(e){return null}}
+function extractJSON(t){if(!t)return null;t=String(t).replace(/<think>[\s\S]*?<\/think>/gi,'').replace(/```(?:json)?/gi,'');const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)return null;try{return JSON.parse(t.slice(a,b+1))}catch(e){return null}}
 // Prefer an instruct/chat Qwen model when the configured one is not installed (Buddy runs Qwen on Ollama).
-function pickModel(ids){const q=ids.filter(i=>/qwen/i.test(i)&&!/embed|vl|coder/i.test(i));return (q.find(i=>/instruct|chat/i.test(i))||q[0]||ids.find(i=>!/embed/i.test(i))||ids[0])}
+function pickModel(ids){const ok=ids.filter(i=>!/embed|vl|coder|codellama/i.test(i));const q=ok.filter(i=>/qwen/i.test(i));const newer=q.filter(i=>/qwen[2-9]/i.test(i));return (newer.find(i=>/instruct|chat/i.test(i))||newer[0]||q.find(i=>/instruct|chat/i.test(i))||q[0]||ok[0]||ids[0])}
 async function listModels(base,key){const r=await fetch(base.replace(/\/$/,'')+'/models',{headers:key?{Authorization:'Bearer '+key}:{}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return (j.data||j.models||[]).map(m=>m.id||m.name).filter(Boolean)}
 async function askModel(text,retried){
  const L=S.settings.llmApi,t0=performance.now(),ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),120000);
