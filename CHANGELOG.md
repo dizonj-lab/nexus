@@ -5,6 +5,22 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.13] — 2026-10-31
+
+### Added
+- **Drag a whole group**: grab a zone's label or its dashed border (the cursor
+  changes to move and the group highlights) and every component in it moves
+  together; the group outline and all flows follow. The outer VPC / VNet /
+  datacenter box moves everything inside your boundary.
+- **Select several**: Ctrl/⌘-click components, or Shift-drag on empty canvas
+  to box-select; drag any selected component to move them together. Esc or a
+  click on empty canvas clears the selection.
+- Group and multi-component moves are one undo step and appear in History.
+
+### Fixed
+- Moves were not recorded in the change history (positions were not part of
+  the diff). They now appear as "layout: moved …".
+
 ## [0.1.12] — 2026-10-31
 
 Readability of the canvas.
@@ -307,7 +323,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.12...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/dizonj-lab/nexus/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/dizonj-lab/nexus/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/dizonj-lab/nexus/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/dizonj-lab/nexus/compare/v0.1.9...v0.1.10

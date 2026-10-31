@@ -248,7 +248,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.12</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.13</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange by trust zone and reduce crossings (undoable)">Tidy layout</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -268,7 +268,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
     <div class="palette" id="palette" aria-label="Add component"></div>
     <div class="crumb" id="crumb"></div>
     <div class="nmenu" id="nmenu" hidden></div>
-    <div class="hint" id="hint">Click ▾ on a component (or right-click) for actions · Drag to move · Double-click to open · Scroll to zoom for details</div>
+    <div class="hint" id="hint">Click ▾ (or right-click) for actions · Drag a group by its label or border · Ctrl/⌘-click or Shift-drag to select several · Scroll to zoom</div>
 
     <section class="panel" id="pAdv" data-k="adv">
       <header><span class="ttl">Design Advisor</span><span class="tag" id="advCount"></span><span class="sp"></span><button class="ib tuneB" title="Opacity and border" aria-label="Opacity and border">◐</button><button class="ib colB" title="Collapse" aria-label="Collapse">–</button></header>
@@ -1238,6 +1238,13 @@ function nodeAt(sx,sy){
   if(V.mode==='iso'){if(Math.hypot(sx-p.x,sy-p.y)<44*V.k)return n}
   else if(Math.abs(sx-p.x)<NW/2*V.k&&Math.abs(sy-p.y)<NH/2*V.k)return n}
  return null}
+function zoneMembers(z){const ns=kids(V.scope);return z==='__outer'?ns.filter(n=>!['internet','third'].includes(drawZone(n))):ns.filter(n=>drawZone(n)===z)}
+function zoneAt(sx,sy){const tol=6;for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i];
+  if(sx>=b.x0&&sx<=b.x0+b.lw&&sy>=b.y0-2&&sy<=b.y0+18*V.k)return b.z;}
+ for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i],inX=sx>=b.x0-tol&&sx<=b.x1+tol,inY=sy>=b.y0-tol&&sy<=b.y1+tol;
+  if(inX&&inY&&(Math.abs(sx-b.x0)<tol||Math.abs(sx-b.x1)<tol||Math.abs(sy-b.y0)<tol||Math.abs(sy-b.y1)<tol))return b.z}
+ return null}
+function groupLabel(z){return z==='__outer'?'everything inside '+pk().name:(pk().zone[z]||z).toLowerCase()}
 function segDist(px,py,a,b){const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy||1;let t=((px-a.x)*dx+(py-a.y)*dy)/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy))}
 function edgeAt(sx,sy){
  let best=null,bd=7;
@@ -1268,7 +1275,8 @@ function tracePath(e,vsegs){
 }
 const colOf=n=>{const f=F[n.id];if(n.type==='user')return f&&f.noRoute?colors.crit:colors.accent;if(!f||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return colors.muted;return colors[st(f.util)]};
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
-let particles=[],last=performance.now(),connecting=null,mouse={x:0,y:0};
+let particles=[],last=performance.now(),connecting=null,mouse={x:0,y:0},zoneHits=[];
+V.multi=new Set();V.hoverZ=null;V.marquee=null;
 const reduce=matchMedia('(prefers-reduced-motion: reduce)');
 // Instances are numbered per component: SVC1.1, SVC1.2 … ; DB1.1 is the primary, then read replicas, then the standby.
 function instancesOf(n){
@@ -1302,7 +1310,7 @@ function details(n){
  return L.slice(0,6);
 }
 function frame(now){
- const dt=Math.min(.05,(now-last)/1000);last=now;miniHits=[];chipHits=[];
+ const dt=Math.min(.05,(now-last)/1000);last=now;miniHits=[];chipHits=[];zoneHits=[];
  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=colors.bg;ctx.fillRect(0,0,W,H);
  ctx.fillStyle=colors.grid;const g=40*V.k;if(g>12&&V.mode!=='iso'){for(let x=V.x%g;x<W;x+=g)for(let y=V.y%g;y<H;y+=g)ctx.fillRect(x-1,y-1,2,2)}
  const ns=kids(V.scope),es=edgesIn(V.scope),fls=es.filter(isFlow);
@@ -1313,9 +1321,11 @@ function frame(now){
  const boxes={};Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
  const inner=Object.entries(boxes).filter(([z])=>z!=='internet'&&z!=='third').map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-14*V.k,x1:Math.max(...inner.map(b=>b.x1))+14*V.k,y0:Math.min(...inner.map(b=>b.y0))-24*V.k,y1:Math.max(...inner.map(b=>b.y1))+12*V.k};
-  ctx.strokeStyle=colors.accent;ctx.globalAlpha=.45;ctx.lineWidth=1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(pk().outer,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1}
+  const hz=V.hoverZ==='__outer';ctx.strokeStyle=colors.accent;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(pk().outer,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
+  zoneHits.push({z:'__outer',...o,lw:ctx.measureText(pk().outer).width+20*V.k})}
  Object.entries(boxes).forEach(([z,b])=>{
-  ctx.setLineDash([4,4]);ctx.strokeStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.globalAlpha=z==='third'?.4:.55;ctx.lineWidth=1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);
+  const hz=V.hoverZ===z;ctx.setLineDash(hz?[]:[4,4]);ctx.strokeStyle=hz?colors.accent:z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.globalAlpha=hz?.9:z==='third'?.4:.55;ctx.lineWidth=hz?2.2:1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);if(hz){ctx.fillStyle=hexA(colors.accent,.05);ctx.fill()}
+  zoneHits.push({z,...b,lw:ctx.measureText(pk().zone[z]||z).width+20*V.k});
   ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.fillText(pk().zone[z]||z.toUpperCase(),b.x0+8*V.k,b.y0+13*V.k);ctx.globalAlpha=1;
  });
  const VW=S.settings.view,focus=id=>V.sel===id||V.hover===id;
@@ -1367,12 +1377,13 @@ function frame(now){
   ctx.fillStyle=l.bad?colors.crit:colors.ink;ctx.fillText(t,spot.mx,spot.my+fs*.35)});
  ctx.textAlign='left';ctx.globalAlpha=1;
  if(connecting||V.connectFrom){const from=S.nodes[connecting?connecting.id:V.connectFrom];if(from){const p=P(from.x,from.y);ctx.strokeStyle=colors.accent;ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}}
+ if(V.marquee){const q=V.marquee;ctx.setLineDash([4,3]);ctx.strokeStyle=colors.accent;ctx.lineWidth=1.2;ctx.fillStyle=hexA(colors.accent,.07);ctx.beginPath();ctx.rect(Math.min(q.x0,q.x1),Math.min(q.y0,q.y1),Math.abs(q.x1-q.x0),Math.abs(q.y1-q.y0));ctx.fill();ctx.stroke();ctx.setLineDash([])}
  const order=V.mode==='iso'?[...ns].sort((a,b)=>(a.x+a.y)-(b.x+b.y)):ns;
  order.forEach(n=>drawNode(n,now,rel));
  requestAnimationFrame(frame);
 }
 function drawNode(n,now,rel){
- const p=P(n.x,n.y),k=V.k,f=F[n.id]||{in:0,util:0},c=colOf(n),sel=V.sel===n.id,hov=V.hover===n.id;
+ const p=P(n.x,n.y),k=V.k,f=F[n.id]||{in:0,util:0},c=colOf(n),sel=V.sel===n.id||V.multi.has(n.id),hov=V.hover===n.id||(V.hoverZ&&zoneMembers(V.hoverZ).some(m=>m.id===n.id));
  const crit=(!EXTERNAL.includes(n.type)||n.type==='user')&&(n.type==='user'?f.noRoute:st(f.util)==='crit')&&!PLATFORM.includes(n.type)&&n.type!=='part',baseA=rel&&!rel.has(n.id)?.18:1,cnt=instCount(n);
  ctx.globalAlpha=baseA;
  if(V.mode==='iso'){
@@ -1456,7 +1467,7 @@ document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.ta
 
 /* ---------- pointer ---------- */
 let drag=null;
-const setMode=t=>{const h=$('#hint');h.classList.toggle('mode',!!t);h.textContent=t||'Click ▾ on a component (or right-click) for actions · Drag to move · Double-click to open · Scroll to zoom for details'};
+const setMode=t=>{const h=$('#hint');h.classList.toggle('mode',!!t);h.textContent=t||'Click ▾ (or right-click) for actions · Drag a group by its label or border · Ctrl/⌘-click or Shift-drag to select several · Scroll to zoom'};
 function startConnect(id){V.connectFrom=id;setMode(`Connecting from ${id}: click the target component · Esc to cancel`)}
 function endConnect(){V.connectFrom=null;setMode('')}
 function guardedConnect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B)return;act(`Connect ${a} → ${b}`,()=>connect(a,b,proto,via),{tradeoffs:EXTERNAL.includes(B.type)&&!EXTERNAL.includes(A.type)?[`Data leaves your boundary to ${B.name}: classify it and check the vendor's DPA`,`Choose connectivity: ${pk().pl} (private, needs vendor support) or egress gateway (allow-listed, still internet)`]:null})}
@@ -1470,8 +1481,14 @@ cv.addEventListener('pointerdown',ev=>{
  const m=miniHits.find(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h);
  if(m){V.sel=m.node;V.selE=null;V.selInst=m.inst;showTab('insp');return}
  const n=nodeAt(sx,sy);cv.setPointerCapture(ev.pointerId);
+ if(n&&(ev.ctrlKey||ev.metaKey)){if(V.multi.has(n.id))V.multi.delete(n.id);else{V.multi.add(n.id);if(V.sel&&V.sel!==n.id)V.multi.add(V.sel)}V.sel=n.id;setMode(V.multi.size>1?`${V.multi.size} selected: drag any of them to move together · Esc to clear`:'');renderAdvisor();renderTree();return}
  if(n&&ev.shiftKey){connecting=n;mouse={x:sx,y:sy};return}
- if(n){V.sel=n.id;V.selE=null;if(V.selInst&&!V.selInst.startsWith(n.id+'.'))V.selInst=null;drag={n,sx,sy,ox:n.x,oy:n.y,moved:false,before:snap()};renderAdvisor();renderTree();return}
+ if(n){if(!V.multi.has(n.id)&&V.multi.size){V.multi.clear();setMode('')}V.sel=n.id;V.selE=null;if(V.selInst&&!V.selInst.startsWith(n.id+'.'))V.selInst=null;
+  const grp=V.multi.has(n.id)?[...V.multi].map(i=>S.nodes[i]).filter(Boolean):[n];
+  drag={n,group:grp,orig:grp.map(m=>({m,x:m.x,y:m.y})),sx,sy,moved:false,before:snap(),label:grp.length>1?`Move ${grp.length} components`:`Move ${n.id}`};renderAdvisor();renderTree();return}
+ const z=V.mode==='iso'?null:zoneAt(sx,sy);
+ if(z){const grp=zoneMembers(z);if(grp.length){drag={zone:z,group:grp,orig:grp.map(m=>({m,x:m.x,y:m.y})),sx,sy,moved:false,before:snap(),label:`Move group: ${groupLabel(z)}`};V.hoverZ=z;cv.style.cursor='grabbing';return}}
+ if(ev.shiftKey){V.marquee={x0:sx,y0:sy,x1:sx,y1:sy};return}
  const e=edgeAt(sx,sy);
  if(e&&isFlow(e)){V.selE={from:e.from,to:e.to};V.sel=null;showTab('insp');return}
  drag={pan:true,sx,sy,ox:V.x,oy:V.y};
@@ -1479,17 +1496,21 @@ cv.addEventListener('pointerdown',ev=>{
 cv.addEventListener('contextmenu',ev=>{const {sx,sy}=local(ev);const n=nodeAt(sx,sy);if(n){ev.preventDefault();openMenu(n.id,sx,sy)}});
 cv.addEventListener('pointermove',ev=>{
  const {sx,sy}=local(ev);mouse={x:sx,y:sy};
- if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;V.hoverE=n?null:edgeAt(sx,sy);cv.style.cursor=V.connectFrom?'crosshair':chipHits.some(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h)||n||edgeAt(sx,sy)?'pointer':'grab';return}
+ if(V.marquee){V.marquee.x1=sx;V.marquee.y1=sy;return}
+ if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;V.hoverE=n?null:edgeAt(sx,sy);V.hoverZ=n||V.hoverE||V.mode==='iso'?null:zoneAt(sx,sy);cv.style.cursor=V.connectFrom?'crosshair':V.hoverZ?'move':chipHits.some(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h)||n||V.hoverE?'pointer':'grab';cv.title=V.hoverZ?`Drag to move the whole group (${groupLabel(V.hoverZ)})`:'';return}
  if(!drag)return;
  if(drag.pan){V.x=drag.ox+sx-drag.sx;V.y=drag.oy+sy-drag.sy;cv.style.cursor='grabbing';return}
- if(ev.shiftKey&&!connecting){drag.n.x=drag.ox;drag.n.y=drag.oy;connecting=drag.n;drag=null;return}
- const d=invDelta(sx-drag.sx,sy-drag.sy);if(Math.abs(sx-drag.sx)+Math.abs(sy-drag.sy)>3){drag.n.x=Math.round(drag.ox+d.x);drag.n.y=Math.round(drag.oy+d.y);drag.moved=true}
+ if(ev.shiftKey&&!connecting&&drag.n&&drag.group.length===1){connecting=drag.n;drag=null;return}
+ const d=invDelta(sx-drag.sx,sy-drag.sy);if(Math.abs(sx-drag.sx)+Math.abs(sy-drag.sy)>3){drag.orig.forEach(o=>{o.m.x=Math.round(o.x+d.x);o.m.y=Math.round(o.y+d.y)});drag.moved=true}
 });
 cv.addEventListener('pointerup',ev=>{
  const {sx,sy}=local(ev);
  if(connecting){const t=nodeAt(sx,sy),from=connecting.id;connecting=null;if(t&&t.id!==from)guardedConnect(from,t.id);return}
- if(drag&&!drag.pan&&drag.moved){pushUndo(`Move ${drag.n.id}`,drag.before);persist()}
- if(drag&&drag.pan&&Math.abs(sx-drag.sx)<3&&Math.abs(sy-drag.sy)<3){V.sel=null;V.selE=null;V.selInst=null;renderAdvisor();renderTree()}
+ if(V.marquee){const q=V.marquee;V.marquee=null;const x0=Math.min(q.x0,q.x1),x1=Math.max(q.x0,q.x1),y0=Math.min(q.y0,q.y1),y1=Math.max(q.y0,q.y1);
+  kids(V.scope).forEach(n=>{const c=P(n.x,n.y);if(c.x>=x0&&c.x<=x1&&c.y>=y0&&c.y<=y1)V.multi.add(n.id)});setMode(V.multi.size?`${V.multi.size} selected: drag any of them to move together · Esc to clear`:'');renderTree();return}
+ if(drag&&!drag.pan&&drag.moved){pushUndo(drag.label,drag.before);if(drag.zone){ENG='layout';say(`${drag.label} (${drag.group.length} components). Ctrl+Z puts them back.`,'s');ENG=null}changed()}
+ if(drag&&drag.zone&&!drag.moved)V.hoverZ=null;
+ if(drag&&drag.pan&&Math.abs(sx-drag.sx)<3&&Math.abs(sy-drag.sy)<3){V.sel=null;V.selE=null;V.selInst=null;if(V.multi.size){V.multi.clear();setMode('')}renderAdvisor();renderTree()}
  drag=null;
 });
 cv.addEventListener('dblclick',ev=>{const {sx,sy}=local(ev),n=nodeAt(sx,sy);if(n)drill(n.id)});
@@ -1501,6 +1522,7 @@ function deleteSelected(){
 function toggleAllInst(){V.allInst=!V.allInst;$('#instBtn').setAttribute('aria-pressed',V.allInst);$('#instBtn').textContent=V.allInst?'Instances: all':'Instances';renderTree()}
 $('#instBtn').onclick=toggleAllInst;
 document.addEventListener('keydown',ev=>{
+ if(ev.key==='Escape'&&V.multi.size&&$('#guard').hidden&&menu.hidden&&!V.connectFrom){V.multi.clear();setMode('');return}
  if(ev.key==='Escape'){if(!$('#guard').hidden)$('#gCancel').click();else if(!menu.hidden)closeMenu();else if(V.connectFrom)endConnect();return}
  const typing=['INPUT','TEXTAREA','SELECT'].includes(document.activeElement&&document.activeElement.tagName);
  if((ev.ctrlKey||ev.metaKey)&&!typing&&ev.key.toLowerCase()==='z'){ev.preventDefault();ev.shiftKey?redo():undo();return}
@@ -2310,7 +2332,7 @@ function diffDesign(b,a){
  const bk=new Set(be.map(k)),ak=new Set(ae.map(k));
  const fl=[...ae.filter(e=>!bk.has(k(e))).map(e=>'+ '+k(e)),...be.filter(e=>!ak.has(k(e))).map(e=>'− '+k(e))];
  ae.forEach(e=>{const o=be.find(x=>k(x)===k(e));if(o&&(o.proto!==e.proto||o.via!==e.via))fl.push(`~ ${k(e)} ${o.proto}/${o.via} → ${e.proto}/${e.via}`)});
- const other=[];if(b.deploy!==a.deploy)other.push(`deploy ${b.deploy} → ${a.deploy}`);if(b.project!==a.project)other.push(`project renamed`);
+ const other=[];const mv=Object.keys(an).filter(i=>bn[i]&&(bn[i].x!==an[i].x||bn[i].y!==an[i].y));if(mv.length)other.push(`layout: moved ${mv.length>6?mv.length+' components':mv.join(', ')}`);if(b.deploy!==a.deploy)other.push(`deploy ${b.deploy} → ${a.deploy}`);if(b.project!==a.project)other.push(`project renamed`);
  if(JSON.stringify(b.caps)!==JSON.stringify(a.caps))other.push('capabilities');if(JSON.stringify(b.ea)!==JSON.stringify(a.ea))other.push('EA principles');if(JSON.stringify(b.gt)!==JSON.stringify(a.gt))other.push('ground truth');
  return {added,removed,changed,flows:fl,other};
 }
