@@ -17,6 +17,7 @@ the design through the same tools.
 | NEXUS API | FastAPI | Projects, versions, IDs, sharing, WebSocket updates |
 | MCP gateway | MCP Streamable HTTP, OAuth 2.1 | Exposes NEXUS tools to external agents; registry, audit |
 | Advisor orchestrator | Python, MCP client | Plans, calls tools, proposes changesets |
+| Action Guard | Python, MCP client | Dry-runs every change; checks ground truth, principles, capabilities, threats; explains consequences |
 | Model router | LiteLLM | SLM first, LLM on escalation; logs every call |
 | SLM runtime | Ollama / vLLM | Phi-4-mini, Qwen2.5 3B |
 | nexus-model | FastMCP | Design CRUD, sub-designs, versions |
@@ -26,6 +27,7 @@ the design through the same tools.
 | nexus-threat | FastMCP, ATT&CK STIX | Threat mapping |
 | nexus-iac | FastMCP, Terraform, tflint, checkov | IaC generation and validation |
 | nexus-c4 | FastMCP, LikeC4 CLI | C4 generation and validation |
+| nexus-provider packs | FastMCP | AWS, Azure, GCP, VMware: names, limits, connectivity, Terraform modules |
 | Design store | PostgreSQL 16 + pgvector | Event log, snapshots, governance, embeddings, AI log |
 | Artifact store | S3-compatible | Uploaded files |
 | Job queue | Redis Streams | Simulations, ingestion |

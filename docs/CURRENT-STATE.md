@@ -1,4 +1,4 @@
-# NEXUS — Current state (v0.1.0)
+# NEXUS — Current state (v0.1.2)
 
 - A working single-file prototype in `poc/prototype/index.html` demonstrates the
   full workbench experience. See `CHANGELOG.md` for features and limitations.

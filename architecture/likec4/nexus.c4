@@ -86,6 +86,10 @@ model {
       technology 'Python, MCP client'
       description 'Plans, calls tools, proposes changesets; never applies them'
     }
+    guardian = agent 'Action Guard' {
+      technology 'Python, MCP client'
+      description 'Dry-runs every change before it happens; checks ground truth, EA principles, capabilities, threats; explains consequences'
+    }
     router = container 'Model router' {
       technology 'LiteLLM'
       description 'SLM first, LLM on escalation; logs every call'
@@ -123,6 +127,11 @@ model {
       description 'Generate and validate LikeC4 models and views'
     }
 
+    mcpProv = mcpserver 'nexus-provider packs' {
+      technology 'FastMCP, one pack per provider'
+      description 'AWS, Azure, GCP, VMware and future providers: service mapping, limits, private connectivity, Terraform modules'
+    }
+
     db = store 'Design store' {
       technology 'PostgreSQL 16 + pgvector'
       description 'Event log, snapshots, governance, embeddings, AI log'
@@ -146,6 +155,15 @@ model {
   nexus.web -> nexus.api 'REST + WebSocket'
   nexus.api -> nexus.db 'reads / appends events'
   nexus.api -> nexus.orchestrator 'console intents, review requests'
+  nexus.api -> nexus.guardian 'every proposed change'
+  nexus.orchestrator -> nexus.guardian 'changesets for review'
+  nexus.guardian -[mcp]-> nexus.mcpModel 'dry-run changeset'
+  nexus.guardian -[mcp]-> nexus.mcpSim 'impact'
+  nexus.guardian -[mcp]-> nexus.mcpGov 'evaluate against GT, EA, capabilities'
+  nexus.guardian -[mcp]-> nexus.mcpThreat 'threat exposure'
+  nexus.guardian -> nexus.router 'explain consequences'
+  nexus.orchestrator -[mcp]-> nexus.mcpProv 'provider facts'
+  nexus.mcpIac -[mcp]-> nexus.mcpProv 'provider modules'
   nexus.orchestrator -> nexus.router 'prompts'
   nexus.router -> nexus.slm 'default'
   nexus.router -> llm 'escalation'
@@ -190,6 +208,7 @@ views {
     title 'NEXUS · MCP tool layer'
     include
       nexus.orchestrator,
+      nexus.guardian,
       nexus.gateway,
       extAgent,
       thirdParty,
@@ -206,5 +225,18 @@ views {
     nexus.orchestrator -> nexus.router 'explain findings'
     nexus.orchestrator -> nexus.mcpModel 'propose changeset: scale DB1'
     nexus.api -> nexus.web 'diff on canvas, awaiting approval'
+  }
+
+  dynamic view guard {
+    title 'Action Guard: "connect U1 to DB1"'
+    architect -> nexus.web 'connects U1 to DB1'
+    nexus.web -> nexus.api 'proposed change'
+    nexus.api -> nexus.guardian 'review before apply'
+    nexus.guardian -> nexus.mcpModel 'dry-run on a copy'
+    nexus.guardian -> nexus.mcpSim 'errors, latency, bottleneck after'
+    nexus.guardian -> nexus.mcpGov 'GT3 violated: no WAF'
+    nexus.guardian -> nexus.mcpThreat 'T1190, T1530 exposure'
+    nexus.guardian -> nexus.router 'explain consequences'
+    nexus.api -> nexus.web 'BLOCKED: needs written justification'
   }
 }

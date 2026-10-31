@@ -36,3 +36,27 @@ Both sit behind the same `nexus-simulator` tools.
 ## D9 — Semantic Versioning, one minor per work package
 `0.x` until the first shareable release (`1.0.0`). Each release is a `vX.Y.Z` tag
 with a changelog entry.
+
+## D10 — Action Guard reviews every change before it is applied
+A second agent, separate from the advisor, dry-runs each change on a copy of the
+design and reports consequences, new risks and tradeoffs. Ground-truth
+violations are blocked unless a justification is recorded as an exception ADR.
+The verdict comes from rules; the model only explains it.
+
+## D11 — Provider packs, not one agent per cloud
+Cloud knowledge (service names, limits, private connectivity, Terraform modules)
+lives in one MCP server per provider with the same tool interface. The same
+agents call whichever pack the design targets. Adding OCI or Alibaba means
+adding a pack, not a new agent.
+
+## D12 — Database scaling order: cache, scale up, read replicas, then shard
+Principle P6. Single-primary databases have no write replicas: read replicas
+add read capacity only; writes scale up (bigger primary) or out (sharding or
+distributed SQL). Shard only when writes exceed the largest primary at 60%,
+data exceeds ~2 TB per node, or tenant isolation requires it.
+
+## D13 — Connectivity is a property of each flow
+Every flow records how it travels: in-network, internet, private link, VPN or
+dedicated circuit. Traffic to third parties must use private connectivity or
+the egress gateway (GT5). Terraform for endpoints and circuits is generated
+from these flows.
