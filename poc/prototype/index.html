@@ -248,7 +248,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.13</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.14</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange by trust zone and reduce crossings (undoable)">Tidy layout</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -296,7 +296,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <div class="pbody" style="max-height:340px">
         <div class="bar"><label style="display:flex;gap:4px;align-items:center">Lines <select id="lgLines" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="ortho">Right-angle, jump at crossings</option><option value="straight">Straight</option></select></label>
           <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="lgDeps"> All dependency lines</label><button class="btn" id="lgTidy" style="padding:1px 7px;font-size:11px">Tidy layout</button></div>
-        <svg class="lg" viewBox="0 0 280 300" width="100%" role="img" aria-label="Legend of line styles, colours and badges">
+        <svg class="lg" viewBox="0 0 280 326" width="100%" role="img" aria-label="Legend of line styles, colours and badges">
           <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--ink)">
           <text x="0" y="12" fill="var(--muted)" font-size="9.5" letter-spacing=".08em">FLOWS (arrow = direction)</text>
           <line x1="2" y1="26" x2="46" y2="26" stroke="var(--ok)" stroke-width="5"/><text x="56" y="30">Thicker = more requests/s</text>
@@ -310,10 +310,11 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
           <text x="0" y="186" fill="var(--muted)" font-size="9.5" letter-spacing=".08em">COMPONENTS</text>
           <rect x="2" y="194" width="44" height="18" rx="4" fill="var(--surface)" stroke="var(--muted)" stroke-dasharray="4 3"/><text x="56" y="207">External or shared platform service</text>
           <rect x="6" y="216" width="40" height="16" rx="4" fill="var(--surface)" stroke="var(--ok)"/><rect x="2" y="220" width="40" height="16" rx="4" fill="var(--surface)" stroke="var(--ok)"/><text x="56" y="231">Stacked = several instances</text>
-          <text x="0" y="254" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--accent)">×N AUTO RL SB RR SH P ▸N</text>
-          <text x="0" y="270" font-size="9.5" fill="var(--muted)">instances · autoscaled · rate-limited · standby ·</text>
+          <text x="0" y="254" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--accent)">MANAGED ×N AUTO RL SB RR SH P ▸N</text>
+          <text x="0" y="270" font-size="9.5" fill="var(--muted)">provider-scaled · instances · autoscaled · rate-limited · standby ·</text>
           <text x="0" y="283" font-size="9.5" fill="var(--muted)">read replicas · shards · partitions · sub-design</text>
           <text x="0" y="297" font-size="9.5" fill="var(--muted)">▸N turns orange or red with ! when a part inside is hot</text>
+          <rect x="0" y="306" width="120" height="15" rx="4" fill="var(--accent)"/><text x="5" y="317" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--surface)">⚙ limit 10,000 → 20,000</text><text x="128" y="318" font-size="9.5" fill="var(--muted)">configuration just changed</text>
           </g></svg>
       </div>
     </section>
@@ -564,7 +565,7 @@ function seed(){
   caps:defaultCaps(),
   ea:[
    {id:'P1',t:'Zero trust. Never trust the network; authenticate and authorize every hop with mTLS and short-lived tokens.'},
-   {id:'P2',t:'Design for failure. No single point of failure on tier-1 paths; data stores run active/passive at minimum.'},
+   {id:'P2',t:'Design for failure. Instance-based components run 2+ instances across zones; zonal managed services run one per zone; regional managed services rely on the provider across zones and need a cross-region DR plan that meets their RTO; data stores run active/passive at minimum.'},
    {id:'P3',t:'Reuse before buy before build. Prefer catalogued capabilities; new platforms need an ADR.'},
    {id:'P4',t:'Design for 60% steady-state utilization so the system absorbs a 1.6× burst.'},
    {id:'P5',t:'Segment by trust zone. Each perimeter is default-deny; flows only move one zone at a time.'},
@@ -620,13 +621,14 @@ function migrate(){
 }
 function normalizeParts(){const fixed=[];Object.values(S.nodes).forEach(n=>{const p=S.nodes[n.parent];if(p&&!['svc','vm','fn','api','adp'].includes(p.type)&&['svc','vm','api','adp','obj','fn'].includes(n.type)&&!kids(n.id).length){n.type='part';n.cap=Infinity;n.rep=1;n.auto=null;fixed.push(`${n.id} in ${p.id}`)}});
  if(fixed.length){S.edges=S.edges.filter(e=>!(e.kind==='dep'&&S.nodes[e.from]&&S.nodes[e.from].type==='part'));logAI('Workbench',`Converted ${fixed.length} placeholder component(s) to parts`,`${fixed.join(', ')} were modelled as services with their own capacity inside a non-service component; parts carry the parent's traffic without a separate limit`,1)}return fixed}
+function ensureP2(){const p=(S.ea||[]).find(x=>x.id==='P2');if(p&&/^Design for failure\. No single point of failure on tier-1 paths/.test(p.t)){p.t='Design for failure. Instance-based components run 2+ instances across zones; zonal managed services run one per zone; regional managed services rely on the provider across zones and need a cross-region DR plan that meets their RTO; data stores run active/passive at minimum.';S.ver.ea++}}
 function ensureP8(){if(!S.ea.some(g=>g.id==='P8')){S.ea.push({id:'P8',t:'Each service owns its data. Other services use its API or its events, never its database.'});S.ver.ea++}}
 
 /* ---------- persistence and undo ---------- */
 const KEY='nexus.workbench.v1';
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let normalized=[];
-function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();ensureSettings();normalized=normalizeParts();return true}}catch(e){}return false}
+function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();ensureP2();ensureSettings();normalized=normalizeParts();return true}}catch(e){}return false}
 const UNDO=[],REDO=[];
 const snap=()=>JSON.stringify({...S,log:[],versions:[],history:[]});
 let LEDGER_PENDING=null;
@@ -644,13 +646,22 @@ $('#roleSel').onchange=e=>{S.settings.user={...(S.settings.user||{name:'You'}),r
 const kids=pid=>Object.values(S.nodes).filter(n=>n.parent===pid);
 const edgesIn=pid=>S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent===pid&&S.nodes[e.to].parent===pid);
 const flowsIn=pid=>edgesIn(pid).filter(isFlow);
+// Managed services: the provider scales them. One box, no instances; scaling is a configuration change (limit, quota, max instances).
+const MANAGED_SET={aws:['cdn','waf','lb','egw','gw','idp','fn','queue','obj','reg','art','kms','sec','mon'],azure:['cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],gcp:['cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],vmware:[]};
+const MQ={cdn:{q:100000,lab:'Edge capacity',res:'global'},waf:{q:25000,lab:'Inspection limit',res:'regional'},lb:{q:40000,lab:'Scales automatically up to',res:'regional'},egw:{q:30000,lab:'Throughput limit per zone',res:'zonal'},gw:{q:10000,lab:'Throttle limit',res:'regional'},idp:{q:3000,lab:'Request quota',res:'regional'},fn:{q:5000,lab:'Concurrency limit',res:'regional'},svc:{q:16000,lab:'Max instances',res:'regional'},queue:{q:100000,lab:'Throughput',res:'regional'},obj:{q:5500,lab:'Requests per prefix',res:'regional'},reg:{q:Infinity,lab:'',res:'regional'},art:{q:Infinity,lab:'',res:'regional'},kms:{q:Infinity,lab:'',res:'regional'},sec:{q:Infinity,lab:'',res:'regional'},mon:{q:Infinity,lab:'',res:'regional'}};
+const DR={gw:'Deploy the API in a second region and fail over with DNS health checks.',idp:'User pools are not replicated across regions: export users regularly and keep a standby pool, or federate to a corporate IdP that is multi-region.',fn:'Deploy functions in a second region; keep code and config in the artifact store.',queue:'Queues are not replicated across regions: fan out to a queue in the DR region, or rebuild from the source of truth.',obj:'Turn on cross-region replication for the bucket.',waf:'Keep the same rules in the DR region (policy as code).',lb:'Stand up the load balancer in the DR region from Terraform; fail over with DNS.',svc:'Deploy the service in a second region; fail over with the global load balancer.',kms:'Use multi-region keys so data restored in the DR region can be decrypted.',sec:'Replicate secrets to the DR region.',reg:'Replicate images to the DR region.',art:'Replicate artifacts to the DR region.',mon:'Ship logs to the DR region or a central account.',egw:'Run one per zone, and the same in the DR region.',cdn:'Global by design; keep a second origin in the DR region.'};
+const isManaged=n=>!!n&&(MANAGED_SET[prov()]||[]).includes(n.type)&&!(n.type==='queue'&&n.flavor!=='native');
+const quotaOf=n=>n.quota??(MQ[n.type]||{q:Infinity}).q;
+function cfgText(n){const m=MQ[n.type]||{},q=quotaOf(n);if(!m.lab||!isFinite(q))return 'no limit to manage';
+ if(n.type==='fn')return `${m.lab} ${fmt(q/5)} (≈${fmt(q)} rps)`;if(n.type==='svc')return `${m.lab} ${fmt(Math.ceil(q/160))} (≈${fmt(q)} rps)`;
+ return `${m.lab} ${fmt(q)} rps${n.type==='egw'&&n.perAz?' · one per zone':''}`}
 const AUTO_TYPES=['svc','vm','fn','gw','lb','waf','egw'];
-function autoOf(n){if(n.auto)return n.auto;const p=S.settings&&S.settings.autoscale;if(p&&p.on&&AUTO_TYPES.includes(n.type)&&n.parent==='root')return {min:Math.max(1,+p.min||1),max:Math.max(+p.min||1,+p.max||1),policy:true};return null}
+function autoOf(n){if(isManaged(n))return null;if(n.auto)return n.auto;const p=S.settings&&S.settings.autoscale;if(p&&p.on&&AUTO_TYPES.includes(n.type)&&n.parent==='root')return {min:Math.max(1,+p.min||1),max:Math.max(+p.min||1,+p.max||1),policy:true};return null}
 const tgtUtil=()=>Math.min(.95,Math.max(.2,((S.settings&&S.settings.autoscale&&S.settings.autoscale.target)||60)/100));
 const SIM={on:false,i:0,t:0,cur:{},pend:{},hist:[],events:[],timer:null,profile:'ramp',peak:20,cost:0,outs:0,ins:0,saved:1};
 const repOf=n=>(F[n.id]&&F[n.id].rep)||n.rep||1;
 function scaleOf(n){let m=1,p=S.nodes[n.parent];while(p){m*=p.type==='db'?(1+(p.readReplicas||0))*(p.shards||1):repOf(p);p=S.nodes[p.parent]}return m}
-const instCount=n=>n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):n.type==='queue'?(n.flavor==='native'?1:n.brokers||1):(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')?1:repOf(n);
+const instCount=n=>isManaged(n)?1:n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):n.type==='queue'?(n.flavor==='native'?1:n.brokers||1):(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')?1:repOf(n);
 // Single-primary database: writes land on each shard's primary; reads spread over primary + read replicas.
 function dbLoad(n,i,o={}){
  const rw=o.rw??n.rw??.8,k=1+(o.rr??n.readReplicas??0),sh=o.shards??n.shards??1,c=(o.cap??n.cap)*scaleOf(n);
@@ -668,7 +679,7 @@ function queueLoad(n,i){
  return {util:Math.max(ub,uc),ub,uc,consCap,brokerCap,idle:kafka?Math.max(0,c-p):0,active};
 }
 function innerWorst(id){let w=null;const go=pid=>kids(pid).forEach(c=>{if(!EXTERNAL.includes(c.type)&&!PLATFORM.includes(c.type)&&c.type!=='part'&&F[c.id]&&(!w||F[c.id].util>w.util))w={id:c.id,util:F[c.id].util};go(c.id)});go(id);return w}
-const capEff=n=>{if(n.type==='db')return 1/Math.max(1e-9,dbLoad(n,1).util);if(n.type==='queue'){const q=queueLoad(n,1);return Math.min(q.brokerCap,q.consCap)}return T[n.type].cap===Infinity?Infinity:n.cap*repOf(n)*scaleOf(n)};
+const capEff=n=>{if(isManaged(n))return quotaOf(n);if(n.type==='db')return 1/Math.max(1e-9,dbLoad(n,1).util);if(n.type==='queue'){const q=queueLoad(n,1);return Math.min(q.brokerCap,q.consCap)}return T[n.type].cap===Infinity?Infinity:n.cap*repOf(n)*scaleOf(n)};
 const st=u=>!isFinite(u)?'crit':u>=.85?'crit':u>=.6?'warn':'ok';
 function flowScope(pid,entryIn){
  const ns=kids(pid),es=flowsIn(pid),inn={},deg={};
@@ -689,7 +700,7 @@ function flowScope(pid,entryIn){
   else if(n.failed){util=Infinity;served=0;pass=0}
   else if(n.type==='db'){dbx=dbLoad(n,i);util=dbx.util;served=util<=1?i:i/util;pass=served}
   else if(n.type==='queue'){qx=queueLoad(n,i);util=qx.util;served=Math.min(i,qx.brokerCap);pass=Math.min(served,qx.consCap);lag=served-pass}
-  else{const c=n.cap*rep*scaleOf(n);util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
+  else{const c=isManaged(n)?quotaOf(n):n.cap*rep*scaleOf(n);if(isManaged(n))rep=1;util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
   const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
   lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95));
   F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,desired,lat:lat[id],db:dbx,q:qx,noRoute};
@@ -781,11 +792,17 @@ function analyze(log=true){
   if(n.type==='db'&&f.util>=.6){
    const d=f.db,opts=dbOptions(n);const rec=opts.find(o=>o.rec);
    add(f.util>=.85?'crit':'warn','hot:'+n.id,n.id,`${n.id} is ${f.util>=.85?'a bottleneck':'running warm'} at ${pct(f.util)} (${d.bound}-bound)`,`${fmt(d.r)} reads/s + ${fmt(d.w)} writes/s. Recommended: ${rec?rec.name:'review options'}.`,['EA-P4','EA-P6','ML forecast'],{k:'decide',n:n.id});
+  }else if(isManaged(n)&&isFinite(quotaOf(n))){
+   const need=Math.ceil(f.in/.6/1000)*1000;
+   if(f.util>=.6)add(f.util>=.85?'crit':'warn','quota:'+n.id,n.id,`${n.id} is at ${pct(f.util)} of its ${(MQ[n.type].lab||'limit').toLowerCase()}`,`${svcName(n)} is managed: ${pk().name} scales it, so there are no instances to add. ${fmt(f.in)} rps against ${cfgText(n)}. Raise the limit to ${fmt(need)} rps (a configuration change or service-quota request)${['gw','waf'].includes(n.type)?', or rate-limit clients':''}.`,['EA-P4','Provider quota'],{k:'quota',n:n.id,to:need});
   }else if(n.type!=='db'&&n.type!=='queue'&&isFinite(T[n.type].cap)){
    if(f.util>=.85)add('crit','hot:'+n.id,n.id,`${n.id}${n.parent!=='root'?` (inside ${n.parent})`:''} is a bottleneck at ${pct(f.util)}`,`${autoOf(n)&&f.rep>=autoOf(n).max?`Autoscale is at its maximum of ${autoOf(n).max}. `:''}${fmt(f.in-f.thr)} rps against ${fmt(capEff(n))} rps capacity. Options: scale out, autoscale, scale up, rate limit${['svc','vm','fn'].includes(n.type)?', async via queue':''}.`,['EA-P4','EA-P7','ML forecast'],{k:'decide',n:n.id});
    else if(f.util>=.6)add('warn','warm:'+n.id,n.id,`${n.id} runs at ${pct(f.util)}`,`Headroom is ${fmt(capEff(n)-f.in)} rps. A ${(1/f.util).toFixed(1)}× burst saturates it.`,['EA-P4'],{k:'decide',n:n.id});
   }
-  if(n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(autoOf(n)?autoOf(n).min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
+  if(isManaged(n)&&n.parent==='root'){const res=(MQ[n.type]||{}).res;
+   if(res==='zonal'&&!n.perAz)add('warn','zonal:'+n.id,n.id,`${n.id} (${svcName(n)}) is a zonal service`,`A single ${svcName(n)} lives in one zone: if that zone fails, everything behind it loses ${T[n.type].label.toLowerCase()}. Run one per zone.`,['EA-P2'],{k:'perAz',n:n.id});
+   else if(res==='regional'&&n.enrich&&/min/.test(n.enrich.rto||''))add('info','dr:'+n.id,n.id,`${n.id} needs a cross-region DR plan (RTO ${n.enrich.rto})`,`${svcName(n)} is regional: ${pk().name} already covers zone failures, so do not add instances. A region failure is not covered. ${DR[n.type]||''}`,['EA-P2'],null)}
+  if(!isManaged(n)&&n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(autoOf(n)?autoOf(n).min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
   if(!capTypes.has(n.type))add('warn','cap:'+n.id,n.id,`${T[n.type].label} is not in Technical Capabilities`,`Recommended platform. Needs an architecture decision before build.`,['EA-P3','TC catalog v'+S.ver.caps],{k:'cap',t:n.type},
    `Context: ${n.id} "${n.name}" (${svcName(n)}) carries ${fmt(f.in)} rps; no catalogued capability covers it.\nConstraints: security review; must meet GT1–GT5; operated by the platform team.\nTradeoffs: + ${T[n.type].pro||'fills a gap'}\n           − ${T[n.type].con||'new operational surface'}`);
   if(['db','obj','cache','queue'].includes(n.type)&&n.enrich&&n.enrich.encryptRest===false)add('crit','enc:'+n.id,n.id,`${n.id} stores data unencrypted at rest`,`Classification is ${n.enrich.classification}.`,['GT4','EA-P1'],{k:'enc',n:n.id});
@@ -854,6 +871,14 @@ function applyDbOption(id,key){
 function remedyOptions(n){
  const f=F[n.id]||{in:0,util:0},id=n.id,t=n.type,opts=[];
  const add=(key,name,fixes,mut,pro,con)=>opts.push({key,name,fixes,mut,pro,con});
+ if(isManaged(n)){if(!isFinite(quotaOf(n)))return opts;
+  const need=Math.max(Math.ceil((quotaOf(n)*1.5)/1000)*1000,Math.ceil(f.in/.6/1000)*1000);
+  add('quota',`Raise ${(MQ[t].lab||'limit').toLowerCase()} to ${fmt(need)} rps`,'headroom',()=>{S.nodes[id].quota=need},`Configuration only: ${pk().name} scales the service; nothing to deploy`,'Service-quota requests can take hours to days; cost per request is unchanged');
+  if(['gw','waf'].includes(t)){const lim=Math.max(50,Math.round(quotaOf(n)*.6/50)*50);add('rate',`Rate limit clients at ${fmt(lim)} rps`,'protection',()=>{S.nodes[id].rateLimit=lim},'Protects the limit and everything downstream (EA-P7)','Requests above it get 429')}
+  if(['waf','lb','gw'].includes(t)&&S.edges.some(e=>e.to===id&&S.nodes[e.from]&&S.nodes[e.from].type==='user')&&!kids(n.parent).some(m=>m.type==='cdn'))add('cdn','Put a CDN in front','static offload',()=>{const m=S.nodes[id];const c=addNode('cdn','Edge cache',m.parent,{x:m.x-110,y:m.y-150});S.edges.filter(e=>e.to===id&&S.nodes[e.from].type==='user').forEach(e=>{const u=e.from;removeEdge(u,id);connect(u,c.id,'HTTPS')});connect(c.id,id,'HTTPS')},'Serves ~60% of requests at the edge','Cache invalidation; another service');
+  opts.forEach(o=>{const r=preview(o.mut);o.effect=r.afterF[id]?r.afterF[id].util:null;o.err=r.after.err;o.thr=r.after.thr;o.lag=0});
+  if(f.util>=.6){const rec=opts.find(o=>o.effect!=null&&o.effect<=.6)||opts[0];if(rec)rec.rec=true}
+  return opts}
  const base=n.cap*scaleOf(n),need=Math.max(repOf(n)+1,Math.ceil((f.in-f.thr)/(base*.6)));
  if(t==='queue'){
   const kafka=n.flavor==='kafka',needC=Math.max((n.consumers||1)+1,Math.ceil(f.in/((n.consumerRate||800)*scaleOf(n)*.6)));
@@ -901,10 +926,12 @@ function fixFn(x){
   deps:()=>addDeps(x.n?[x.n]:null),
   idp:()=>{const gw=kids('root').find(n=>n.type==='gw')||kids('root').find(n=>!EXTERNAL.includes(n.type));const i=addNode('idp',null,'root',{x:ZX.dmz,y:(gw?gw.y:250)+170});if(gw)connect(gw.id,i.id,'HTTPS')},
   between:()=>insertServiceBetween(x.from,x.to),
+  quota:()=>{N()[x.n].quota=x.to},
+  perAz:()=>{N()[x.n].perAz=true},
   cap:()=>{const c=S.caps.find(c=>c.types.includes(x.t));if(c)c.on=true;else S.caps.push({id:'TC'+(S.caps.length+1),name:T[x.t].label+' (proposed via ADR)',types:[x.t],on:true});S.ver.caps++}
  }[x.k];
 }
-const fixLabel=x=>({between:'Insert a service between',waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
+const fixLabel=x=>({quota:`Raise limit to ${fmt(x.to||0)} rps`,perAz:'One per zone',between:'Insert a service between',waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
 function applyFix(f){
  const x=f.fix;if(!x)return;
  if(x.k==='decide'){focusNode(x.n);return}
@@ -1171,6 +1198,7 @@ function genTF(){
  const emit=n=>{
   if(['user','ext','saas'].includes(n.type)){if(n.type!=='user')out.push(`# ${n.id} "${n.name}" is external (${T[n.type].label}); reached via ${S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>viaName(e.via)).join(', ')||'nothing yet'}`);return}
   if(n.type==='adp'||n.type==='part'){out.push(`# ${n.id} "${n.name}" is part of ${n.parent} (configuration, not a separate resource)`);return}
+  if(isManaged(n))out.push(`# ${n.id} is managed by ${PACK[tg].name}: no instances to size. Config: ${cfgText(n)}${n.rateLimit?', client rate limit '+n.rateLimit+' rps':''}. Resiliency: ${(MQ[n.type]||{}).res}.`);
   const f=RES[tg][n.type]||RES[tg]._;
   if(!f){out.push(`# ${n.id} ${T[n.type].label}: no native mapping on ${tg}; see ADR`);return}
   const deps=S.edges.filter(e=>e.kind==='dep'&&e.from===n.id).map(e=>S.nodes[e.to]).filter(Boolean);
@@ -1280,6 +1308,7 @@ V.multi=new Set();V.hoverZ=null;V.marquee=null;
 const reduce=matchMedia('(prefers-reduced-motion: reduce)');
 // Instances are numbered per component: SVC1.1, SVC1.2 … ; DB1.1 is the primary, then read replicas, then the standby.
 function instancesOf(n){
+ if(isManaged(n))return [];
  const f=F[n.id]||{in:0,util:0},out=[];let k=0;const nx=()=>`${n.id}.${++k}`;
  if(n.type==='db'){const d=dbLoad(n,f.in),sh=n.shards||1,rr_=n.readReplicas||0;
   for(let s=1;s<=sh;s++){const sl=sh>1?` · shard ${s}`:'';out.push({id:nx(),role:'primary'+sl,util:n.failed?Infinity:d.prim});for(let r=1;r<=rr_;r++)out.push({id:nx(),role:'read replica'+sl,util:n.failed?Infinity:d.repl})}
@@ -1293,6 +1322,7 @@ function instancesOf(n){
 const showInst=n=>(n.expanded||V.allInst)&&!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)&&n.type!=='part'&&(instancesOf(n).length>1||n.expanded);
 function details(n){
  const f=F[n.id]||{},P_=pk(),L=[];
+ if(isManaged(n)&&!['lb','cdn','egw'].includes(n.type))L.push(`Managed · ${cfgText(n)} · ${(MQ[n.type]||{}).res} resiliency`);
  const ins=S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>`${e.from} ${e.proto}${e.via!=='net'?' '+viaShort(e.via):''}`),outs=S.edges.filter(e=>e.from===n.id&&isFlow(e)).map(e=>`${e.to} ${e.proto}${e.via!=='net'?' '+viaShort(e.via):''}`);
  const deps=S.edges.filter(e=>e.kind==='dep'&&e.from===n.id).map(e=>S.nodes[e.to]).filter(Boolean);
  switch(n.type){
@@ -1302,7 +1332,7 @@ function details(n){
   case 'db':L.push(`${n.readReplicas||0} read replica(s) · ${n.shards||1} shard(s) · ${n.standby?'standby':'no standby'}`,`Reads ${pct(n.rw??.8)} · ${fmt(n.sizeGB)} GB · CMK ${n.enrich.encryptRest!==false?'on':'off'}`);break;
   case 'queue':L.push(`${n.flavor==='kafka'?`${n.partitions} partitions · ${n.brokers} brokers`:n.flavor==='mq'?`${n.brokers} brokers`:'managed, serverless'} · ${n.consumers} consumers`,`Lag ${fmt(f.lag||0)} msg/s${n.flavor==='kafka'?` · key ${n.pkey||'not set'}`:''}`);break;
   case 'svc':case 'vm':case 'fn':case 'api':case 'adp':L.push(`${autoOf(n)?`Autoscale ${autoOf(n).min}–${autoOf(n).max}${autoOf(n).policy?' (policy)':''}, now ×${repOf(n)}`:`×${n.rep} fixed`} · ${fmt(n.cap)} rps each`);if(n.enrich.runtime||n.enrich.os)L.push(n.enrich.runtime||n.enrich.os);break;
-  case 'lb':case 'cdn':case 'egw':L.push(`×${repOf(n)} · ${fmt(n.cap)} rps each${n.rateLimit?' · limit '+fmt(n.rateLimit)+' rps':''}`);break;
+  case 'lb':case 'cdn':case 'egw':if(isManaged(n)){L.push(`Managed · ${cfgText(n)}${n.rateLimit?' · client limit '+fmt(n.rateLimit)+' rps':''}`);break}L.push(`×${repOf(n)} · ${fmt(n.cap)} rps each${n.rateLimit?' · limit '+fmt(n.rateLimit)+' rps':''}`);break;
  }
  if(!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)){L.push(`In: ${ins.join(', ')||'—'}`,`Out: ${outs.join(', ')||'—'}`)}
  if(PLATFORM.includes(n.type))L.push(`Used by: ${S.edges.filter(e=>e.kind==='dep'&&e.to===n.id).map(e=>e.from).join(', ')||'—'}`);
@@ -1412,7 +1442,7 @@ function drawNode(n,now,rel){
  ctx.fillStyle=sel||hov?colors.accent:colors.muted;ctx.font=`${9*k}px sans-serif`;ctx.textAlign='center';ctx.fillText('▾',cx+cs_/2,cy+cs_*.75);ctx.textAlign='left';ctx.globalAlpha=baseA;
  chipHits.push({x:cx-3,y:cy-3,w:cs_+6,h:cs_+6,node:n.id});
  if(k>.5){
-  const tg=[cnt>1?'×'+cnt:'',autoOf(n)?'AUTO':'',n.rateLimit?'RL':'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.type==='queue'&&n.flavor==='kafka'?`${n.partitions}P`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
+  const tg=[isManaged(n)?'MANAGED':'',cnt>1?'×'+cnt:'',autoOf(n)?'AUTO':'',n.rateLimit?'RL':'',n.type==='db'&&n.readReplicas?`${n.readReplicas}RR`:'',n.type==='db'&&n.shards>1?`${n.shards}SH`:'',n.type==='queue'&&n.flavor==='kafka'?`${n.partitions}P`:'',n.standby?'SB':'',kids(n.id).length?'▸'+kids(n.id).length:''].filter(Boolean).join(' ');
   ctx.font=`600 ${9*k}px "IBM Plex Mono",monospace`;const tgw=tg?ctx.measureText(tg).width+6*k:0;
   const iw=kids(n.id).length?innerWorst(n.id):null,ist=iw?st(iw.util):'ok';
   if(tg){ctx.textAlign='right';ctx.fillStyle=ist!=='ok'?colors[ist]:colors.accent;ctx.fillText(tg+(ist!=='ok'?' !':''),x+w-8*k,y+33*k);ctx.textAlign='left'}
@@ -1423,6 +1453,7 @@ function drawNode(n,now,rel){
   ctx.fillText(l2,x+10*k,y+48*k);
  }
  let below=y+h;
+ const fl=CFG_FLASH[n.id];if(fl&&fl.until>Date.now()&&k>.45){ctx.font=`600 ${9.5*Math.min(k,1.3)}px "IBM Plex Mono",monospace`;let t='⚙ '+fl.text;while(ctx.measureText(t).width>Math.max(w*1.6,220)&&t.length>4)t=t.slice(0,-2)+'…';const tw=ctx.measureText(t).width+12,th=16*Math.min(k,1.3),fx=p.x-tw/2,fy=y-th-6;const a=Math.min(1,(fl.until-Date.now())/2000);ctx.globalAlpha=baseA*Math.max(.25,a);ctx.fillStyle=colors.accent;rr(fx,fy,tw,th,4);ctx.fill();ctx.fillStyle=colors.surface;ctx.textAlign='center';ctx.fillText(t,p.x,fy+th*.72);ctx.textAlign='left';ctx.globalAlpha=baseA}
  if(inst){
   const list=instancesOf(n),show=list.slice(0,12),mw=78*k,mh=30*k,gap=6*k,tot=show.length*mw+(show.length-1)*gap,y0=y+h+18*k;let x0=p.x-tot/2;
   show.forEach((m,i)=>{const mx=x0+i*(mw+gap),mc=m.idle?colors.muted:colors[st(m.util)],on=V.selInst===m.id;
@@ -1662,6 +1693,13 @@ function renderNodeInspector(body,n){
   ${n.idpMode==='corp'?`<label>Corporate IdP <input id="iFed" value="${esc(n.fedIdp||'')}" placeholder="Entra ID, Okta, ADFS…"></label>`:''}
   <div class="why">${esc(svcName(n))}. Federation keeps passwords with the corporate IdP and reuses its MFA and joiner/leaver process; your app trusts its SAML/OIDC assertions.</div>
   <label>Replicas <input id="iRep" type="number" min="1" max="50" value="${n.rep}"></label>`;
+ }else if(isManaged(n)){
+  const res=(MQ[n.type]||{}).res;
+  h+=`<div class="just"><b>Managed by ${esc(pk().name)}</b> · the provider scales it, so there are no instances to size. You change its configuration.<br>Now: <b>${esc(cfgText(n))}</b>${n.rateLimit?` · client rate limit ${fmt(n.rateLimit)} rps`:''}<br>Resiliency: <b>${res==='global'?'global (no regional failure to plan for)':res==='zonal'?'zonal: run one per zone':'regional: multi-zone by the provider; plan cross-region DR'}</b>${DR[n.type]?'<br><span style="color:var(--muted)">'+esc(DR[n.type])+'</span>':''}</div>
+  ${isFinite(quotaOf(n))?`<label>${esc(MQ[n.type].lab||'Limit')} (rps) <input id="iQuota" type="number" min="1" step="500" value="${quotaOf(n)}"></label>`:''}
+  ${['gw','waf','lb','cdn','egw'].includes(n.type)?`<label>Client rate limit (rps) <input id="iRl" type="number" min="0" step="50" value="${n.rateLimit||''}" placeholder="none"></label>`:''}
+  ${res==='zonal'?`<label>Deployment <select id="iPerAz"><option value="0">Single zone</option><option value="1" ${n.perAz?'selected':''}>One per zone</option></select></label>`:''}`;
+  h+=remedyHTML(n);
  }else if(!plat&&!part){
   h+=`<div class="row2"><label style="grid-template-columns:1fr">Replicas <input id="iRep" type="number" min="1" max="200" value="${n.rep}" ${autoOf(n)?'disabled title="Autoscaled: set min and max instead"':''}></label><label style="grid-template-columns:1fr">rps / replica <input id="iCap" type="number" min="1" step="50" value="${n.cap}"></label></div>
   <label>Autoscale <input id="iAuto" value="${n.auto?n.auto.min+'-'+n.auto.max:''}" placeholder="${autoOf(n)?'policy '+autoOf(n).min+'-'+autoOf(n).max+' · override: min-max':'off · or min-max, e.g. 2-10'}"></label>
@@ -1670,7 +1708,7 @@ function renderNodeInspector(body,n){
   h+=remedyHTML(n);
  }
  if(!ext&&!plat&&!part)h+=`<label>What-if <select id="iFail"><option value="0">Healthy</option><option value="1" ${n.failed?'selected':''}>Failed</option></select></label>`;
- if(!ext&&!plat&&!part){const list=instancesOf(n);h+=`<h4>Instances (${list.length})</h4><div class="inst">${list.map(m=>`<div class="${V.selInst===m.id?'on':''}"><b>${m.id}</b><br><span class="${m.idle?'':st(m.util)}">${esc(m.role)}${m.idle?'':' · '+pct(m.util)}</span></div>`).join('')}</div>`}
+ if(!ext&&!plat&&!part&&!isManaged(n)){const list=instancesOf(n);h+=`<h4>Instances (${list.length})</h4><div class="inst">${list.map(m=>`<div class="${V.selInst===m.id?'on':''}"><b>${m.id}</b><br><span class="${m.idle?'':st(m.util)}">${esc(m.role)}${m.idle?'':' · '+pct(m.util)}</span></div>`).join('')}</div>`}
  const md=missingDeps(n),deps=S.edges.filter(e=>e.kind==='dep'&&e.from===n.id).map(e=>S.nodes[e.to]).filter(Boolean);
  if(DEPS[n.type]&&n.parent==='root')h+=`<h4>Platform dependencies</h4><div class="just">${deps.map(d=>`✓ ${d.id} ${esc(svcName(d))}`).join('<br>')}${deps.length&&md.length?'<br>':''}${md.map(d=>`<span class="warn">✗ ${esc(pk().svc[d])}</span> · ${esc(depWhy(n.type,d))}`).join('<br>')}${md.length?`<div class="act" style="margin-top:6px"><button class="btn" id="iDeps">Add missing dependencies</button></div>`:''}</div>`;
  h+=`<div class="just" style="font-family:var(--f-mono);font-size:10.5px"><b style="font-family:var(--f-body)">SLM enrichment</b><br>${Object.entries(n.enrich||{}).map(([k,v])=>`${esc(k)}: ${esc(v)}`).join('<br>')}</div>
@@ -1682,6 +1720,8 @@ function renderNodeInspector(body,n){
  g('iPl',v=>set(`private connectivity ${v==='1'?'offered':'not offered'}`,'pl',v==='1'));
  g('iRep',v=>set(`replicas → ${Math.max(1,+v)}`,'rep',Math.max(1,+v)));g('iCap',v=>set(`rps per replica → ${+v}`,'cap',Math.max(1,+v)));
  g('iAuto',v=>{const m=v.match(/(\d+)\s*[-–to ]+\s*(\d+)/);const a=m?{min:Math.max(1,+m[1]),max:Math.max(+m[1],+m[2])}:null;act(`${id}: ${a?`autoscale ${a.min}–${a.max}`:'autoscale off'}`,()=>{S.nodes[id].auto=a})});
+ g('iQuota',v=>{const q=Math.max(1,+v);act(`${id}: ${(MQ[n.type]||{}).lab||'limit'} ${fmt(quotaOf(n))} → ${fmt(q)} rps`,()=>{S.nodes[id].quota=q},{tradeoffs:['+ Configuration only; the provider scales the service','− Above the default this may need a service-quota request']})});
+ g('iPerAz',v=>set(v==='1'?'one per zone':'single zone','perAz',v==='1'));
  g('iRl',v=>{const r=+v||null;act(`${id}: ${r?'rate limit '+r+' rps':'no rate limit'}`,()=>{S.nodes[id].rateLimit=r},{tradeoffs:r?['+ Protects downstream from overload (EA-P7)','− Requests above the limit get 429 Too Many Requests']:null})});
  g('iSb',v=>set(v==='1'?'add standby':'remove standby','standby',v==='1'));
  g('iFail',v=>{S.nodes[id].failed=v==='1';changed()});
@@ -2327,8 +2367,9 @@ function renderCode(){
 function diffDesign(b,a){
  const bn=b.nodes||{},an=a.nodes||{},be=(b.edges||[]).filter(isFlow),ae=(a.edges||[]).filter(isFlow),k=e=>e.from+'→'+e.to;
  const added=Object.keys(an).filter(i=>!bn[i]),removed=Object.keys(bn).filter(i=>!an[i]),changed=[];
- const F_=['name','type','rep','cap','auto','rateLimit','tier','readReplicas','shards','standby','flavor','partitions','consumers','brokers','idpMode','fedIdp','audience','rps','rw','pl','failed'];
- Object.keys(an).filter(i=>bn[i]).forEach(i=>{const f=F_.filter(x=>JSON.stringify(bn[i][x])!==JSON.stringify(an[i][x]));if(f.length)changed.push(`${i}: ${f.map(x=>`${x} ${JSON.stringify(bn[i][x])??'–'} → ${JSON.stringify(an[i][x])??'–'}`).join(', ')}`)});
+ const F_=['name','type','rep','cap','auto','rateLimit','quota','perAz','tier','readReplicas','shards','standby','flavor','partitions','consumers','brokers','idpMode','fedIdp','audience','rps','rw','pl','failed'];
+ const val=(n,x)=>{const v=x==='quota'?(n.quota??(MQ[n.type]||{}).q):n[x];return typeof v==='number'?fmt(v):v&&typeof v==='object'?`${v.min}–${v.max}`:v==null?'–':JSON.stringify(v)};
+ Object.keys(an).filter(i=>bn[i]).forEach(i=>{const f=F_.filter(x=>JSON.stringify(bn[i][x])!==JSON.stringify(an[i][x]));if(f.length)changed.push(`${i}: ${f.map(x=>`${x} ${val(bn[i],x)} → ${val(an[i],x)}${x==='quota'?' rps':''}`).join(', ')}`)});
  const bk=new Set(be.map(k)),ak=new Set(ae.map(k));
  const fl=[...ae.filter(e=>!bk.has(k(e))).map(e=>'+ '+k(e)),...be.filter(e=>!ak.has(k(e))).map(e=>'− '+k(e))];
  ae.forEach(e=>{const o=be.find(x=>k(x)===k(e));if(o&&(o.proto!==e.proto||o.via!==e.via))fl.push(`~ ${k(e)} ${o.proto}/${o.via} → ${e.proto}/${e.via}`)});
@@ -2342,7 +2383,9 @@ function flushLedger(){
  S.history=S.history||[];const u=who();
  S.history.push({id:'CH-'+String(S.history.length+1).padStart(4,'0'),at:new Date().toISOString(),who:u.name,role:u.role,desc:p.desc,verdict:p.verdict||null,adr:p.adr||null,diff:d,before:p.before});
  S.history.slice(0,-30).forEach(h=>{h.before=null});
+ d.changed.forEach(line=>{const id=line.split(':')[0],txt=line.slice(id.length+2).replace(/"/g,'').replace(/quota/,(MQ[(S.nodes[id]||{}).type]||{}).lab||'limit');if(S.nodes[id])CFG_FLASH[id]={text:txt,until:Date.now()+12000}});
 }
+const CFG_FLASH={};
 function changed(){
  flushLedger();
  renderLegendCtl();simulate();analyze();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();

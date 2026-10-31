@@ -117,3 +117,11 @@ Stateless components follow an autoscaling policy (minimum, maximum, target,
 scale-out delay, scale-in cool-down). Cost uses per-provider list-price
 estimates that teams override with their own rates; the UI always calls them
 estimates.
+
+## D24 — Managed services scale by configuration, not instances
+Whether a component is managed depends on the provider pack (API Gateway on
+AWS is managed; Kong on VMware is not). Managed components are one box with a
+MANAGED flag; their capacity is a configured limit or quota; scaling them is a
+configuration change that is shown on the canvas and recorded in History.
+Resiliency follows the service's scope: zonal (one per zone), regional (the
+provider covers zones; plan cross-region DR to the RTO) or global.

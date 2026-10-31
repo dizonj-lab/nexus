@@ -5,6 +5,33 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.14] — 2026-10-31
+
+### Added
+- **Managed services** are modelled as the provider runs them: one component,
+  a MANAGED badge, no instances, no stack, no autoscaling policy and no
+  per-instance cost. Scaling is a **configuration change** (throttle limit,
+  request quota, concurrency, max instances), with a "Raise limit" option,
+  client rate limiting or a CDN. Which types are managed depends on the
+  provider pack: on AWS, API Gateway, Cognito, Lambda, SQS, S3, CloudFront,
+  WAF, ALB, NAT and the platform services; on Azure and GCP also Container
+  Apps and Cloud Run; nothing in the datacenter pack.
+- **Configuration changes are visible**: the component shows a "⚙ <setting>
+  <old> → <new>" flag for a few seconds after any change, History records the
+  exact before and after (provider defaults included), and Terraform states
+  each managed service's configuration and resiliency.
+- **Resiliency by kind** (principle P2 updated): instance-based components run
+  2+ instances across zones; zonal managed services (e.g. NAT gateway) run one
+  per zone; regional managed services rely on the provider across zones and get
+  a cross-region DR recommendation that matches their RTO; global services
+  (CDN) need nothing extra.
+
+### Fixed
+- Managed services were stacked as several instances, counted in Instances and
+  charged per instance.
+- Cognito (IDP1) and other regional managed services were flagged as single
+  points of failure.
+
 ## [0.1.13] — 2026-10-31
 
 ### Added
@@ -323,7 +350,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.13...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.14...HEAD
+[0.1.14]: https://github.com/dizonj-lab/nexus/compare/v0.1.13...v0.1.14
 [0.1.13]: https://github.com/dizonj-lab/nexus/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/dizonj-lab/nexus/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/dizonj-lab/nexus/compare/v0.1.10...v0.1.11
