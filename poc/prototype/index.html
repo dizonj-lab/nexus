@@ -248,7 +248,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand">NEXUS<small>architecture workbench · v0.1.6</small></span>
+    <span class="brand">NEXUS<small>architecture workbench · v0.1.7</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
@@ -1958,7 +1958,7 @@ $('#modelsBtn').onclick=()=>{const st=S.settings,a=st.autoscale;$('#uName').valu
 $('#pReset').onclick=()=>{S.settings.price={};renderPriceTable()};
 $('#mTest').onclick=async()=>{const base=$('#mBase').value.trim()||'/llm/v1',key=$('#mKey').value;$('#mStatus').textContent='Testing…';
  try{const r=await fetch(base.replace(/\/$/,'')+'/models',{headers:key?{Authorization:'Bearer '+key}:{}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();const ids=(j.data||j.models||[]).map(m=>m.id||m.name).filter(Boolean);
-  $('#mModels').innerHTML=ids.map(i=>`<option value="${esc(i)}">`).join('');$('#mStatus').innerHTML=`<span class="ok">Connected.</span> ${ids.length} model${ids.length===1?'':'s'}: ${esc(ids.slice(0,6).join(', '))}${ids.length>6?'…':''}`;if(ids.length&&!ids.includes($('#mModel').value))$('#mModel').value=ids[0]}
+  $('#mModels').innerHTML=ids.map(i=>`<option value="${esc(i)}">`).join('');$('#mStatus').innerHTML=`<span class="ok">Connected.</span> ${ids.length} model${ids.length===1?'':'s'}: ${esc(ids.slice(0,6).join(', '))}${ids.length>6?'…':''}`;if(ids.length&&!ids.includes($('#mModel').value))$('#mModel').value=pickModel(ids)}
  catch(e){$('#mStatus').innerHTML=`<span class="crit">Not reachable</span> (${esc(e.message)}). From Buddy, check that the model server is running and that NEXUS_LLM_UPSTREAM in deploy/compose.yml points to it. This page cannot reach it when opened from claude.ai.`}};
 $('#mClose').onclick=()=>{const st=S.settings;
  st.guard=$('#mGuard').value;st.slm=$('#mSlm').selectedIndex;st.ml=$('#mMl').selectedIndex;st.llm=$('#mLlm').value;
@@ -2056,11 +2056,18 @@ Use existing IDs exactly as listed. For a question, answer in "reply" and return
 Example: request "add a payments service behind the gateway with its own database" -> {"reply":"Adds SVC3 behind GW1 with its own database.","actions":[{"op":"add","ref":"p","type":"svc","name":"Payments service"},{"op":"add","ref":"pd","type":"db","name":"Payments DB"},{"op":"connect","from":"GW1","to":"p"},{"op":"connect","from":"p","to":"pd"}]}`;
 }
 function extractJSON(t){if(!t)return null;const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)return null;try{return JSON.parse(t.slice(a,b+1))}catch(e){return null}}
-async function askModel(text){
- const L=S.settings.llmApi,t0=performance.now(),ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),90000);
+// Prefer an instruct/chat Qwen model when the configured one is not installed (Buddy runs Qwen on Ollama).
+function pickModel(ids){const q=ids.filter(i=>/qwen/i.test(i)&&!/embed|vl|coder/i.test(i));return (q.find(i=>/instruct|chat/i.test(i))||q[0]||ids.find(i=>!/embed/i.test(i))||ids[0])}
+async function listModels(base,key){const r=await fetch(base.replace(/\/$/,'')+'/models',{headers:key?{Authorization:'Bearer '+key}:{}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return (j.data||j.models||[]).map(m=>m.id||m.name).filter(Boolean)}
+async function askModel(text,retried){
+ const L=S.settings.llmApi,t0=performance.now(),ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),120000);
  try{const r=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},
    body:JSON.stringify({model:L.model,temperature:.1,response_format:{type:'json_object'},messages:[{role:'system',content:slmSystem()},{role:'user',content:text}]})});
-  if(!r.ok)throw new Error('HTTP '+r.status+(r.status===404?' (no model server at '+L.base+')':''));
+  if(!r.ok){const body=await r.text().catch(()=>'');
+   if(r.status===404&&/model/i.test(body)&&!retried){const ids=await listModels(L.base,L.key).catch(()=>[]);const m=pickModel(ids);
+    if(m&&m!==L.model){const old=L.model;S.settings.llmApi.model=m;persist();ENG='model setup';say(`Model "${old}" is not installed on the server; switched to "${m}" (installed: ${ids.join(', ')}). Change it in Settings → Architect console.`,'g');return askModel(text,true)}
+    throw new Error(`model "${L.model}" not found on the server${ids.length?' (installed: '+ids.join(', ')+')':''}`)}
+   throw new Error('HTTP '+r.status+(r.status===404?' (no model server at '+L.base+')':r.status===502||r.status===504?' (the NEXUS proxy cannot reach the model server: check NEXUS_LLM_UPSTREAM and that Ollama listens beyond 127.0.0.1)':''))}
   const j=await r.json(),content=j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'';
   return {plan:extractJSON(content),raw:content,ms:performance.now()-t0}}
  finally{clearTimeout(to)}
@@ -2074,7 +2081,7 @@ async function visionOrModel(c,l,rulesOnly){
    logAI(`Model ${L.model}`,`Console: "${c.slice(0,60)}"`,r.plan?`Returned ${(r.plan.actions||[]).length} action(s) in ${Math.round(r.ms)} ms`:`Unparseable answer in ${Math.round(r.ms)} ms: ${String(r.raw).slice(0,120)}`,r.plan?.75:.2);
    if(r.plan){applyPlan(r.plan,ENG,{prompt:c});ENG=null;modelBusy=false;return}
    say(`The model answered, but not with a valid plan: "${String(r.raw).slice(0,160)}". Falling back to rules.`,'g')}
-  catch(e){wait.remove();MODEL.failedAt=Date.now();ENG='rules';say(`Model not reachable (${e.name==='AbortError'?'timed out after 90 s':e.message}). ${eng==='slm'?'Check Settings → Architect console.':'Using rules instead; set up the model in Settings → Architect console.'}`,'g');if(eng==='slm'){modelBusy=false;ENG=null;return}}
+  catch(e){wait.remove();MODEL.failedAt=Date.now();ENG='rules';say(`Model not reachable (${e.name==='AbortError'?'timed out after 120 s':e.message}). ${eng==='slm'?'Check Settings → Architect console.':'Using rules instead; set up the model in Settings → Architect console.'}`,'g');if(eng==='slm'){modelBusy=false;ENG=null;return}}
   modelBusy=false;
  }
  ENG='rules · description reader';

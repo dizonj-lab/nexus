@@ -5,6 +5,17 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.7] — 2026-10-31
+
+### Changed
+- Console model setup for Ollama with Qwen on Buddy: if the configured model is
+  not installed, the console switches to the installed Qwen chat model (skipping
+  embedding, vision and coder models), says so, and retries. "Test connection"
+  picks the same way.
+- Clearer errors: model not found (with the installed list), and 502/504 when
+  the NEXUS proxy cannot reach Ollama. Model timeout raised to 120 s for
+  larger local models.
+
 ## [0.1.6] — 2026-10-31
 
 ### Added
@@ -209,7 +220,8 @@ Concept baseline: prototype and target architecture.
 - Generated Terraform has not been run through `terraform validate`.
 - State lives in the browser's local storage only.
 
-[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/dizonj-lab/nexus/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/dizonj-lab/nexus/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/dizonj-lab/nexus/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/dizonj-lab/nexus/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/dizonj-lab/nexus/compare/v0.1.3...v0.1.4
