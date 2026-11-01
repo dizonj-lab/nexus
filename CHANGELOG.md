@@ -5,6 +5,34 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.7] — 2026-11-01
+
+### Added
+- **Draw region B separately** (Load panel → Resilience, or
+  `draw regions separately` / `regions collapse`). Every regional component
+  gets its own copy in region B with its own ID, load, bottleneck and
+  findings; DNS splits users by its region share. The database follows its
+  multi-region choice: Aurora DSQL gets a peered database in region B;
+  Aurora Global Database gets a read-only secondary that forwards writes to
+  region A and is promoted on failure; a single-region database stays in
+  region A and region B reaches it across regions (with the round-trip
+  latency, set by `regions rtt 70`, and inter-region transfer cost). A region
+  outage fails every component of that region, and the bottleneck shown is
+  in the surviving region.
+- **Compare multi-region options before deciding**: the database Inspector
+  compares single region, cross-region read replica, Aurora Global Database
+  and Aurora DSQL by writes, RPO, RTO, strengths, constraints and when to
+  choose each, with links to the AWS documentation. The summary was written
+  from AWS documentation up to 2025 and could not be re-checked from this
+  environment; it says so. Choosing an option goes through the Action Guard
+  with its trade-offs and records an architecture decision for a lead
+  architect to approve. DSQL adds a critical setting: constraints confirmed
+  against current documentation.
+
+### Fixed
+- An active-active (DSQL) database is no longer reported as a single point of
+  failure, and is not taken down by a zone outage.
+
 ## [0.2.6] — 2026-11-01
 
 ### Added

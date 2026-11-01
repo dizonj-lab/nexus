@@ -274,6 +274,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .gwait{display:grid;gap:6px}.gauge{height:6px;background:var(--line);border-radius:3px;overflow:hidden;position:relative}.gauge i{position:absolute;top:0;bottom:0;width:35%;background:var(--accent);border-radius:3px;animation:gmove 1.15s ease-in-out infinite}@keyframes gmove{0%{left:-35%}100%{left:100%}}
 .wlbar{flex-wrap:wrap;gap:4px 10px;font-size:11px}.wlbar b{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.wlbar label{display:flex!important;gap:3px;align-items:center;white-space:nowrap}.wlbar input{width:58px!important;flex:none;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:1px 4px;font-family:var(--f-mono);font-size:11px}
 .cst td,.cst th{vertical-align:top;font-size:12px}.cst td.ok{color:var(--ok)}.cst td.crit{color:var(--crit)}.cst td.warn{color:var(--warn)}
+.dbopts{border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:4px 0}.dbopts summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent)}.mrcard{border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-top:6px;display:grid;gap:4px;font-size:12px}.mrcard.on{border-color:var(--accent)}.mrcard dl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:0}.mrcard dt{color:var(--muted)}.mrcard dd{margin:0}
 .scrim{pointer-events:none}.scrim>.modal{pointer-events:auto}
 .scrim{position:fixed;inset:0;background:rgba(10,15,25,.18);z-index:50;display:grid;place-items:center;padding:16px}
 .modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(520px,100%);max-height:90%;overflow:auto;padding:16px;display:grid;gap:12px}
@@ -340,7 +341,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.6">NEXUS<small>Architecture Workbench · v0.2.6</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.7">NEXUS<small>Architecture Workbench · v0.2.7</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -427,7 +428,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
         <label>Zones <select id="zCount"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
         <label>Outage <select id="zOut"></select></label>
         <label>Regions <select id="rMode"><option value="single">1</option><option value="aa">2 · active-active</option></select></label>
-        <label>Region outage <select id="rOut"></select></label><span id="zSum" class="why"></span></div>
+        <label>Region outage <select id="rOut"></select></label><button class="btn" id="rExp" type="button" style="padding:1px 7px;font-size:11px">Draw region B</button><span id="zSum" class="why"></span></div>
       <div class="pbody" style="max-height:330px"><div class="demstats" id="demStats"></div><div id="demCharts"></div></div>
     </section>
 
@@ -601,7 +602,7 @@ const defVia=(a,b)=>EXTERNAL.includes(b)&&!EXTERNAL.includes(a)&&a!=='egw'?'inte
 // External systems are outside your network: no direct path (VPC to VPC or the same network). Use private connectivity, a VPN, a dedicated circuit, or the API over the internet.
 const extViaOk=(A,B,v)=>!(A&&B&&['ext','saas'].includes(B.type)&&!EXTERNAL.includes(A.type)&&A.type!=='egw'&&v==='net');
 const extViaWhy=B=>`${B.id} (${B.name}) is outside your boundary, so a direct network path (VPC to VPC or the same network) is not supported. Connect with ${pk().pl}${B.pl?'':' (if the provider offers it)'}, a site-to-site VPN (${pk().vpn}), a dedicated circuit (${pk().dedicated}), or its API over the internet through the egress gateway.`;
-const isFlow=e=>e.kind!=='dep';
+const isFlow=e=>e.kind!=='dep'&&e.kind!=='repl';
 
 /* ---------- provider packs (one interface, one pack per provider) ---------- */
 const PACK={
@@ -646,9 +647,9 @@ const prov=()=>({aws:'aws',azure:'azure',gcp:'gcp'}[S.deploy]||'vmware');
 let DCK='',DCV=null;
 const outerLabel=()=>{let o=pk().outer.replace(/\b\d (AZs?|zones?)\b/,m=>`${zoneCount()} ${m.split(' ')[1]}`);if(mr()){const r=regNames();o=o.replace(/eu-west-1|westeurope|europe-west1|Site A active \/ Site B standby/,'REGION A · '+r.a)+` · ACTIVE-ACTIVE WITH ${r.b}${S.routage==='a'?' · DOWN':''}`}return o};
 const pk=()=>{const p=PACK[prov()];if(p!==PACK.vmware||!S.dcStack)return p;const k=JSON.stringify(S.dcStack);if(k!==DCK){DCK=k;DCV={...p,svc:{...p.svc,...(S.dcStack.svc||{})},q:{...p.q,...(S.dcStack.q||{})}}}return DCV};
-const VIAS=['net','internet','privatelink','vpn','dedicated'];
-const viaName=v=>({net:'In-network',internet:'Public internet',privatelink:pk().pl,vpn:pk().vpn,dedicated:pk().dedicated}[v]||v);
-const viaShort=v=>({net:'',internet:'internet',privatelink:pk().pl,vpn:'VPN',dedicated:pk().dedicated}[v]);
+const VIAS=['net','internet','privatelink','vpn','dedicated','xregion'];
+const viaName=v=>({xregion:'Cross-region (peering / transit gateway)',net:'In-network',internet:'Public internet',privatelink:pk().pl,vpn:pk().vpn,dedicated:pk().dedicated}[v]||v);
+const viaShort=v=>({xregion:'cross-region',net:'',internet:'internet',privatelink:pk().pl,vpn:'VPN',dedicated:pk().dedicated}[v]);
 const idpKey=n=>n.audience==='workforce'?'work':(n.idpMode||'native');
 function svcName(n){
  const P=pk();
@@ -851,9 +852,10 @@ function placementText(n){const N=zoneCount(),home=homeZone(n);
  if(home)return `pinned to zone ${home} by subnet ${(S.nets||[]).find(y=>y.id===n.net).name}`;
  const r=(F[n.id]&&F[n.id].rep)||repOf(n);return r<2?'one instance, in zone a':`${r} instances spread over zones ${zoneList().join(', ')}`}
 // What an outage of zone S.outage does to one component.
-function zoneHit(n,r0){const z=S.outage;if(!z||!zoneList().includes(z)||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return null;
+function zoneHit(n,r0){if(expanded()&&n.region==='B')return null;const z=S.outage;if(!z||!zoneList().includes(z)||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return null;
  const N=zoneCount(),home=homeZone(n);
  if(isManaged(n)){const res=(MQ[n.type]||{}).res;if(res!=='zonal')return null;if(n.perAz)return N>1?{frac:(N-1)/N,why:`loses its zone ${z} copy; the others carry on`}:{down:true,why:'only one zone'};return (home||'a')===z?{down:true,why:`zonal service deployed only in zone ${home||'a'}`}:null}
+ if(n.type==='db'&&n.multi==='aa')return null;
  if(n.type==='db'){const pz=home||'a';if(pz!==z)return n.standby&&N>1?{why:'its standby zone is lost: no failover target until it returns'}:null;
   return n.standby&&N>1?{failover:true,why:`primary in zone ${pz} lost: fails over to the standby in about 1–2 minutes`}:{down:true,why:`primary in zone ${pz} lost and there is no standby`}}
  if(home)return home===z?{down:true,why:`pinned to zone ${home} by its subnet`}:null;
@@ -899,14 +901,15 @@ function flowScope(pid,entryIn){
   let util,served,pass,lag=0,dbx=null,qx=null,noRoute=false;
   if(n.type==='user'){util=0;served=i;noRoute=i>0&&!outs.length;pass=served}
   else if(n.failed||(zx&&zx.down)){util=Infinity;served=0;pass=0}
-  else if(n.type==='db'){dbx=dbLoad(n,i);util=dbx.util/zf;served=util<=1?i:i/util;pass=served}
+  else if(n.type==='db'){const sec=n.role==='secondary'&&!(zx&&zx.failover);dbx=sec?dbLoad(n,i*rwOf(n),{rw:1}):dbLoad(n,i);util=dbx.util/zf;served=util<=1?i:i/util;pass=served}
   else if(n.type==='queue'){qx=queueLoad(n,i);util=qx.util/zf;served=Math.min(i,qx.brokerCap);pass=Math.min(served,qx.consCap);lag=served-pass}
   else{const c=(isManaged(n)?quotaOf(n):capOf(n)*rep*scaleOf(n))*zf;if(isManaged(n))rep=1;util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
-  const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
+  const preds=es.filter(e=>e.to===id).map(e=>(lat[e.from]||0)+(e.via==='xregion'?xrtt():0));
   lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95))+mrWriteLat(n);
   F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,desired,lat:lat[id],db:dbx,q:qx,noRoute,zx};
-  pass*=(t.pass??1);const hasCache=outs.some(e=>S.nodes[e.to].type==='cache'&&!isDownNow(S.nodes[e.to]));
-  outs.forEach(e=>{let f=t.route?pass/outs.length:pass;const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-rwOf(tn)*wl().hit;EF.set(e,f);inn[e.to]+=f});
+  pass*=(t.pass??1);if(n.type==='db')pass=(n.role==='secondary'&&!(zx&&(zx.failover||zx.down)))?i*(1-rwOf(n)):0;const hasCache=outs.some(e=>S.nodes[e.to].type==='cache'&&!isDownNow(S.nodes[e.to]));
+  const rs=expanded()&&(n.type==='dns'||n.type==='user')?outs.map(e=>regionOf(S.nodes[e.to])):null,two=!!rs&&rs.includes('A')&&rs.includes('B'),fo2=two&&S.routage?dnsFailover():null,wA=two?(S.routage&&fo2.ok?(S.routage==='a'?0:1):shareA()):0;
+  outs.forEach((e,ix)=>{let f=t.route?pass/outs.length:pass;if(two){const r=rs[ix];f=pass*(r==='A'?wA:1-wA)/rs.filter(x=>x===r).length}const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-rwOf(tn)*wl().hit;EF.set(e,f);inn[e.to]+=f});
  }
  ns.forEach(n=>{if(kids(n.id).length)flowScope(n.id,F[n.id].served)});
 }
@@ -915,7 +918,7 @@ function simulate(){
  const root=kids('root'),users=root.filter(n=>n.type==='user');
  const offered=users.reduce((a,n)=>a+(n.rps||0)*S.mult,0),offNet=users.filter(n=>n.origin!=='corp').reduce((a,n)=>a+(n.rps||0)*S.mult,0);
  let worst=null,err=0,lat=0,thr=0,lag=0,noRoute=0;
- root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(!worst||f.util>F[worst.id].util)worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
+ root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(!(f.zx&&f.zx.down&&S.routage&&n.region===S.routage.toUpperCase())&&(!worst||f.util>F[worst.id].util))worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
  if(offered)err=Math.max(err,noRoute/offered,regionLoad().lost);
  KPI={offered,err:Math.min(1,err),lat:lat+(offered?xferMs():0),worst,thr:offered?thr/offered:0,lag,noRoute,mbps:mbpsOf(offered),offNet};
 }
@@ -1010,7 +1013,7 @@ function analyze(log=true){
   if(isManaged(n)&&n.parent==='root'){const res=(MQ[n.type]||{}).res;
    if(res==='zonal'&&!n.perAz)add('warn','zonal:'+n.id,n.id,`${n.id} (${svcName(n)}) is a zonal service`,`A single ${svcName(n)} lives in one zone: if that zone fails, everything behind it loses ${T[n.type].label.toLowerCase()}. Run one per zone.`,['EA-P2'],{k:'perAz',n:n.id});
    else if(res==='regional'&&n.enrich&&/min/.test(n.enrich.rto||''))add('info','dr:'+n.id,n.id,`${n.id} needs a cross-region DR plan (RTO ${n.enrich.rto})`,`${svcName(n)} is regional: ${pk().name} already covers zone failures, so do not add instances. A region failure is not covered. ${DR[n.type]||''}`,['EA-P2'],null)}
-  if(!isManaged(n)&&n.parent==='root'&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(autoOf(n)?autoOf(n).min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
+  if(!isManaged(n)&&n.parent==='root'&&!(n.type==='db'&&n.multi==='aa')&&['db','gw','svc','idp','vm','egw'].includes(n.type)&&!n.standby&&(n.type==='db'?true:(autoOf(n)?autoOf(n).min:n.rep)<2))add('warn','spof:'+n.id,n.id,`${n.id} is a single point of failure`,n.type==='db'?`One primary carries every write. Add a passive standby (${prov()==='aws'?'Multi-AZ':prov()==='azure'?'zone-redundant HA':prov()==='gcp'?'REGIONAL availability':'Patroni across sites'}). Read replicas are not a failover target by default.`:`One instance carries ${fmt(f.in)} rps. Run 2+ replicas across zones.`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:{k:'scale',n:n.id,to:2});
   if(!capTypes.has(n.type))add('warn','cap:'+n.id,n.id,`${T[n.type].label} is not in Technical Capabilities`,`Recommended platform. Needs an architecture decision before build.`,['EA-P3','TC catalog v'+S.ver.caps],{k:'cap',t:n.type},
    `Context: ${n.id} "${n.name}" (${svcName(n)}) carries ${fmt(f.in)} rps; no catalogued capability covers it.\nConstraints: security review; must meet GT1–GT5; operated by the platform team.\nTradeoffs: + ${T[n.type].pro||'fills a gap'}\n           − ${T[n.type].con||'new operational surface'}`);
   if(['db','obj','cache','queue'].includes(n.type)&&n.enrich&&n.enrich.encryptRest===false)add('crit','enc:'+n.id,n.id,`${n.id} stores data unencrypted at rest`,`Classification is ${n.enrich.classification}.`,['GT4','EA-P1'],{k:'enc',n:n.id});
@@ -1027,6 +1030,7 @@ function analyze(log=true){
  out.forEach((f,i)=>f.id='F'+(i+1));
  S.edges.forEach(e=>{const a=N[e.from],b=N[e.to];if(a&&b&&isFlow(e)&&!extViaOk(a,b,e.via))add('crit','extnet:'+e.from+'>'+e.to,b.id,`${a.id} → ${b.id}: no direct network path to an external system`,extViaWhy(b),['Technical constraint','GT5'],{k:'via',from:e.from,to:e.to,via:b.pl?'privatelink':'internet'})});
  netGroupFindings(add);
+ if(expanded())S.edges.filter(e=>isFlow(e)&&e.via==='xregion'&&N[e.from]&&N[e.to]).forEach(e=>add('warn','xreg:'+e.from+'>'+e.to,e.to,`${e.from} → ${e.to} crosses regions`,`Every call adds about ${xrtt()} ms and inter-region data transfer${N[e.from].role==='secondary'?' (forwarded writes)':''}, and ${e.from} stops working whenever region ${regionOf(N[e.to])} fails.`,['EA-P2'],null));
  if(mr()){const d=dnsNode(),fo=dnsFailover();
   if(!d)add('crit','mrdns','root','Two regions, but nothing steers users between them',`Add DNS (${pk().svc.dns}) in front of both regions, with health checks.`,['GT7','EA-P2'],null);
   else if(!fo.ok)add('crit','mrfo:'+d.id,d.id,`${d.id} cannot move users if a region fails`,`${fo.why}. Turn on health checks${(d.policy||'geolocation')==='geolocation'?' and add a default record':''} in the Inspector.`,['EA-P2'],null);
@@ -1329,7 +1333,7 @@ function renderRefs(){const items=[...(pending&&pending.pc1?[...pending.pc1.pro,
 const BP={
  dns:[['dnshc','Health checks on every regional endpoint','reliability',1],['dnsdef','Default record for locations not mapped (geolocation)','reliability',1],['dnsttl','TTL of 60 s or less','reliability',1],['dnssec','DNSSEC signing','security',0],['qlog','Query logging','operations',0],['gameday','Region failover tested (game day)','reliability',1]],
  corp:[['dxlink','Every flow over Direct Connect (GT6)','reliability',1,{aws:'AWS Direct Connect',azure:'ExpressRoute',gcp:'Cloud Interconnect',vmware:'MPLS / dark fibre'}],['dx2','Two connections at two Direct Connect locations','reliability',1],['dxgw','Direct Connect gateway attached to both regions','reliability',1],['vpnbk','Site-to-site VPN as the backup path','reliability',0],['macsec','Link encryption (MACsec, or IPsec over the circuit)','security',1],['bfd','BGP with BFD for fast failover','reliability',0]],
- dsql:[['aa','Multi-region cluster with a witness region','reliability',1],['occ','Application retries optimistic-concurrency conflicts','reliability',1],['compat','Schema and SQL checked against the engine’s PostgreSQL compatibility','operations',1],['iam','IAM authentication, no stored passwords','security',1],['backup','Backup plan for the cluster','reliability',1],['cmk','Encrypted with customer-managed keys','security',1]],
+ dsql:[['verified','Constraints confirmed against current AWS documentation (features, quotas, regions)','operations',1],['aa','Multi-region cluster with a witness region','reliability',1],['occ','Application retries optimistic-concurrency conflicts','reliability',1],['compat','Schema and SQL checked against the engine’s PostgreSQL compatibility','operations',1],['iam','IAM authentication, no stored passwords','security',1],['backup','Backup plan for the cluster','reliability',1],['cmk','Encrypted with customer-managed keys','security',1]],
  waf:[['mode','Blocking mode, not count-only','security',1],['managed','Managed rule sets on (OWASP Top 10, known bad inputs)','security',1],['rate','Rate-based rule per client','reliability',0],['logs','Full request logs to the SIEM','operations',0]],
  cdn:[['https','HTTPS only, TLS 1.2+','security',1],['oac','Private origin access (origin not public)','security',1,{aws:'Origin Access Control',azure:'Private Link origin',gcp:'signed requests to the origin',vmware:'origin allow-list'}],['wafedge','WAF attached at the edge','security',0],['logs','Access logs','operations',0]],
  lb:[['tls','TLS 1.2+ policy; HTTP redirects to HTTPS','security',1],['health','Health checks on every target','reliability',1],['xzone','Targets in 2+ zones','reliability',1],['logs','Access logs','operations',0],['delprot','Deletion protection','reliability',0]],
@@ -1369,7 +1373,7 @@ const grpById=id=>(S.groups||[]).find(x=>x.id===id);
 const TIERWORD={edge:'public',dmz:'ingress',app:'application',data:'data',platform:'shared platform'};
 const tierName=t=>TIERWORD[t]||t;
 const netLabel=id=>{const x=netById(id);return x?`${x.name.toUpperCase()}${x.cidr?' · '+x.cidr:''}${x.az?' · zone '+x.az:''}`:'SUBNET'};
-const zoneLabel=z=>z.startsWith('net:')?netLabel(z.slice(4)):(pk().zone[z]||z.toUpperCase());
+const zoneLabel=z=>z.startsWith('B:')?zoneLabel(z.slice(2)):z.startsWith('net:')?netLabel(z.slice(4)):(pk().zone[z]||z.toUpperCase());
 const GRP_COL={sg:'#e8590c',ag:'#ae3ec9'};
 const portOf=e=>{const p=(e.proto||'').toUpperCase();return /SQL/.test(p)?'5432':/REDIS|RESP/.test(p)?'6379':/KAFKA/.test(p)?'9092':/AMQP/.test(p)?'5671':'443'};
 function nextGid(pfx,arr){let i=1;while(arr.some(x=>x.id===pfx+i))i++;return pfx+i}
@@ -1457,12 +1461,13 @@ function tidyZone(z){
  const mem=zoneMembers(z);if(!mem.length)return;
  pushUndo(`Tidy ${groupLabel(z)}`);
  const x0=Math.min(...mem.map(n=>n.x)),y0=Math.min(...mem.map(n=>n.y)),GX=250,GY=150;
- if(z==='__outer'){
-  const plat=mem.filter(n=>drawZone(n)==='platform'),ns=mem.filter(n=>drawZone(n)!=='platform');
+ const dz=n=>drawZone(n).replace(/^B:/,'');
+ if(z==='__outer'||z==='__outerB'){
+  const plat=mem.filter(n=>dz(n)==='platform'),ns=mem.filter(n=>dz(n)!=='platform');
   const tierOf=k=>k.startsWith('net:')?((netById(k.slice(4))||{}).tier||'app'):k;
-  const keys=[...new Set(ns.map(drawZone))].sort((a,b)=>TIERS_NET.indexOf(tierOf(a))-TIERS_NET.indexOf(tierOf(b))||a.localeCompare(b));
-  let cols=[];keys.forEach(k=>{const g=ns.filter(n=>drawZone(n)===k).sort((a,b)=>a.y-b.y);for(let i=0;i<g.length;i+=6)cols.push(g.slice(i,i+6))});
-  const es=flowsIn('root'),nb=id=>es.filter(e=>e.from===id||e.to===id).map(e=>e.from===id?e.to:e.from);
+  const keys=[...new Set(ns.map(dz))].sort((a,b)=>TIERS_NET.indexOf(tierOf(a))-TIERS_NET.indexOf(tierOf(b))||a.localeCompare(b));
+  let cols=[];keys.forEach(k=>{const g=ns.filter(n=>dz(n)===k).sort((a,b)=>a.y-b.y);for(let i=0;i<g.length;i+=6)cols.push(g.slice(i,i+6))});
+  const es=flowsIn('root').filter(e=>mem.some(m=>m.id===e.from)||mem.some(m=>m.id===e.to)),nb=id=>es.filter(e=>e.from===id||e.to===id).map(e=>e.from===id?e.to:e.from);
   for(let it=0;it<6;it++){const idx={};cols.forEach(c=>c.forEach((n,i)=>idx[n.id]=i-(c.length-1)/2));
    (it%2?cols.slice().reverse():cols).forEach(c=>{c.forEach(n=>{const ys=nb(n.id).filter(x=>idx[x]!=null&&!c.includes(S.nodes[x])).map(x=>idx[x]);n._b=ys.length?ys.reduce((a,b)=>a+b,0)/ys.length:idx[n.id]});c.sort((a,b)=>a._b-b._b)})}
   const rows=Math.max(1,...cols.map(c=>c.length));
@@ -1792,20 +1797,21 @@ function nodeAt(sx,sy){
   if(V.mode==='iso'){if(Math.hypot(sx-p.x,sy-p.y)<44*V.k)return n}
   else if(Math.abs(sx-p.x)<NW/2*V.k&&Math.abs(sy-p.y)<NH/2*V.k)return n}
  return null}
-function zoneMembers(z){const ns=kids(V.scope);return z==='__outer'?ns.filter(n=>!['internet','third','corp','global'].includes(drawZone(n))):ns.filter(n=>drawZone(n)===z)}
+function zoneMembers(z){const ns=kids(V.scope),inside=n=>!['internet','third','corp','global'].includes(drawZone(n));return z==='__outer'?ns.filter(n=>inside(n)&&!drawZone(n).startsWith('B:')):z==='__outerB'?ns.filter(n=>drawZone(n).startsWith('B:')):ns.filter(n=>drawZone(n)===z)}
 function zoneAt(sx,sy){const tol=6;for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i];
   if(sx>=b.x0&&sx<=b.x0+b.lw&&sy>=b.y0-2&&sy<=b.y0+18*V.k)return b.z;}
  for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i],inX=sx>=b.x0-tol&&sx<=b.x1+tol,inY=sy>=b.y0-tol&&sy<=b.y1+tol;
   if(inX&&inY&&(Math.abs(sx-b.x0)<tol||Math.abs(sx-b.x1)<tol||Math.abs(sy-b.y0)<tol||Math.abs(sy-b.y1)<tol))return b.z}
  return null}
-function groupLabel(z){return z==='__outer'?'everything inside '+pk().name:zoneLabel(z).toLowerCase()}
+function groupLabel(z){return z==='__outerB'?'everything in region B':z==='__outer'?'everything inside '+pk().name+(expanded()?' region A':''):zoneLabel(z).toLowerCase()}
 function segDist(px,py,a,b){const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy||1;let t=((px-a.x)*dx+(py-a.y)*dy)/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy))}
 function edgeAt(sx,sy){
  let best=null,bd=7;
  edgesIn(V.scope).forEach(e=>{const p=e._pts;if(!p||!e._drawn)return;for(let i=0;i<p.length-1;i++){const d=segDist(sx,sy,p[i],p[i+1]);if(d<bd){bd=d;best=e}}});
  return best;
 }
-const drawZone=n=>['saas','ext'].includes(n.type)?'third':(n.net&&(S.nets||[]).some(x=>x.id===n.net))?'net:'+n.net:zoneOf(n);
+const drawZone0=n=>['saas','ext'].includes(n.type)?'third':(n.net&&(S.nets||[]).some(x=>x.id===n.net))?'net:'+n.net:zoneOf(n);
+const drawZone=n=>{const z=drawZone0(n);return n.region==='B'&&!['internet','third','corp','global'].includes(z)?'B:'+z:z};
 // Routing that avoids components. Computed in design coordinates and cached per layout:
 // 1) straight if aligned and clear, 2) one elbow slid into a free gap, 3) a detour through a free corridor.
 const RC={sig:'',m:new Map()};
@@ -1892,7 +1898,7 @@ function drawIsoZones(ns){
  const plate=(q,col,alpha,dash,lw)=>{ctx.beginPath();q.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.globalAlpha=alpha*.13;ctx.fillStyle=col;ctx.fill();ctx.setLineDash(dash);ctx.globalAlpha=alpha;ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1};
  const label=(q,txt,col)=>{const a=q[0],b=q[1];ctx.save();ctx.translate(a.x,a.y);ctx.rotate(Math.atan2(b.y-a.y,b.x-a.x));ctx.globalAlpha=.85;ctx.fillStyle=col;ctx.fillText(txt,10*V.k,-6*V.k);ctx.restore();ctx.globalAlpha=1};
  const Wb={};Object.entries(byZ).forEach(([z,a])=>{Wb[z]={x0:Math.min(...a.map(n=>n.x))-95,x1:Math.max(...a.map(n=>n.x))+95,y0:Math.min(...a.map(n=>n.y))-60,y1:Math.max(...a.map(n=>n.y))+60}});
- const inner=Object.entries(Wb).filter(([z])=>!['internet','third','corp','global'].includes(z)).map(([,b])=>b);
+ const inner=Object.entries(Wb).filter(([z])=>!['internet','third','corp','global'].includes(z)&&!z.startsWith('B:')).map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-40,x1:Math.max(...inner.map(b=>b.x1))+40,y0:Math.min(...inner.map(b=>b.y0))-40,y1:Math.max(...inner.map(b=>b.y1))+40},q=quad(o);plate(q,colors.accent,.55,[],1.3);label(q,outerLabel(),colors.accent)}
  Object.entries(Wb).forEach(([z,b])=>{const col=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted,q=quad(b);plate(q,col,z==='third'?.4:.6,[5,4],1);label(q,zoneLabel(z),col)});
 }
@@ -1907,11 +1913,13 @@ function frame(now){
  ctx.font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;
  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
  const boxes={};if(V.mode!=='iso')Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
- const inner=Object.entries(boxes).filter(([z])=>!['internet','third','corp','global'].includes(z)).map(([,b])=>b);
- if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-14*V.k,x1:Math.max(...inner.map(b=>b.x1))+14*V.k,y0:Math.min(...inner.map(b=>b.y0))-24*V.k,y1:Math.max(...inner.map(b=>b.y1))+12*V.k};
-  if(mr()){ctx.save();ctx.strokeStyle=S.routage==='b'?colors.crit:colors.accent;ctx.globalAlpha=.32;ctx.setLineDash([6,5]);ctx.lineWidth=1.2;rr(o.x0+18*V.k,o.y0+18*V.k,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.75;ctx.fillStyle=S.routage==='b'?colors.crit:colors.accent;ctx.fillText(`REGION B · ${regNames().b} · same stack${S.routage==='b'?' · DOWN':''}`,o.x0+28*V.k,o.y1+32*V.k);ctx.restore()}
-  const hz=V.hoverZ==='__outer'||V.selZone==='__outer';ctx.strokeStyle=colors.accent;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(outerLabel(),o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
-  zoneHits.push({z:'__outer',...o,lw:ctx.measureText(outerLabel()).width+20*V.k})}
+ const innerAll=Object.entries(boxes).filter(([z])=>!['internet','third','corp','global'].includes(z)),inner=innerAll.filter(([z])=>!z.startsWith('B:')).map(([,b])=>b);
+ if(V.scope==='root')[['__outer',inner,outerLabel()],['__outerB',innerAll.filter(([z])=>z.startsWith('B:')).map(([,b])=>b),outerLabelB()]].forEach(([key,list,lab])=>{if(!list.length)return;
+  const o={x0:Math.min(...list.map(b=>b.x0))-14*V.k,x1:Math.max(...list.map(b=>b.x1))+14*V.k,y0:Math.min(...list.map(b=>b.y0))-24*V.k,y1:Math.max(...list.map(b=>b.y1))+12*V.k};
+  if(key==='__outer'&&stamp()){ctx.save();ctx.strokeStyle=S.routage==='b'?colors.crit:colors.accent;ctx.globalAlpha=.32;ctx.setLineDash([6,5]);ctx.lineWidth=1.2;rr(o.x0+18*V.k,o.y0+18*V.k,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.75;ctx.fillStyle=S.routage==='b'?colors.crit:colors.accent;ctx.fillText(`REGION B · ${regNames().b} · same stack${S.routage==='b'?' · DOWN':''}`,o.x0+28*V.k,o.y1+32*V.k);ctx.restore()}
+  const down=mr()&&((key==='__outer'&&S.routage==='a')||(key==='__outerB'&&S.routage==='b')),hz=V.hoverZ===key||V.selZone===key,c=down?colors.crit:colors.accent;
+  ctx.strokeStyle=c;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();if(down){ctx.fillStyle=hexA(colors.crit,.05);ctx.fill()}ctx.globalAlpha=.85;ctx.fillStyle=c;ctx.fillText(lab,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
+  zoneHits.push({z:key,...o,lw:ctx.measureText(lab).width+20*V.k})});
  Object.entries(boxes).forEach(([z,b])=>{
   const hz=V.hoverZ===z||V.selZone===z;ctx.setLineDash(hz?[]:[4,4]);ctx.strokeStyle=hz?colors.accent:z==='internet'?colors.crit:z==='platform'||z==='corp'?colors.accent:colors.muted;ctx.globalAlpha=hz?.9:z==='third'?.4:.55;ctx.lineWidth=hz?2.2:1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);if(hz){ctx.fillStyle=hexA(colors.accent,.05);ctx.fill()}
   zoneHits.push({z,...b,lw:ctx.measureText(zoneLabel(z)).width+20*V.k});
@@ -1920,7 +1928,7 @@ function frame(now){
  if(V.mode==='iso')drawIsoZones(ns);
  drawGroups(ns);
  const VW=S.settings.view,focus=id=>V.sel===id||V.hover===id;
- const drawn=es.filter(e=>isFlow(e)||VW.deps||focus(e.from)||focus(e.to));
+ const drawn=es.filter(e=>isFlow(e)||e.kind==='repl'||VW.deps||focus(e.from)||focus(e.to));
  es.forEach(e=>{e._drawn=false});
  drawn.forEach(e=>{e._pts=routeEdge(S.nodes[e.from],S.nodes[e.to]);e._drawn=true});
  // separate lanes where flows from different sources share the same vertical run
@@ -2261,7 +2269,7 @@ function renderNodeInspector(body,n){
   <label>Shards <input id="iSh" type="number" min="1" max="64" value="${n.shards||1}"></label>
   <label>Data size (GB) <input id="iGb" type="number" min="1" step="50" value="${n.sizeGB||0}"></label>
   <label>Standby <select id="iSb"><option value="0">None</option><option value="1" ${n.standby?'selected':''}>Passive standby (failover)</option></select></label>
-  <label>Multi-region <select id="iMr">${[['','None (one region)'],['replica',mrdbName('replica')],['global',mrdbName('global')+' (active-passive)'],['aa',mrdbName('aa')+' (active-active)']].map(([v,l])=>`<option value="${v}" ${(n.multi||'')===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>${n.multi==='aa'?`<label>Planning limit (rps) <input id="iDq" type="number" min="100" step="1000" value="${n.quota||20000}" title="Serverless: scales automatically. Set the throughput you plan for."></label>`:''}`;
+  <label>Multi-region <select id="iMr">${[['','None (one region)'],['replica',mrdbName('replica')],['global',mrdbName('global')+' (active-passive)'],['aa',mrdbName('aa')+' (active-active)']].map(([v,l])=>`<option value="${v}" ${(n.multi||'')===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>${dbOptsHTML(n)}${n.multi==='aa'?`<label>Planning limit (rps) <input id="iDq" type="number" min="100" step="1000" value="${n.quota||20000}" title="Serverless: scales automatically. Set the throughput you plan for."></label>`:''}`;
   h+=dbDecisionHTML(n);
  }else if(n.type==='queue'){
   h+=`<label>Kind <select id="iFl"><option value="kafka" ${n.flavor==='kafka'?'selected':''}>Event stream · ${esc(pk().q.kafka)}</option><option value="mq" ${n.flavor==='mq'?'selected':''}>Message broker · ${esc(pk().q.mq)}</option><option value="native" ${n.flavor==='native'?'selected':''}>Managed queue · ${esc(pk().q.native)}</option></select></label>
@@ -2308,7 +2316,9 @@ function renderNodeInspector(body,n){
  {const id=n.id,sv=(k,v,d)=>act(`${id}: ${d}`,()=>{S.nodes[id][k]=v});const on=(i,f)=>{const e=document.getElementById(i);if(e)e.onchange=f};
   on('nPol',e=>sv('policy',e.target.value,`routing policy ${e.target.value}`));on('nShare',e=>sv('shareA',Math.min(100,Math.max(0,+e.target.value||0)),`region A share ${e.target.value}%`));
   on('nHc',e=>sv('health',e.target.checked,`health checks ${e.target.checked?'on':'off'}`));on('nDef',e=>sv('defaultRec',e.target.checked,`default record ${e.target.checked?'on':'off'}`));on('nTtl',e=>sv('ttl',Math.max(5,+e.target.value||60),`TTL ${e.target.value} s`));
-  on('iMr',e=>sv('multi',e.target.value||undefined,`multi-region ${e.target.value?mrdbName(e.target.value):'none'}`));on('iDq',e=>sv('quota',Math.max(100,+e.target.value||20000),`planning limit ${e.target.value} rps`))}
+  on('iMr',e=>{const v=e.target.value,I=MRINFO[v||''],nm=v?mrdbName(v):'single region';e.target.value=n.multi||'';
+   act(`${id}: multi-region ${nm}`,()=>{S.nodes[id].multi=v||undefined},{tradeoffs:[...I.pros.map(x=>'+ '+x),...I.cons.map(x=>'− '+x)],
+    adr:{title:`${id} ${S.nodes[id].name}: multi-region ${nm}`,context:`Writes: ${I.write}. Data loss if a region fails: ${I.rpo}. Recovery time: ${I.rto}. Source: ${I.doc[0]} (${I.doc[1]}); confirm current limits before approval.`,decision:`Use ${nm} for ${S.nodes[id].name}.`,tradeoffs:`Strengths: ${I.pros.join('; ')}\nConstraints: ${I.cons.join('; ')}\nChoose when: ${I.when}`,basis:['EA-P2','WAF-reliability']}})});on('iDq',e=>sv('quota',Math.max(100,+e.target.value||20000),`planning limit ${e.target.value} rps`))}
  {const o=document.getElementById('iOrigin');if(o)o.onchange=e=>{const v=e.target.value,id=n.id;act(`${id}: comes from ${v==='corp'?'the company network':'the internet'}`,()=>{const m=S.nodes[id];m.origin=v==='corp'?'corp':undefined;if(v==='corp'){m.audience='workforce';S.edges.filter(x=>x.from===id&&['internet','vpn'].includes(x.via)).forEach(x=>x.via='dedicated')}else S.edges.filter(x=>x.from===id&&['vpn','dedicated'].includes(x.via)).forEach(x=>x.via='internet')})}}
  const id=n.id,set=(desc,k,v)=>act(`${id}: ${desc}`,()=>{S.nodes[id][k]=v}),direct=(desc,fn)=>{pushUndo(`${id}: ${desc}`);fn();changed()};
  g('iName',v=>direct('rename',()=>{S.nodes[id].name=v}));g('iRps',v=>direct(`peak load ${v}`,()=>{S.nodes[id].rps=+v}));
@@ -2632,8 +2642,8 @@ function costOf(n){
  else inst=instCount(n)*p.inst;
  return inst+p.perM*(f.served||0)*SEC_MONTH/1e6;
 }
-const REGIONAL=n=>mr()&&!['dns','cdn','user','ext','saas'].includes(n.type);
-const totalCost=()=>Object.values(S.nodes).reduce((a,n)=>a+costOf(n)*(REGIONAL(n)?2:1),0)+egressCost();
+const REGIONAL=n=>stamp()&&!['dns','cdn','user','ext','saas'].includes(n.type);
+const totalCost=()=>Object.values(S.nodes).reduce((a,n)=>a+costOf(n)*(REGIONAL(n)?2:1),0)+egressCost()+xregionCost();
 const totalInst=()=>Object.values(S.nodes).filter(n=>n.parent==='root'&&!EXTERNAL.includes(n.type)).reduce((a,n)=>a+instCount(n)*(REGIONAL(n)?2:1),0);
 let SAFE=null;
 // Highest load multiplier at which every component stays under 85% with autoscaling free to reach its maximum.
@@ -3194,11 +3204,14 @@ function dnsFailover(){const d=dnsNode();if(!d)return {ok:false,why:'there is no
  return {ok:true,why:`${d.id} moves users after the health checks fail and the TTL (${d.ttl||60} s) expires`}}
 const shareA=()=>{const d=dnsNode();return Math.min(1,Math.max(0,((d&&d.shareA!=null)?d.shareA:50)/100))};
 // Load factor on the regional stack and the share of users lost (simulated as the worst-loaded region).
-function regionLoad(){if(!mr())return {f:1,lost:0};const a=shareA(),b=1-a,o=S.routage;
+function regionLoad(){if(!stamp())return {f:1,lost:0};const a=shareA(),b=1-a,o=S.routage;
  if(!o)return {f:Math.max(a,b),lost:0};
  const sv=o==='a'?b:a,gone=o==='a'?a:b,fo=dnsFailover();
  return fo.ok?{f:1,lost:0,fo}:{f:sv,lost:gone,fo}}
-function regionHit(n){if(!mr()||!S.routage||n.type!=='db')return null;const m=n.multi||'';
+function regionHit(n){if(!mr()||!S.routage)return null;
+ if(expanded()){const R=S.routage.toUpperCase();if(n.type==='db'&&n.role==='secondary'&&R==='A'&&regionOf(n)==='B')return {failover:true,why:`${mrdbName('global')}: region B is promoted to the writer in about a minute; the last moments of writes can be lost`};
+  return n.region&&regionOf(n)===R?{down:true,why:`region ${R} (${regNames()[S.routage]}) is down`}:null}
+ if(n.type!=='db')return null;const m=n.multi||'';
  if(m==='aa')return {why:`${mrdbName('aa')} keeps serving in region ${S.routage==='a'?'B':'A'}: active-active, no data loss`};
  if(S.routage!=='a')return m?{why:'loses its copy in region B until it returns'}:null;
  if(m==='global')return {failover:true,why:`${mrdbName('global')} promotes region B in about a minute; recent writes (about 1 s) can be lost`};
@@ -3218,22 +3231,88 @@ $('#csCopy').onclick=async()=>{const t=critMarkdown();try{await navigator.clipbo
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#csBtn'))openCrit()});
 
 /* ---------- region controls and console ---------- */
-function renderRegion(){const m=$('#rMode'),o=$('#rOut');if(!m||!o)return;m.value=mr()?'aa':'single';const nm=regNames();
+function renderRegion(){const m=$('#rMode'),o=$('#rOut'),x=$('#rExp');if(x){x.hidden=!mr();x.textContent=expanded()?'Draw as one stack':'Draw region B separately'}if(!m||!o)return;m.value=mr()?'aa':'single';const nm=regNames();
  o.innerHTML='<option value="">None</option>'+(mr()?`<option value="a" ${S.routage==='a'?'selected':''}>Region A (${esc(nm.a)}) fails</option><option value="b" ${S.routage==='b'?'selected':''}>Region B (${esc(nm.b)}) fails</option>`:'');o.disabled=!mr()}
-function setRegions(on,a,b){pushUndo(on?`Regions: active-active ${a||regNames().a} + ${b||regNames().b}`:'Regions: single region');S.multi={...(S.multi||{}),on,...(a?{a}:{}),...(b?{b}:{})};if(!on)S.routage=null;changed();renderDem();
+function setRegions(on,a,b){if(!on&&expanded())collapseRegions();pushUndo(on?`Regions: active-active ${a||regNames().a} + ${b||regNames().b}`:'Regions: single region');S.multi={...(S.multi||{}),on,...(a?{a}:{}),...(b?{b}:{})};if(!on)S.routage=null;changed();renderDem();
  if(on){const d=dnsNode(),dbs=kids('root').filter(n=>n.type==='db'&&!n.multi);say(`Active-active across ${regNames().a} and ${regNames().b}. The regional stack now runs in both regions (cost doubles).${d?'':' Add DNS (Add component → Edge and access → DNS) so users are steered between regions.'}${dbs.length?` ${dbs.map(n=>n.id).join(', ')} still live${dbs.length>1?'':'s'} in one region: choose Multi-region in the Inspector (${mrdbName('aa')} for active-active).`:''}`,'s')}}
 function setRegionOutage(r){r=r||null;if((S.routage||null)===r)return;S.routage=r;changed();renderDem();
  if(!r){say('Region outage cleared.','s');return}const rl=regionLoad(),dbs=kids('root').filter(n=>n.type==='db').map(n=>[n,regionHit(n)]).filter(([,h])=>h);
- const ok=KPI.err<.005;say(`Region ${r.toUpperCase()} (${regNames()[r]}) outage: ${ok?'the design survives':'the design does NOT survive'}. Errors ${(KPI.err*100).toFixed(1)}%.\nTraffic: ${rl.fo&&rl.fo.ok?`${rl.fo.why}; the other region now carries 100% of users (bottleneck ${KPI.worst?KPI.worst.id+(isFinite(F[KPI.worst.id].util)?' at '+pct(F[KPI.worst.id].util):' (down)'):'none'}).`:`${rl.fo?rl.fo.why:'no DNS'}: ${pct(rl.lost)} of users fail.`}${dbs.length?'\nData: '+dbs.map(([n,h])=>`${n.id} ${h.why}`).join('; ')+'.':''}\nType "restore region" to end it.`,'s')}
+ const ok=KPI.err<.005;if(expanded()){const fo=dnsFailover(),dn=kids('root').filter(n=>F[n.id]&&F[n.id].zx&&F[n.id].zx.down&&n.region!==r.toUpperCase()).map(n=>`${n.id} (${F[n.id].zx.why})`),fx=kids('root').filter(n=>F[n.id]&&F[n.id].zx&&F[n.id].zx.failover).map(n=>`${n.id} (${F[n.id].zx.why})`);
+  say(`Region ${r.toUpperCase()} (${regNames()[r]}) outage: ${ok?'the design survives':'the design does NOT survive'}. Errors ${(KPI.err*100).toFixed(1)}%.\nTraffic: ${fo.ok?fo.why+`; region ${r==='a'?'B':'A'} now carries all users`:fo.why+': users sent there fail'}. Bottleneck ${KPI.worst?KPI.worst.id+(isFinite(F[KPI.worst.id].util)?' at '+pct(F[KPI.worst.id].util):' (down)'):'none'}.${fx.length?'\nFails over: '+fx.join('; ')+'.':''}${dn.length?'\nAlso down in the surviving region: '+dn.join('; ')+'.':''}\nType "restore region" to end it.`,'s');return}
+ say(`Region ${r.toUpperCase()} (${regNames()[r]}) outage: ${ok?'the design survives':'the design does NOT survive'}. Errors ${(KPI.err*100).toFixed(1)}%.\nTraffic: ${rl.fo&&rl.fo.ok?`${rl.fo.why}; the other region now carries 100% of users (bottleneck ${KPI.worst?KPI.worst.id+(isFinite(F[KPI.worst.id].util)?' at '+pct(F[KPI.worst.id].util):' (down)'):'none'}).`:`${rl.fo?rl.fo.why:'no DNS'}: ${pct(rl.lost)} of users fail.`}${dbs.length?'\nData: '+dbs.map(([n,h])=>`${n.id} ${h.why}`).join('; ')+'.':''}\nType "restore region" to end it.`,'s')}
 function regionCmd(c,l){let m;
  if(m=l.match(/^regions?\s+(?:active[- ]active|aa|2|two)(?:\s+([a-z0-9-]+))?(?:\s+(?:and\s+)?([a-z0-9-]+))?/)){setRegions(true,m[1],m[2]);return true}
  if(/^regions?\s+(?:single|1|one)\b/.test(l)){setRegions(false);say('Single region.','s');return true}
  if(m=l.match(/^(?:fail|lose|kill|what if|simulate)\s+(?:the\s+)?region\s+([ab])\b|^region\s+([ab])\s+(?:fails|outage|down)/)){if(!mr()){say('Turn on active-active first: "regions active-active eu-west-1 eu-central-1".','s');return true}setRegionOutage(m[1]||m[2]);return true}
  if(/^(restore|recover|end)\s+(the\s+)?region/.test(l)){setRegionOutage(null);return true}
  if(/^critical settings$/.test(l)){openCrit();return true}
+ if(/^(regions?\s+(expand|separate(ly)?|draw)|draw regions? separately|draw region b)/.test(l)){expandRegions();return true}
+ if(/^regions?\s+(collapse|as one|stack)/.test(l)){collapseRegions();return true}
+ if(m=l.match(/^regions?\s+rtt\s+(\d+)/)){pushUndo(`Cross-region round trip ${xrtt()} → ${m[1]} ms`);S.multi={...(S.multi||{}),rtt:+m[1]};changed();say(`Cross-region round trip set to ${m[1]} ms.`,'s');return true}
  return false}
 $('#rMode')&&($('#rMode').onchange=e=>setRegions(e.target.value==='aa'));
+document.addEventListener('click',e=>{if(e.target.id==='rExp'){expanded()?collapseRegions():expandRegions();renderDem()}});
 $('#rOut')&&($('#rOut').onchange=e=>setRegionOutage(e.target.value));
+
+
+/* ---------- regions drawn separately: every component in region B is its own box ---------- */
+const expanded=()=>mr()&&!!(S.multi&&S.multi.expanded);
+const stamp=()=>mr()&&!expanded();
+const regionOf=n=>n&&n.region==='B'?'B':'A';
+const xrtt=()=>+((S.multi&&S.multi.rtt)||25);
+const GLOBAL_T=['user','ext','saas','dns','cdn'];
+function xregionCost(){let c=0;S.edges.forEach(e=>{if(e.via==='xregion'&&isFlow(e)){const f=EF.get(e)||0;c+=f*(wl().reqKB+wl().respKB)*2.63e6/1048576*.02}});return c}
+function expandRegions(){
+ if(!mr()){say('Turn on two regions first (Load panel → Resilience → Regions: 2 · active-active).','s');return}
+ if(expanded()){say('Region B is already drawn separately.','s');return}
+ pushUndo('Draw region B separately');
+ const roots=kids('root').filter(n=>!GLOBAL_T.includes(n.type)),single=roots.filter(n=>n.type==='db'&&!['aa','global'].includes(n.multi||''));
+ const ys=roots.map(n=>n.y),dy=(ys.length?Math.max(...ys)-Math.min(...ys):0)+340,map={};
+ roots.forEach(n=>{n.region='A'});
+ const copy=(n,parent,d)=>{const id=nextId(n.type),c=JSON.parse(JSON.stringify(n));Object.assign(c,{id,parent,name:parent==='root'?`${n.name} · B`:n.name,y:n.y+d,region:'B',twin:n.id});delete c.net;delete c.expanded;delete c.failed;S.nodes[id]=c;map[n.id]=id;kids(n.id).filter(k=>!k.twin||k.region!=='B').forEach(k=>{if(k.parent===n.id)copy(k,id,0)});return c};
+ roots.filter(n=>!single.includes(n)).forEach(n=>{const c=copy(n,'root',dy);if(n.type==='db'&&n.multi==='global'){c.role='secondary';c.name=`${n.name} · B (secondary)`}if(n.type==='db'&&n.multi==='aa')c.role='peer'});
+ S.edges.slice().forEach(e=>{const A=map[e.from],B=map[e.to];
+  if(A&&B)S.edges.push({...e,from:A,to:B});
+  else if(A&&!B){const t=S.nodes[e.to];if(single.includes(t))S.edges.push({...e,from:A,via:'xregion'});else if(t&&GLOBAL_T.includes(t.type))S.edges.push({...e,from:A})}
+  else if(!A&&B){const f=S.nodes[e.from];if(f&&GLOBAL_T.includes(f.type))S.edges.push({...e,to:B})}});
+ roots.filter(n=>n.type==='db'&&map[n.id]).forEach(n=>{if(n.multi==='aa')S.edges.push({from:n.id,to:map[n.id],kind:'repl',proto:'sync',via:'xregion'});else if(n.multi==='global')S.edges.push({from:map[n.id],to:n.id,proto:'SQL/TLS',via:'xregion'})});
+ (S.groups||[]).forEach(g=>{g.members=[...g.members,...g.members.filter(m=>map[m]).map(m=>map[m])]});
+ S.multi={...S.multi,expanded:true};
+ logAI('Workbench','Region B drawn separately',`${Object.keys(map).length} components copied with their flows; ${single.length?single.map(n=>n.id).join(', ')+' stay in region A and are reached across regions':'no single-region databases'}`,1);
+ fit();changed();
+ say(`Region B (${regNames().b}) is drawn separately: ${Object.keys(map).length} components with their own IDs, load and findings. DNS splits users ${Math.round(shareA()*100)}/${100-Math.round(shareA()*100)}.${single.length?` ${single.map(n=>n.id).join(', ')} ${single.length>1?'are':'is'} single-region, so region B reaches ${single.length>1?'them':'it'} across regions (about ${xrtt()} ms per call).`:''} Type "regions collapse" to draw them as one stack again.`,'s')}
+function collapseRegions(){if(!expanded())return;pushUndo('Draw regions as one stack');
+ const gone=new Set(Object.values(S.nodes).filter(n=>n.region==='B').map(n=>n.id));let ch=true;
+ while(ch){ch=false;Object.values(S.nodes).forEach(n=>{if(!gone.has(n.id)&&gone.has(n.parent)){gone.add(n.id);ch=true}})}
+ gone.forEach(id=>delete S.nodes[id]);S.edges=S.edges.filter(e=>!gone.has(e.from)&&!gone.has(e.to)&&e.kind!=='repl');
+ Object.values(S.nodes).forEach(n=>{delete n.region});(S.groups||[]).forEach(g=>{g.members=g.members.filter(m=>!gone.has(m))});
+ S.multi={...S.multi,expanded:false};fit();changed();say('Regions drawn as one stack again.','s')}
+const outerLabelB=()=>`${pk().name} · REGION B · ${regNames().b}${S.routage==='b'?' · DOWN':''}`;
+
+/* ---------- multi-region database: compare before deciding ---------- */
+// Summarised from AWS documentation up to 2025. Not re-checked in this session: confirm limits on the linked pages before approving.
+const MRINFO={
+ '':{l:'Single region (Multi-AZ)',write:'One region',rpo:'Region loss: data since the last backup copied to another region',rto:'Region loss: restore from backup in another region (hours)',
+  pros:['Full PostgreSQL compatibility','Simplest to run and lowest cost','Multi-AZ covers zone failures inside the region'],cons:['Region B reaches the database across regions on every call (latency, transfer cost)','A region A outage stops both regions'],
+  when:'Region loss is covered by backup and restore, or region B only runs stateless parts',doc:['Amazon RDS Multi-AZ deployments','https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html']},
+ replica:{l:'Cross-region read replica',write:'Region A only',rpo:'Replication lag: usually seconds, more under write bursts',rto:'Manual promotion and reconnecting the application: minutes to an hour',
+  pros:['Full PostgreSQL compatibility','Local reads in region B'],cons:['Promotion is manual and one-way','Writes from region B still cross regions'],
+  when:'Local reads in region B matter and an RTO of about an hour is acceptable',doc:['Cross-Region read replicas (Amazon RDS)','https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.XRgn.html']},
+ global:{l:'Aurora Global Database (active-passive)',write:'Region A only; region B forwards writes (optional), adding a cross-region round trip',rpo:'Unplanned failover can lose the last moments of writes (lag is typically under a second); a planned switchover loses none',rto:'Managed failover typically in about a minute, plus reconnecting clients',
+  pros:['Aurora PostgreSQL compatibility','Local reads in region B','Mature and widely used'],cons:['Requires Aurora PostgreSQL','Writes still land in one region','Failover must be automated and rehearsed'],
+  when:'One writer region is acceptable and you need full PostgreSQL features',doc:['Using Amazon Aurora Global Database','https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html']},
+ aa:{l:'Aurora DSQL (active-active)',write:'Both regions, strongly consistent',rpo:'Zero',rto:'No failover to run: the other region keeps serving reads and writes',
+  pros:['Writes in both regions with no data loss','Serverless: no instances to size or fail over','IAM token authentication'],
+  cons:['Optimistic concurrency: conflicting transactions fail at commit and the application must retry them','PostgreSQL-compatible, not identical: some features are not supported (for example foreign key constraints); check every feature your schema and code use','Limits on transaction size and duration: check the current quotas','Multi-region needs a supported pair of regions plus a witness region','Each commit waits for a cross-region round trip'],
+  when:'Both regions must accept writes with no data loss, and the schema and transactions fit its constraints (prove it with a spike first)',doc:['What is Amazon Aurora DSQL?','https://docs.aws.amazon.com/aurora-dsql/latest/userguide/what-is-aurora-dsql.html']}};
+const cap1=t=>t.charAt(0).toUpperCase()+t.slice(1);
+function dbOptsHTML(n){const cur=n.multi||'';const aws=prov()==='aws';
+ return `<details class="dbopts"><summary>Compare multi-region options before deciding</summary>
+ <p class="why">${aws?'Summarised from AWS documentation up to 2025 and not re-checked in this session. Confirm the limits on the linked pages before the decision is approved.':`Details shown are for AWS. On ${esc(pk().name)} the options are ${esc(mrdbName('replica'))}, ${esc(mrdbName('global'))} and ${esc(mrdbName('aa'))}: check that provider's documentation for its limits.`} Choosing an option records an architecture decision for a lead architect to approve.</p>
+ ${Object.entries(MRINFO).map(([k,I])=>`<div class="mrcard${k===cur?' on':''}"><b>${esc(k?cap1(mrdbName(k))+(k==='global'?' (active-passive)':k==='aa'?' (active-active)':''):I.l)}</b>${k===cur?' <span class="pill ok">current</span>':''}
+  <dl><dt>Writes</dt><dd>${esc(I.write)}</dd><dt>Data loss if a region fails (RPO)</dt><dd>${esc(I.rpo)}</dd><dt>Recovery time (RTO)</dt><dd>${esc(I.rto)}</dd></dl>
+  <div class="pc"><div class="pro"><h4>Strengths</h4><ul>${I.pros.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div class="con"><h4>Constraints</h4><ul>${I.cons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+  <div class="why"><b>Choose when:</b> ${esc(I.when)} · <a href="${esc(I.doc[1])}" target="_blank" rel="noopener">${esc(I.doc[0])}</a></div></div>`).join('')}</details>`}
 
 /* ---------- windows: every dialog moves by its title; the side panel resizes ---------- */
 document.querySelectorAll('.scrim>.modal:not(.gmodal)').forEach(m=>{const h=m.querySelector('h2');if(!h)return;let d=null;
