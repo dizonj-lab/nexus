@@ -5,6 +5,13 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-11-01
+
+### Fixed
+- `deploy/buddy.sh` stopped with "command not found" when the administrator's
+  name contained a space: it no longer runs `deploy/.env` as a shell script,
+  and it quotes the values it writes.
+
 ## [0.2.0] — 2026-11-01
 
 WP0: the application scaffold, sign-in with role-based access, and the agent harness.

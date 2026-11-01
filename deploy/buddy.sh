@@ -15,9 +15,9 @@ if [ ! -f "$ENV" ]; then
   cat > "$ENV" <<CONF
 POSTGRES_PASSWORD=$(rnd 32)
 NEXUS_SECRET_KEY=$(rnd 64)
-NEXUS_ADMIN_EMAIL=$admin_email
-NEXUS_ADMIN_PASSWORD=$admin_pw
-NEXUS_ADMIN_NAME=$admin_name
+NEXUS_ADMIN_EMAIL="$admin_email"
+NEXUS_ADMIN_PASSWORD="$admin_pw"
+NEXUS_ADMIN_NAME="$admin_name"
 NEXUS_PORT=8088
 NEXUS_BIND=0.0.0.0
 NEXUS_COOKIE_SECURE=false
@@ -28,9 +28,10 @@ CONF
   echo "First administrator: $admin_email  password: $admin_pw"
   echo "Sign in and change it under your name (top right). It is also in $ENV until you remove that line."
 fi
-set -a; . "$ENV"; set +a
+# Read single settings without executing the file (values may contain spaces).
+setting() { grep -E "^$1=" "$ENV" | tail -1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'; }
 docker compose --env-file "$ENV" -f deploy/compose.yml up -d --build --remove-orphans
-port="${NEXUS_PORT:-8088}"
+port="$(setting NEXUS_PORT)"; port="${port:-8088}"
 for i in $(seq 1 60); do curl -fsS "http://127.0.0.1:$port/api/healthz" >/dev/null 2>&1 && break; sleep 2; done
 ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
 echo "NEXUS v$(curl -fsS "http://127.0.0.1:$port/version.txt")  →  http://$ip:$port/"
