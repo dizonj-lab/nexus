@@ -196,3 +196,13 @@ checks; product-specific settings will come from the platform agent (WP5).
 Opinions state their engine and confidence; the model's own confidence is
 shown next to the share of its points that were grounded.
 
+## D35 — Regions are simulated as stamps
+An active-active design is one regional stack deployed in two regions; the
+simulator runs the most-loaded region. DNS decides who moves when a region
+fails, so failover is only credited when health checks (and a default
+record for geolocation) are set. Data decides whether the other region can
+work at all: a single-region database fails both regions, a global database
+fails over with a small data loss, and an active-active database (Aurora
+DSQL) keeps serving. Organisation standards for these paths are ground truth
+rules (GT6, GT7), so they are policy as code and can be edited or removed.
+

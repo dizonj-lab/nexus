@@ -273,6 +273,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .confs{display:flex;gap:4px}.conf{font:600 10px/1.6 var(--f-mono);padding:0 6px;border-radius:999px;border:1px solid}.conf.high{color:var(--ok)}.conf.medium{color:var(--warn)}.conf.low{color:var(--crit)}
 .gwait{display:grid;gap:6px}.gauge{height:6px;background:var(--line);border-radius:3px;overflow:hidden;position:relative}.gauge i{position:absolute;top:0;bottom:0;width:35%;background:var(--accent);border-radius:3px;animation:gmove 1.15s ease-in-out infinite}@keyframes gmove{0%{left:-35%}100%{left:100%}}
 .wlbar{flex-wrap:wrap;gap:4px 10px;font-size:11px}.wlbar b{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.wlbar label{display:flex!important;gap:3px;align-items:center;white-space:nowrap}.wlbar input{width:58px!important;flex:none;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:1px 4px;font-family:var(--f-mono);font-size:11px}
+.cst td,.cst th{vertical-align:top;font-size:12px}.cst td.ok{color:var(--ok)}.cst td.crit{color:var(--crit)}.cst td.warn{color:var(--warn)}
 .scrim{pointer-events:none}.scrim>.modal{pointer-events:auto}
 .scrim{position:fixed;inset:0;background:rgba(10,15,25,.18);z-index:50;display:grid;place-items:center;padding:16px}
 .modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(520px,100%);max-height:90%;overflow:auto;padding:16px;display:grid;gap:12px}
@@ -339,7 +340,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.5">NEXUS<small>Architecture Workbench · v0.2.5</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.6">NEXUS<small>Architecture Workbench · v0.2.6</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -424,7 +425,9 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
         <label>Cache hit <input id="wHit" type="number" min="0" max="100" step="5"> %</label></div>
       <div class="bar wlbar" title="Zone outage: which components survive the loss of one availability zone"><b>Resilience</b>
         <label>Zones <select id="zCount"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
-        <label>Outage <select id="zOut"></select></label><span id="zSum" class="why"></span></div>
+        <label>Outage <select id="zOut"></select></label>
+        <label>Regions <select id="rMode"><option value="single">1</option><option value="aa">2 · active-active</option></select></label>
+        <label>Region outage <select id="rOut"></select></label><span id="zSum" class="why"></span></div>
       <div class="pbody" style="max-height:330px"><div class="demstats" id="demStats"></div><div id="demCharts"></div></div>
     </section>
 
@@ -502,6 +505,12 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
   </div>
 </div>
 
+<div class="scrim" id="csDlg" hidden>
+  <div class="modal wide" role="dialog" aria-modal="false" aria-labelledby="csTitle" style="width:min(900px,100%)">
+    <h2 id="csTitle">Critical settings</h2><div id="csBody" style="display:grid;gap:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="csCopy" type="button">Copy as Markdown</button><button class="btn primary" id="csClose" type="button">Done</button></div>
+  </div>
+</div>
 <div class="scrim" id="netDlg" hidden>
   <div class="modal" role="dialog" aria-modal="false" aria-labelledby="ndTitle">
     <h2 id="ndTitle">New subnet</h2><div id="ndBody" class="ndbody"></div><p class="why" id="ndNote"></p>
@@ -554,6 +563,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 /* ---------- component catalog ---------- */
 const T={
  user:{p:'U',label:'Users',cap:Infinity,zone:'internet',route:1,lat:0},
+ dns:{p:'DNS',label:'DNS traffic steering',cap:Infinity,zone:'global',route:1,lat:0,pro:'Health-checked routing between regions',con:'Failover waits for health checks and the TTL'},
  ext:{p:'X',label:'External system',cap:1200,zone:'internet',lat:120,pro:'Reuses a partner capability',con:'Third-party availability and data handling'},
  saas:{p:'SAAS',label:'SaaS service',cap:2000,zone:'internet',lat:90,pro:'No platform to run',con:'Data leaves your boundary; vendor lock-in'},
  cdn:{p:'CDN',label:'CDN',cap:25000,zone:'edge',route:1,pass:.4,lat:2,pro:'Cuts origin load ~60%; global PoPs',con:'New vendor; cache invalidation; TLS keys at edge'},
@@ -582,7 +592,7 @@ const EXTERNAL=['user','ext','saas'];
 const PLATFORM=['reg','art','kms','sec','mon'];
 const TIERS={s:{l:'Small · 2 vCPU',cap:700},m:{l:'Medium · 4 vCPU',cap:1500},l:{l:'Large · 8 vCPU',cap:3000},xl:{l:'X-Large · 16 vCPU',cap:6000},xxl:{l:'2X-Large · 32 vCPU',cap:11000}};
 const TIER_ORDER=['s','m','l','xl','xxl'];
-const ZX={internet:60,edge:270,dmz:480,app:710,data:950};
+const ZX={internet:60,global:60,edge:270,dmz:480,app:710,data:950};
 const PORT={HTTPS:443,mTLS:443,'SQL/TLS':5432,'RESP/TLS':6380,AMQPS:5671,'Kafka/TLS':9094,HTTP:80};
 const PROTOS=['HTTPS','mTLS','SQL/TLS','RESP/TLS','AMQPS','Kafka/TLS','HTTP'];
 const defProto=t=>({db:'SQL/TLS',cache:'RESP/TLS',queue:'AMQPS',svc:'mTLS',api:'mTLS',adp:'mTLS',vm:'mTLS',fn:'mTLS'}[t]||'HTTPS');
@@ -629,11 +639,12 @@ const PACK={
   dbClass:{s:'2 vCPU / 8 GiB',m:'4 vCPU / 16 GiB',l:'8 vCPU / 32 GiB',xl:'16 vCPU / 64 GiB',xxl:'32 vCPU / 128 GiB'},shard:'Citus',
   waf:'OWASP CRS + F5 attack signatures'}
 };
+Object.entries(PACK).forEach(([k,p])=>{p.svc.dns={aws:'Route 53',azure:'Azure Traffic Manager',gcp:'Cloud DNS routing policy',vmware:'GSLB (F5 BIG-IP DNS)'}[k];p.zone.global='GLOBAL · DNS';});
 Object.values(PACK).forEach(p=>{p.zone.corp=`CORPORATE NETWORK · ${p.vpn} / ${p.dedicated}`;p.zone.platform='SHARED PLATFORM SERVICES';p.zone.third='THIRD PARTIES · OUTSIDE YOUR BOUNDARY';p.svc.part='Part'});
 const prov=()=>({aws:'aws',azure:'azure',gcp:'gcp'}[S.deploy]||'vmware');
 // Data centre designs can name their own products (S.dcStack); everything else uses the pack defaults.
 let DCK='',DCV=null;
-const outerLabel=()=>pk().outer.replace(/\b\d (AZs?|zones?)\b/,m=>`${zoneCount()} ${m.split(' ')[1]}`);
+const outerLabel=()=>{let o=pk().outer.replace(/\b\d (AZs?|zones?)\b/,m=>`${zoneCount()} ${m.split(' ')[1]}`);if(mr()){const r=regNames();o=o.replace(/eu-west-1|westeurope|europe-west1|Site A active \/ Site B standby/,'REGION A · '+r.a)+` · ACTIVE-ACTIVE WITH ${r.b}${S.routage==='a'?' · DOWN':''}`}return o};
 const pk=()=>{const p=PACK[prov()];if(p!==PACK.vmware||!S.dcStack)return p;const k=JSON.stringify(S.dcStack);if(k!==DCK){DCK=k;DCV={...p,svc:{...p.svc,...(S.dcStack.svc||{})},q:{...p.q,...(S.dcStack.q||{})}}}return DCV};
 const VIAS=['net','internet','privatelink','vpn','dedicated'];
 const viaName=v=>({net:'In-network',internet:'Public internet',privatelink:pk().pl,vpn:pk().vpn,dedicated:pk().dedicated}[v]||v);
@@ -642,7 +653,7 @@ const idpKey=n=>n.audience==='workforce'?'work':(n.idpMode||'native');
 function svcName(n){
  const P=pk();
  if(n.type==='user'&&n.origin==='corp')return 'Company network';
- if(n.type==='db')return `${P.svc.db} · ${P.dbClass[n.tier||'m']}`;
+ if(n.type==='db')return n.multi==='aa'?`${mrdbName('aa')} · active-active`:`${P.svc.db} · ${P.dbClass[n.tier||'m']}${n.multi?' · '+mrdbName(n.multi):''}`;
  if(n.type==='queue')return P.q[n.flavor||'native'];
  if(n.type==='idp')return P.idp[idpKey(n)]+(idpKey(n)==='corp'&&n.fedIdp?` (${n.fedIdp})`:'');
  return P.svc[n.type]||T[n.type].label;
@@ -674,6 +685,7 @@ function mkNode(id,type,name,x,y,o={}){
  if(type==='saas')n.pl=o.pl??true;
  if(type==='ext')n.pl=o.pl??false;
  if(type==='user'&&n.rps==null)n.rps=500;
+ if(type==='dns')Object.assign(n,{policy:'geolocation',shareA:50,health:true,defaultRec:true,ttl:60},o);
  return n;
 }
 function seed(){
@@ -718,7 +730,13 @@ function seed(){
   files:[],ver:{caps:5,ea:7,gt:3},versions:[],log:[],adrs:[],settings:defaultSettings()};
 }
 function defaultSettings(){return {view:{lines:'ortho',deps:false,layout:'focus',side:'pAdv'},user:{name:'You',role:'architect'},escalation:{base:'',model:'gpt-oss:latest',key:'',auto:true},slm:0,ml:0,llm:'off',guard:'enforce',engine:'auto',llmApi:{base:'/llm/v1',model:'qwen2.5:3b-instruct',key:''},autoscale:{on:true,min:2,max:50,target:60,outDelay:2,inCool:10},price:{}}}
-function ensureSettings(){const d=defaultSettings();S.settings=S.settings||{};S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
+function ensureGT67(){if(!S.gt)return;let b=false;
+ if(!S.gt.some(g=>g.id==='GT6')){S.gt.push({id:'GT6',t:'Internal users reach the cloud over a dedicated circuit (Direct Connect); a site-to-site VPN is only a backup.',src:'Network standard (edit to cite your document)'});b=true}
+ if(!S.gt.some(g=>g.id==='GT7')){S.gt.push({id:'GT7',t:'Internet users enter through health-checked DNS routing (Route 53 or equivalent), so traffic can move between regions.',src:'Resilience standard (edit to cite your document)'});b=true}
+ if(b&&S.ver)S.ver.gt++;
+ if(S.caps&&!S.caps.some(c=>(c.types||[]).includes('dns'))){S.caps.push({id:'TC'+(S.caps.length+1),name:'DNS traffic steering (Route 53, Traffic Manager, Cloud DNS, GSLB)',types:['dns'],on:true});if(S.ver)S.ver.caps++}}
+const hasGT=id=>(S.gt||[]).some(g=>g.id===id);
+function ensureSettings(){ensureGT67();const d=defaultSettings();S.settings=S.settings||{};S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.price=S.settings.price||{}}
 function defaultCaps(){return [
  {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
  {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
@@ -786,8 +804,8 @@ const kids=pid=>Object.values(S.nodes).filter(n=>n.parent===pid);
 const edgesIn=pid=>S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent===pid&&S.nodes[e.to].parent===pid);
 const flowsIn=pid=>edgesIn(pid).filter(isFlow);
 // Managed services: the provider scales them. One box, no instances; scaling is a configuration change (limit, quota, max instances).
-const MANAGED_SET={aws:['cdn','waf','lb','egw','gw','idp','fn','queue','obj','reg','art','kms','sec','mon'],azure:['cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],gcp:['cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],vmware:[]};
-const MQ={cdn:{q:100000,lab:'Edge capacity',res:'global'},waf:{q:25000,lab:'Inspection limit',res:'regional'},lb:{q:40000,lab:'Scales automatically up to',res:'regional'},egw:{q:30000,lab:'Throughput limit per zone',res:'zonal'},gw:{q:10000,lab:'Throttle limit',res:'regional'},idp:{q:3000,lab:'Request quota',res:'regional'},fn:{q:5000,lab:'Concurrency limit',res:'regional'},svc:{q:16000,lab:'Max instances',res:'regional'},queue:{q:100000,lab:'Throughput',res:'regional'},obj:{q:5500,lab:'Requests per prefix',res:'regional'},reg:{q:Infinity,lab:'',res:'regional'},art:{q:Infinity,lab:'',res:'regional'},kms:{q:Infinity,lab:'',res:'regional'},sec:{q:Infinity,lab:'',res:'regional'},mon:{q:Infinity,lab:'',res:'regional'}};
+const MANAGED_SET={aws:['dns','cdn','waf','lb','egw','gw','idp','fn','queue','obj','reg','art','kms','sec','mon'],azure:['dns','cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],gcp:['dns','cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],vmware:[]};
+const MQ={dns:{q:Infinity,lab:'',res:'global'},cdn:{q:100000,lab:'Edge capacity',res:'global'},waf:{q:25000,lab:'Inspection limit',res:'regional'},lb:{q:40000,lab:'Scales automatically up to',res:'regional'},egw:{q:30000,lab:'Throughput limit per zone',res:'zonal'},gw:{q:10000,lab:'Throttle limit',res:'regional'},idp:{q:3000,lab:'Request quota',res:'regional'},fn:{q:5000,lab:'Concurrency limit',res:'regional'},svc:{q:16000,lab:'Max instances',res:'regional'},queue:{q:100000,lab:'Throughput',res:'regional'},obj:{q:5500,lab:'Requests per prefix',res:'regional'},reg:{q:Infinity,lab:'',res:'regional'},art:{q:Infinity,lab:'',res:'regional'},kms:{q:Infinity,lab:'',res:'regional'},sec:{q:Infinity,lab:'',res:'regional'},mon:{q:Infinity,lab:'',res:'regional'}};
 const DR={gw:'Deploy the API in a second region and fail over with DNS health checks.',idp:'User pools are not replicated across regions: export users regularly and keep a standby pool, or federate to a corporate IdP that is multi-region.',fn:'Deploy functions in a second region; keep code and config in the artifact store.',queue:'Queues are not replicated across regions: fan out to a queue in the DR region, or rebuild from the source of truth.',obj:'Turn on cross-region replication for the bucket.',waf:'Keep the same rules in the DR region (policy as code).',lb:'Stand up the load balancer in the DR region from Terraform; fail over with DNS.',svc:'Deploy the service in a second region; fail over with the global load balancer.',kms:'Use multi-region keys so data restored in the DR region can be decrypted.',sec:'Replicate secrets to the DR region.',reg:'Replicate images to the DR region.',art:'Replicate artifacts to the DR region.',mon:'Ship logs to the DR region or a central account.',egw:'Run one per zone, and the same in the DR region.',cdn:'Global by design; keep a second origin in the DR region.'};
 const isManaged=n=>!!n&&(MANAGED_SET[prov()]||[]).includes(n.type)&&!(n.type==='queue'&&n.flavor!=='native');
 const quotaOf=n=>n.quota??(MQ[n.type]||{q:Infinity}).q;
@@ -800,7 +818,7 @@ const tgtUtil=()=>Math.min(.95,Math.max(.2,((S.settings&&S.settings.autoscale&&S
 const SIM={on:false,i:0,t:0,cur:{},pend:{},hist:[],events:[],timer:null,profile:'ramp',peak:20,cost:0,outs:0,ins:0,saved:1};
 const repOf=n=>(F[n.id]&&F[n.id].rep)||n.rep||1;
 function scaleOf(n){let m=1,p=S.nodes[n.parent];while(p){m*=p.type==='db'?(1+(p.readReplicas||0))*(p.shards||1):repOf(p);p=S.nodes[p.parent]}return m}
-const instCount=n=>isManaged(n)?1:n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):n.type==='queue'?(n.flavor==='native'?1:n.brokers||1):(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')?1:repOf(n);
+const instCount=n=>isManaged(n)||(n.type==='db'&&n.multi==='aa')?1:n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):n.type==='queue'?(n.flavor==='native'?1:n.brokers||1):(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')?1:repOf(n);
 /* ---------- workload profile: payload size, read/write mix, cache hit ratio ---------- */
 // Design-level assumptions used by the Load slider and the load test. Capacities in the catalog assume about 20 KB per round trip.
 const WL_DEF={reqKB:2,respKB:8,read:80,hit:80};
@@ -845,6 +863,7 @@ function zoneHit(n,r0){const z=S.outage;if(!z||!zoneList().includes(z)||EXTERNAL
 const isDownNow=n=>!!n&&(n.failed||!!(n.parent==='root'&&(zoneHit(n)||{}).down));
 // Single-primary database: writes land on each shard's primary; reads spread over primary + read replicas.
 function dbLoad(n,i,o={}){
+ if(n.multi==='aa'&&!o.cap){const q=(n.quota||20000)*scaleOf(n),u=i/q,rw=o.rw??rwOf(n);return {util:u,prim:u,repl:0,r:i*rw,w:i*(1-rw),bound:'writes'}}
  const rw=o.rw??rwOf(n),k=1+(o.rr??n.readReplicas??0),sh=o.shards??n.shards??1,c=(o.cap??n.cap)*scaleOf(n);
  const r=i*rw,w=i*(1-rw),readPer=r/sh/k,writePer=w/sh;
  const prim=writePer/(c*.6)+readPer/c,repl=k>1?readPer/c:0;
@@ -865,7 +884,7 @@ const st=u=>!isFinite(u)?'crit':u>=.85?'crit':u>=.6?'warn':'ok';
 function flowScope(pid,entryIn){
  const ns=kids(pid),es=flowsIn(pid),inn={},deg={};
  ns.forEach(n=>{inn[n.id]=0;deg[n.id]=0});es.forEach(e=>deg[e.to]++);
- ns.forEach(n=>{if(n.type==='user')inn[n.id]=(n.rps||0)*S.mult});
+ ns.forEach(n=>{if(n.type==='user')inn[n.id]=(n.rps||0)*S.mult*(pid==='root'?regionLoad().f:1)});
  const entries=ns.filter(n=>deg[n.id]===0&&n.type!=='user'&&!PLATFORM.includes(n.type));
  if(entryIn!=null&&entries.length)entries.forEach(n=>inn[n.id]+=entryIn/entries.length);
  const d={...deg},q=ns.filter(n=>d[n.id]===0).map(n=>n.id),order=[],lat={};
@@ -875,7 +894,7 @@ function flowScope(pid,entryIn){
   const n=S.nodes[id],t=T[n.type],i0=inn[id],outs=es.filter(e=>e.from===id);
   let rep=n.rep||1,desired=null;const au=isFinite(t.cap)?autoOf(n):null;
   if(au){const lim=n.rateLimit?Math.min(i0,n.rateLimit):i0;desired=Math.min(au.max,Math.max(au.min,Math.ceil(lim/(capOf(n)*scaleOf(n)*tgtUtil()))||au.min));rep=SIM.on?(SIM.cur[id]??au.min):desired}
-  const zx=n.parent==='root'?zoneHit(n,rep):null,zf=zx&&zx.frac?zx.frac:1;
+  const zx=n.parent==='root'?(regionHit(n)||zoneHit(n,rep)):null,zf=zx&&zx.frac?zx.frac:1;
   const thr=n.rateLimit?Math.max(0,i0-n.rateLimit):0,i=i0-thr;
   let util,served,pass,lag=0,dbx=null,qx=null,noRoute=false;
   if(n.type==='user'){util=0;served=i;noRoute=i>0&&!outs.length;pass=served}
@@ -884,7 +903,7 @@ function flowScope(pid,entryIn){
   else if(n.type==='queue'){qx=queueLoad(n,i);util=qx.util/zf;served=Math.min(i,qx.brokerCap);pass=Math.min(served,qx.consCap);lag=served-pass}
   else{const c=(isManaged(n)?quotaOf(n):capOf(n)*rep*scaleOf(n))*zf;if(isManaged(n))rep=1;util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
   const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
-  lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95));
+  lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95))+mrWriteLat(n);
   F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,desired,lat:lat[id],db:dbx,q:qx,noRoute,zx};
   pass*=(t.pass??1);const hasCache=outs.some(e=>S.nodes[e.to].type==='cache'&&!isDownNow(S.nodes[e.to]));
   outs.forEach(e=>{let f=t.route?pass/outs.length:pass;const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-rwOf(tn)*wl().hit;EF.set(e,f);inn[e.to]+=f});
@@ -897,12 +916,12 @@ function simulate(){
  const offered=users.reduce((a,n)=>a+(n.rps||0)*S.mult,0),offNet=users.filter(n=>n.origin!=='corp').reduce((a,n)=>a+(n.rps||0)*S.mult,0);
  let worst=null,err=0,lat=0,thr=0,lag=0,noRoute=0;
  root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(!worst||f.util>F[worst.id].util)worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
- if(offered)err=Math.max(err,noRoute/offered);
+ if(offered)err=Math.max(err,noRoute/offered,regionLoad().lost);
  KPI={offered,err:Math.min(1,err),lat:lat+(offered?xferMs():0),worst,thr:offered?thr/offered:0,lag,noRoute,mbps:mbpsOf(offered),offNet};
 }
 
 /* ---------- platform dependency expert ---------- */
-const DEPS={svc:['reg','sec','mon'],vm:['art','sec','mon'],fn:['art','sec','mon'],db:['kms','mon','art'],obj:['kms'],cache:['kms','mon'],queue:['kms','mon'],waf:['mon'],cdn:['art'],gw:['mon'],idp:['sec','mon'],egw:['mon']};
+const DEPS={dns:['mon'],svc:['reg','sec','mon'],vm:['art','sec','mon'],fn:['art','sec','mon'],db:['kms','mon','art'],obj:['kms'],cache:['kms','mon'],queue:['kms','mon'],waf:['mon'],cdn:['art'],gw:['mon'],idp:['sec','mon'],egw:['mon']};
 const depWhy=(t,d)=>({reg:'container images',art:{fn:'deployment package',vm:'golden images and packages',db:'backups and exports',cdn:'static app bundle (origin)'}[t]||'build artifacts',kms:'customer-managed keys (GT4)',sec:'credentials and API keys',mon:'logs and metrics to the SIEM'}[d]);
 const missingDeps=n=>n.parent!=='root'?[]:(DEPS[n.type]||[]).filter(d=>!S.edges.some(e=>e.kind==='dep'&&e.from===n.id&&S.nodes[e.to]&&S.nodes[e.to].type===d));
 function connectDep(a,b){if(!S.edges.some(e=>e.from===a&&e.to===b&&e.kind==='dep'))S.edges.push({from:a,to:b,kind:'dep',proto:'HTTPS',via:'net'})}
@@ -913,7 +932,7 @@ function addDeps(ids){
 /* ---------- advisor rules (stand-in for the SLM; rules decide, model explains) ---------- */
 /* ---------- technical constraints: what each component can actually call ---------- */
 const COMPUTE=['svc','vm','fn','api','adp','part'];
-const CAN={user:['cdn','waf','lb','gw','svc','vm','fn','idp','obj','db','cache','api'],ext:['cdn','waf','lb','gw'],saas:['cdn','waf','lb','gw'],
+const CAN={user:['dns','cdn','waf','lb','gw','svc','vm','fn','idp','obj','db','cache','api'],dns:['cdn','waf','lb','gw'],ext:['cdn','waf','lb','gw'],saas:['cdn','waf','lb','gw'],
  cdn:['waf','lb','gw','obj','svc','vm','fn'],waf:['lb','gw','svc','vm','fn','idp','cdn'],lb:['lb','gw','svc','vm','fn','idp','api'],
  gw:['svc','vm','fn','idp','lb','api','queue','obj'],idp:['ext','saas','idp'],egw:['ext','saas'],
  queue:['svc','vm','fn','api','adp','queue'],db:['db'],cache:[],obj:['queue','fn']};
@@ -940,7 +959,7 @@ function canConnect(A,B){
  const alt=['gw','waf','lb','cdn'].includes(A.type)&&['db','cache','queue','obj'].includes(B.type);
  return {ok:false,why,alt};
 }
-const ZONE_OK={internet:['edge'],edge:['edge','dmz'],dmz:['dmz','app'],app:['app','data','dmz'],data:['data'],platform:[]};
+const ZONE_OK={internet:['edge'],global:['edge'],edge:['edge','dmz'],dmz:['dmz','app'],app:['app','data','dmz'],data:['data'],platform:[]};
 function analyze(log=true){
  const out=[],capTypes=new Set(S.caps.filter(c=>c.on).flatMap(c=>c.types)),N=S.nodes;
  const add=(sev,key,target,title,why,basis,fix,adr)=>out.push({sev,key,target,title,why,basis,fix,adr});
@@ -949,9 +968,11 @@ function analyze(log=true){
   const za=zoneOf(a),zb=zoneOf(b),f=EF.get(e)||0,ek=e.from+'>'+e.to;
   const cc=canConnect(a,b);if(!cc.ok)add('crit','compat:'+ek,b.id,`${a.id} → ${b.id} is not technically possible`,cc.why,['Technical constraint','EA-P5'],cc.alt?{k:'between',from:e.from,to:e.to}:{k:'unlink',from:e.from,to:e.to});
   if(a.type==='user'&&a.origin==='corp'){
-   if(e.via==='internet')add('warn','corpnet:'+ek,b.id,`Internal users reach ${b.id} over the public internet`,`Route ${a.name} over ${pk().vpn} or ${pk().dedicated}, or treat them as internet users behind the WAF.`,['EA-P5','GT5'],{k:'via',from:e.from,to:e.to,via:'vpn'});
+   if(e.via==='internet')add('warn','corpnet:'+ek,b.id,`Internal users reach ${b.id} over the public internet`,`Route ${a.name} over ${pk().dedicated} (GT6), or treat them as internet users behind the WAF.`,['EA-P5','GT6'],{k:'via',from:e.from,to:e.to,via:'dedicated'});
    else if(!['lb','gw','waf','idp','cdn'].includes(b.type))add('crit','corpentry:'+ek,b.id,`Internal users reach ${b.id} without an internal entry point`,`Even on the company network, requests enter through an internal load balancer or API gateway that authenticates every call (zero trust). ${b.id} is a ${T[b.type].label.toLowerCase()}.`,['EA-P1','EA-P5'],{k:'unlink',from:e.from,to:e.to})}
-  if(a.type==='user'&&!(a.origin==='corp'&&e.via!=='internet')&&!['waf','cdn'].includes(b.type)&&!['db','cache','obj'].includes(b.type))add('crit','direct:'+ek,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(f)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['GT3','EA-P1','ATT&CK T1190'],{k:'waf',from:e.from,to:e.to});
+  if(a.type==='user'&&a.origin!=='corp'&&hasGT('GT7')&&b.type!=='dns')add('crit','dnsentry:'+ek,b.id,`Internet users reach ${b.id} without DNS steering`,`${a.name} connect straight to ${b.id}. GT7: internet users enter through health-checked DNS routing (${pk().svc.dns}) so traffic can move to another region when one fails.`,['GT7','EA-P2'],{k:'dns',from:e.from,to:e.to});
+  if(a.type==='user'&&a.origin==='corp'&&hasGT('GT6')&&e.via==='vpn')add('warn','gt6:'+ek,b.id,`Internal users reach ${b.id} over VPN only`,`GT6: internal users use ${pk().dedicated}; a site-to-site VPN is only the backup path.`,['GT6','EA-P2'],{k:'via',from:e.from,to:e.to,via:'dedicated'});
+  if((a.type==='user'&&!(a.origin==='corp'&&e.via!=='internet')||a.type==='dns')&&!['waf','cdn','dns'].includes(b.type)&&!['db','cache','obj'].includes(b.type))add('crit','direct:'+ek,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(f)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['GT3','EA-P1','ATT&CK T1190'],{k:'waf',from:e.from,to:e.to});
   if(EXTERNAL.includes(a.type)&&['db','obj','cache'].includes(b.type))add('crit','expose:'+ek,b.id,`Data store ${b.id} is reachable from outside`,`Direct path ${a.id} → ${b.id} bypasses every perimeter.`,['GT2','EA-P5','ATT&CK T1530'],{k:'unlink',from:e.from,to:e.to});
   const egress=EXTERNAL.includes(b.type)&&!EXTERNAL.includes(a.type);
   if(egress){
@@ -967,8 +988,8 @@ function analyze(log=true){
   const f=F[n.id];if(!f)return;
   if(n.type==='user'){if(f.noRoute)add('crit','noroute:'+n.id,n.id,`${n.id} "${n.name}" has no route into the system`,`${fmt(f.in)} rps from ${n.name} fail: every request errors until a path through the perimeter exists.`,['EA-P2','GT3'],null);return}
   if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return;
-  {const zx=f.zx;if(zx&&zx.down){add('crit','zout:'+n.id,n.id,`${n.id} is down in the zone ${S.outage} outage`,`${n.name} ${zx.why}. ${fmt(f.in)} rps arrive and fail. ${n.type==='db'?'Add a standby in another zone.':isManaged(n)?'Deploy one per zone.':'Run 2+ instances spread across zones, and do not pin it to one zone.'}`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:isManaged(n)?{k:'perAz',n:n.id}:{k:'scale',n:n.id,to:2});return}
-   if(zx&&zx.failover)add('warn','zfo:'+n.id,n.id,`${n.id} fails over in the zone ${S.outage} outage`,`${n.name}: ${zx.why}. Writes pause during the failover; clients must reconnect.`,['EA-P2'],null)}
+  {const zx=f.zx;if(zx&&zx.down){add('crit','zout:'+n.id,n.id,`${n.id} is down in the ${S.routage?'region '+S.routage.toUpperCase():'zone '+S.outage} outage`,`${n.name} ${zx.why}. ${fmt(f.in)} rps arrive and fail. ${n.type==='db'?'Add a standby in another zone.':isManaged(n)?'Deploy one per zone.':'Run 2+ instances spread across zones, and do not pin it to one zone.'}`,['EA-P2'],S.routage&&n.type==='db'?{k:'mraa',n:n.id}:n.type==='db'?{k:'standby',n:n.id}:isManaged(n)?{k:'perAz',n:n.id}:{k:'scale',n:n.id,to:2});return}
+   if(zx&&zx.failover)add('warn','zfo:'+n.id,n.id,`${n.id} fails over in the ${S.routage?'region '+S.routage.toUpperCase():'zone '+S.outage} outage`,`${n.name}: ${zx.why}. Writes pause during the failover; clients must reconnect.`,['EA-P2'],null)}
   if(n.failed){add('crit','fail:'+n.id,n.id,`${n.id} is down (what-if)`,`${fmt(f.in)} rps arrive and fail. ${n.standby?'The standby would take over in production.':'There is no standby to fail over to.'}`,['EA-P2'],{k:'restore',n:n.id});return}
   if(n.parent==='root'&&!S.edges.some(e=>e.to===n.id&&isFlow(e))&&f.in===0)add('warn','orphan:'+n.id,n.id,`${n.id} is unreachable`,`No flow reaches ${n.id}, so it serves nothing. Connect it or remove it.`,['EA-P2'],null);
   if(f.thr>0)add('warn','thr:'+n.id,n.id,`${n.id} throttles ${fmt(f.thr)} rps`,`Rate limit ${fmt(n.rateLimit)} rps rejects ${pct(f.thr/(f.in||1))} of requests with 429. Downstream is protected; those users are not served.`,['EA-P7','EA-P4'],{k:'decide',n:n.id});
@@ -1006,6 +1027,14 @@ function analyze(log=true){
  out.forEach((f,i)=>f.id='F'+(i+1));
  S.edges.forEach(e=>{const a=N[e.from],b=N[e.to];if(a&&b&&isFlow(e)&&!extViaOk(a,b,e.via))add('crit','extnet:'+e.from+'>'+e.to,b.id,`${a.id} → ${b.id}: no direct network path to an external system`,extViaWhy(b),['Technical constraint','GT5'],{k:'via',from:e.from,to:e.to,via:b.pl?'privatelink':'internet'})});
  netGroupFindings(add);
+ if(mr()){const d=dnsNode(),fo=dnsFailover();
+  if(!d)add('crit','mrdns','root','Two regions, but nothing steers users between them',`Add DNS (${pk().svc.dns}) in front of both regions, with health checks.`,['GT7','EA-P2'],null);
+  else if(!fo.ok)add('crit','mrfo:'+d.id,d.id,`${d.id} cannot move users if a region fails`,`${fo.why}. Turn on health checks${(d.policy||'geolocation')==='geolocation'?' and add a default record':''} in the Inspector.`,['EA-P2'],null);
+  else if((d.ttl||60)>300)add('warn','mrttl:'+d.id,d.id,`${d.id} TTL of ${d.ttl} s slows failover`,'Clients keep the old answer until the TTL expires. Use 60 s or less for records that fail over.',['EA-P2'],null);
+  kids('root').filter(n=>n.type==='db').forEach(n=>{const m=n.multi||'';
+   if(!m)add('crit','mrdb:'+n.id,n.id,`${n.id} lives in one region only`,`The design is active-active, but ${n.id} runs only in region A (${regNames().a}). If region A fails, both regions lose their database. Use ${mrdbName('aa')} for active-active, or ${mrdbName('global')} for fast failover.`,['EA-P2'],{k:'mraa',n:n.id});
+   else if(m==='replica')add('warn','mrdb:'+n.id,n.id,`${n.id} relies on a manually promoted replica`,'Promotion takes manual steps and loses recent writes. Use managed failover or active-active.',['EA-P2'],{k:'mraa',n:n.id});
+   else if(m==='global')add('info','mrdb:'+n.id,n.id,`${n.id} is active-passive across regions`,`${mrdbName('global')}: writes go to region A; failover takes about a minute and can lose about a second of writes. Region B serves reads locally.`,['EA-P2'],null)})}
  if(kids('root').some(n=>n.type==='user'&&n.origin==='corp')&&!kids('root').some(n=>n.type==='idp'&&(n.idpMode==='corp'||n.audience==='workforce')))add('warn','corpidp',kids('root').find(n=>n.origin==='corp').id,'Internal users have no workforce sign-in',`Being on the company network is not proof of identity (zero trust). Add an identity provider federated to the corporate directory (${pk().idp.corp}), with MFA.`,['EA-P1'],{k:'idp'});
  {const w=wl();PAYLOAD_LIMIT.forEach(([pv,t,kb,why])=>{if(prov()!==pv)return;kids('root').filter(n=>n.type===t&&(t!=='svc'||true)).forEach(n=>{if(w.reqKB>kb)add('crit','payload:'+n.id,n.id,`Requests of ${fmt(w.reqKB)} KB are too large for ${n.id}`,`${why}. Upload large bodies straight to object storage with a pre-signed URL and pass a reference instead.`,['Technical constraint'],null)})})}
  {const open=kids('root').map(n=>[n,bpItems(n).filter(x=>x.c&&!x.on)]).filter(([,a])=>a.length);
@@ -1121,12 +1150,14 @@ function fixFn(x){
   between:()=>insertServiceBetween(x.from,x.to),
   quota:()=>{N()[x.n].quota=x.to},
   perAz:()=>{N()[x.n].perAz=true},
+  dns:()=>{const a=N()[x.from],b=N()[x.to];let d=kids(a.parent).find(n=>n.type==='dns');if(!d)d=addNode('dns',null,a.parent,{x:a.x,y:Math.max(60,a.y-160)});const e=findEdge(x.from,x.to),pr=e?e.proto:'HTTPS';removeEdge(x.from,x.to);if(!findEdge(a.id,d.id))connect(a.id,d.id,'HTTPS');if(!findEdge(d.id,b.id))connect(d.id,b.id,pr)},
+  mraa:()=>{N()[x.n].multi='aa'},
   sgallow:()=>{const g=grpById(x.sg);if(!g)return;const src=(S.groups||[]).filter(h=>h.kind==='sg'&&h.members.includes(x.from)).map(h=>h.id);g.allow=[...new Set([...(g.allow||[]),...(src.length?src:[x.from])])]},
   netdefault:()=>{N()[x.n].net=null},
   cap:()=>{const c=S.caps.find(c=>c.types.includes(x.t));if(c)c.on=true;else S.caps.push({id:'TC'+(S.caps.length+1),name:T[x.t].label+' (proposed via ADR)',types:[x.t],on:true});S.ver.caps++}
  }[x.k];
 }
-const fixLabel=x=>({sgallow:'Allow it in the security group',netdefault:'Move it to its tier',quota:`Raise limit to ${fmt(x.to||0)} rps`,perAz:'One per zone',between:'Insert a service between',waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
+const fixLabel=x=>({dns:'Route through DNS',mraa:`Use ${mrdbName('aa')}`,sgallow:'Allow it in the security group',netdefault:'Move it to its tier',quota:`Raise limit to ${fmt(x.to||0)} rps`,perAz:'One per zone',between:'Insert a service between',waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
 function applyFix(f){
  const x=f.fix;if(!x)return;
  if(x.k==='decide'){focusNode(x.n);return}
@@ -1152,7 +1183,7 @@ function insertServiceBetween(a,b){const A=S.nodes[a],B=S.nodes[b];removeEdge(a,
 function removeNode(id){const all=[id];for(let i=0;i<all.length;i++)kids(all[i]).forEach(k=>all.push(k.id));all.forEach(x=>delete S.nodes[x]);S.edges=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to])}
 const findEdge=(a,b)=>S.edges.find(e=>e.from===a&&e.to===b&&isFlow(e));
 function removeEdge(a,b){S.edges=S.edges.filter(e=>!(e.from===a&&e.to===b))}
-function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(via&&!extViaOk(A,B,via))throw new Error(extViaWhy(B));if(!PLATFORM.includes(B.type)){const cc=canConnect(A,B);if(!cc.ok){const er=new Error(`${a} → ${b} is not technically possible. ${cc.why}`);er.alt=cc.alt?{from:a,to:b}:null;throw er}}if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||(A.type==='user'&&A.origin==='corp'?'vpn':defVia(A.type,B.type))});return true}
+function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(via&&!extViaOk(A,B,via))throw new Error(extViaWhy(B));if(!PLATFORM.includes(B.type)){const cc=canConnect(A,B);if(!cc.ok){const er=new Error(`${a} → ${b} is not technically possible. ${cc.why}`);er.alt=cc.alt?{from:a,to:b}:null;throw er}}if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||(A.type==='user'&&A.origin==='corp'?'dedicated':defVia(A.type,B.type))});return true}
 const TEMPLATES={
  svc:n=>[['api','GET /health'],['api','POST /'+n.name.split(' ')[0].toLowerCase()],['adp','Data adapter']],
  vm:()=>[['part','App runtime'],['part','Agent / sidecar']],
@@ -1296,6 +1327,9 @@ function renderRefs(){const items=[...(pending&&pending.pc1?[...pending.pc1.pro,
 // Generic to the role, so the checks still apply when the product or platform changes; wording adapts per provider.
 // [key, label, pillar, critical, provider-specific wording]
 const BP={
+ dns:[['dnshc','Health checks on every regional endpoint','reliability',1],['dnsdef','Default record for locations not mapped (geolocation)','reliability',1],['dnsttl','TTL of 60 s or less','reliability',1],['dnssec','DNSSEC signing','security',0],['qlog','Query logging','operations',0],['gameday','Region failover tested (game day)','reliability',1]],
+ corp:[['dxlink','Every flow over Direct Connect (GT6)','reliability',1,{aws:'AWS Direct Connect',azure:'ExpressRoute',gcp:'Cloud Interconnect',vmware:'MPLS / dark fibre'}],['dx2','Two connections at two Direct Connect locations','reliability',1],['dxgw','Direct Connect gateway attached to both regions','reliability',1],['vpnbk','Site-to-site VPN as the backup path','reliability',0],['macsec','Link encryption (MACsec, or IPsec over the circuit)','security',1],['bfd','BGP with BFD for fast failover','reliability',0]],
+ dsql:[['aa','Multi-region cluster with a witness region','reliability',1],['occ','Application retries optimistic-concurrency conflicts','reliability',1],['compat','Schema and SQL checked against the engine’s PostgreSQL compatibility','operations',1],['iam','IAM authentication, no stored passwords','security',1],['backup','Backup plan for the cluster','reliability',1],['cmk','Encrypted with customer-managed keys','security',1]],
  waf:[['mode','Blocking mode, not count-only','security',1],['managed','Managed rule sets on (OWASP Top 10, known bad inputs)','security',1],['rate','Rate-based rule per client','reliability',0],['logs','Full request logs to the SIEM','operations',0]],
  cdn:[['https','HTTPS only, TLS 1.2+','security',1],['oac','Private origin access (origin not public)','security',1,{aws:'Origin Access Control',azure:'Private Link origin',gcp:'signed requests to the origin',vmware:'origin allow-list'}],['wafedge','WAF attached at the edge','security',0],['logs','Access logs','operations',0]],
  lb:[['tls','TLS 1.2+ policy; HTTP redirects to HTTPS','security',1],['health','Health checks on every target','reliability',1],['xzone','Targets in 2+ zones','reliability',1],['logs','Access logs','operations',0],['delprot','Deletion protection','reliability',0]],
@@ -1318,9 +1352,9 @@ const BP={
  mon:[['alarms','Alarms on SLOs and saturation','operations',1],['retention','Log retention meets policy','operations',1],['siem','Security logs to the SIEM','security',1],['dash','Dashboards per service','operations',0]]
 };
 // Settings that already exist on the component are read from it, not asked twice.
-const BP_DERIVED={zones:n=>Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)>=2,xzone:n=>Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)>=2||isManaged(n),ha:n=>!!n.standby,cmk:n=>!n.enrich||n.enrich.encryptRest!==false,rate:n=>!!n.rateLimit};
-const BP_HINT={zones:'set Replicas or autoscaling above',xzone:'set Replicas above (managed services span zones)',ha:'set Standby above',cmk:'from encryption at rest',rate:'set a client rate limit above'};
-function bpItems(n){return (BP[n.type]||[]).map(([k,l,p,c,pv])=>{const der=BP_DERIVED[k]&&(k!=='rate'||['waf','gw'].includes(n.type));const on=der?!!BP_DERIVED[k](n):!!(n.cfg&&n.cfg[k]);return {k,l,p,c,hint:pv?(pv[prov()]||''):'',der,on}})}
+const BP_DERIVED={dnshc:n=>!!n.health,dnsdef:n=>(n.policy||'geolocation')!=='geolocation'||!!n.defaultRec,dnsttl:n=>(n.ttl||60)<=60,dxlink:n=>{const es=S.edges.filter(e=>e.from===n.id&&isFlow(e));return es.length>0&&es.every(e=>e.via==='dedicated')},aa:n=>n.multi==='aa',zones:n=>Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)>=2,xzone:n=>Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)>=2||isManaged(n),ha:n=>!!n.standby,cmk:n=>!n.enrich||n.enrich.encryptRest!==false,rate:n=>!!n.rateLimit};
+const BP_HINT={dnshc:'set in the DNS fields above',dnsdef:'set in the DNS fields above',dnsttl:'set in the DNS fields above',dxlink:'set each flow’s connectivity',aa:'set Multi-region above',zones:'set Replicas or autoscaling above',xzone:'set Replicas above (managed services span zones)',ha:'set Standby above',cmk:'from encryption at rest',rate:'set a client rate limit above'};
+function bpItems(n){const key=n.type==='user'?(n.origin==='corp'?'corp':''):n.type==='db'&&n.multi==='aa'?'dsql':n.type;return (BP[key]||[]).map(([k,l,p,c,pv])=>{const der=BP_DERIVED[k]&&(k!=='rate'||['waf','gw'].includes(n.type));const on=der?!!BP_DERIVED[k](n):!!(n.cfg&&n.cfg[k]);if(mr()&&(k==='repl'||k==='dxgw'))c=1;return {k,l,p,c,hint:pv?(pv[prov()]||''):'',der,on}})}
 function bpHTML(n){const it=bpItems(n);if(!it.length)return '';const ok=it.filter(x=>x.on).length,miss=it.filter(x=>x.c&&!x.on).length;
  return `<h4>Critical configuration · Well-Architected <span class="why">${ok}/${it.length} confirmed${miss?` · <span class="crit">${miss} critical open</span>`:''}</span></h4><div class="bp">${it.map(x=>`<label class="bprow${x.der?' der':''}"><input type="checkbox" data-bp="${x.k}" ${x.on?'checked':''} ${x.der?'disabled':''}><span><b>${esc(x.l)}</b>${x.hint?`<small>${esc(x.hint)}</small>`:''}${x.der?`<small>${esc(BP_HINT[x.k]||'set above')}</small>`:''}</span><span class="pchip" title="${esc(PILLARS[x.p].l)} pillar">${esc(PILLARS[x.p].l)}</span>${x.c?'<b class="crit bpc">critical</b>':''}</label>`).join('')}</div>
  <div class="why">Recommended for ${esc(svcName(n))} by the AWS, Azure and Google Cloud Well-Architected frameworks. The checks belong to the role, so they still apply if you change the product. Product-specific settings will come from the platform agent (WP5).</div>
@@ -1392,7 +1426,7 @@ $('#ndOk').onclick=saveNetDlg;$('#ndCancel').onclick=closeNetDlg;$('#ndDel').onc
 $('#netDlg').addEventListener('keydown',e=>{if(e.key==='Escape')closeNetDlg();if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='checkbox')saveNetDlg()});
 function netInspHTML(n){if(['user','ext','saas','part'].includes(n.type)||n.parent!=='root')return '';
  const gs=(S.groups||[]).filter(g=>g.members.includes(n.id));
- return `<h4>Network placement</h4><div class="why">Zones: ${esc(placementText(n))}${F[n.id]&&F[n.id].zx?` · <b class="${F[n.id].zx.down?'crit':'warn'}">zone ${S.outage} outage: ${esc(F[n.id].zx.why)}</b>`:''}</div><label>Subnet <select id="iNet"><option value="">Default · ${esc(pk().zone[zoneOf(n)]||zoneOf(n))}</option>${(S.nets||[]).map(x=>`<option value="${x.id}" ${n.net===x.id?'selected':''}>${esc(x.name)} · ${esc(pk().zone[x.tier]||x.tier)}${x.cidr?' · '+esc(x.cidr):''}</option>`).join('')}<option value="__new">New subnet…</option></select></label>
+ return `<h4>Network placement</h4><div class="why">Zones: ${esc(placementText(n))}${F[n.id]&&F[n.id].zx?` · <b class="${F[n.id].zx.down?'crit':'warn'}">${S.routage?'region '+S.routage.toUpperCase():'zone '+S.outage} outage: ${esc(F[n.id].zx.why)}</b>`:''}</div><label>Subnet <select id="iNet"><option value="">Default · ${esc(pk().zone[zoneOf(n)]||zoneOf(n))}</option>${(S.nets||[]).map(x=>`<option value="${x.id}" ${n.net===x.id?'selected':''}>${esc(x.name)} · ${esc(pk().zone[x.tier]||x.tier)}${x.cidr?' · '+esc(x.cidr):''}</option>`).join('')}<option value="__new">New subnet…</option></select></label>
  <div class="grpchips">${gs.map(g=>`<button type="button" class="gchip ${g.kind}" data-grp="${g.id}" title="Edit">${g.kind==='sg'?'SG':'APP'} · ${esc(g.name)}</button>`).join('')}<button type="button" class="btn" data-newgrp="sg">+ Security group</button><button type="button" class="btn" data-newgrp="ag">+ App group</button></div>`}
 function bindNetInsp(n){const s=document.getElementById('iNet');if(s)s.onchange=e=>{const v=e.target.value;if(v==='__new'){V.sel=n.id;openNetDlg('subnet');e.target.value=n.net||'';return}
   act(`Move ${n.id} to ${v?netById(v).name:'its default tier'}`,()=>{S.nodes[n.id].net=v||null})};
@@ -1579,6 +1613,7 @@ const tags=n=>`tags = { nexus_id = "${n.id}", zone = "${zoneOf(n)}" }`;
 const pab=n=>['aws_s3_bucket_public_access_block',[`bucket                  = aws_s3_bucket.${slug(n)}.id`,'block_public_acls       = true','block_public_policy     = true','restrict_public_buckets = true']];
 const RES={
  aws:{
+  dns:n=>[['aws_route53_health_check',['type              = "HTTPS"','resource_path     = "/healthz"','failure_threshold = 3','request_interval  = 30']],['aws_route53_record',['zone_id = aws_route53_zone.main.zone_id','name    = "app.example.com"','type    = "A"','set_identifier = "region-a"',`${(n.policy||'geolocation')==='geolocation'?'geolocation_routing_policy {\n  continent = "EU"\n}':n.policy==='latency'?'latency_routing_policy {\n  region = "'+regNames().a+'"\n}':n.policy==='weighted'?'weighted_routing_policy {\n  weight = '+(n.shareA??50)+'\n}':'failover_routing_policy {\n  type = "PRIMARY"\n}'}`,`health_check_id = aws_route53_health_check.${slug(n)}.id`,`# TTL ${n.ttl||60} s${n.defaultRec?'; plus a default (*) location record':''}`]]],
   waf:n=>[['aws_wafv2_web_acl',[`name  = "${slug(n)}"`,'scope = "REGIONAL"','default_action {\n  allow {}\n}',`# managed rule groups: ${PACK.aws.waf}`,n.rateLimit?`# rate-based rule: ${n.rateLimit} rps`:'',tags(n)]]],
   lb:n=>[['aws_lb',[`name               = "${slug(n)}"`,'load_balancer_type = "application"','internal           = false','subnets            = [aws_subnet.edge.id]','drop_invalid_header_fields = true',tags(n)]]],
   egw:n=>[['aws_nat_gateway',['subnet_id     = aws_subnet.edge.id','allocation_id = aws_eip.'+slug(n)+'.id',tags(n)]],['aws_networkfirewall_firewall',[`name                = "${slug(n)}-fw"`,'firewall_policy_arn = aws_networkfirewall_firewall_policy.fqdn_allowlist.arn','vpc_id              = aws_vpc.main.id','subnet_mapping {\n  subnet_id = aws_subnet.edge.id\n}']]],
@@ -1757,7 +1792,7 @@ function nodeAt(sx,sy){
   if(V.mode==='iso'){if(Math.hypot(sx-p.x,sy-p.y)<44*V.k)return n}
   else if(Math.abs(sx-p.x)<NW/2*V.k&&Math.abs(sy-p.y)<NH/2*V.k)return n}
  return null}
-function zoneMembers(z){const ns=kids(V.scope);return z==='__outer'?ns.filter(n=>!['internet','third','corp'].includes(drawZone(n))):ns.filter(n=>drawZone(n)===z)}
+function zoneMembers(z){const ns=kids(V.scope);return z==='__outer'?ns.filter(n=>!['internet','third','corp','global'].includes(drawZone(n))):ns.filter(n=>drawZone(n)===z)}
 function zoneAt(sx,sy){const tol=6;for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i];
   if(sx>=b.x0&&sx<=b.x0+b.lw&&sy>=b.y0-2&&sy<=b.y0+18*V.k)return b.z;}
  for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i],inX=sx>=b.x0-tol&&sx<=b.x1+tol,inY=sy>=b.y0-tol&&sy<=b.y1+tol;
@@ -1857,7 +1892,7 @@ function drawIsoZones(ns){
  const plate=(q,col,alpha,dash,lw)=>{ctx.beginPath();q.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.globalAlpha=alpha*.13;ctx.fillStyle=col;ctx.fill();ctx.setLineDash(dash);ctx.globalAlpha=alpha;ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1};
  const label=(q,txt,col)=>{const a=q[0],b=q[1];ctx.save();ctx.translate(a.x,a.y);ctx.rotate(Math.atan2(b.y-a.y,b.x-a.x));ctx.globalAlpha=.85;ctx.fillStyle=col;ctx.fillText(txt,10*V.k,-6*V.k);ctx.restore();ctx.globalAlpha=1};
  const Wb={};Object.entries(byZ).forEach(([z,a])=>{Wb[z]={x0:Math.min(...a.map(n=>n.x))-95,x1:Math.max(...a.map(n=>n.x))+95,y0:Math.min(...a.map(n=>n.y))-60,y1:Math.max(...a.map(n=>n.y))+60}});
- const inner=Object.entries(Wb).filter(([z])=>!['internet','third','corp'].includes(z)).map(([,b])=>b);
+ const inner=Object.entries(Wb).filter(([z])=>!['internet','third','corp','global'].includes(z)).map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-40,x1:Math.max(...inner.map(b=>b.x1))+40,y0:Math.min(...inner.map(b=>b.y0))-40,y1:Math.max(...inner.map(b=>b.y1))+40},q=quad(o);plate(q,colors.accent,.55,[],1.3);label(q,outerLabel(),colors.accent)}
  Object.entries(Wb).forEach(([z,b])=>{const col=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted,q=quad(b);plate(q,col,z==='third'?.4:.6,[5,4],1);label(q,zoneLabel(z),col)});
 }
@@ -1872,8 +1907,9 @@ function frame(now){
  ctx.font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;
  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
  const boxes={};if(V.mode!=='iso')Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
- const inner=Object.entries(boxes).filter(([z])=>!['internet','third','corp'].includes(z)).map(([,b])=>b);
+ const inner=Object.entries(boxes).filter(([z])=>!['internet','third','corp','global'].includes(z)).map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-14*V.k,x1:Math.max(...inner.map(b=>b.x1))+14*V.k,y0:Math.min(...inner.map(b=>b.y0))-24*V.k,y1:Math.max(...inner.map(b=>b.y1))+12*V.k};
+  if(mr()){ctx.save();ctx.strokeStyle=S.routage==='b'?colors.crit:colors.accent;ctx.globalAlpha=.32;ctx.setLineDash([6,5]);ctx.lineWidth=1.2;rr(o.x0+18*V.k,o.y0+18*V.k,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.75;ctx.fillStyle=S.routage==='b'?colors.crit:colors.accent;ctx.fillText(`REGION B · ${regNames().b} · same stack${S.routage==='b'?' · DOWN':''}`,o.x0+28*V.k,o.y1+32*V.k);ctx.restore()}
   const hz=V.hoverZ==='__outer'||V.selZone==='__outer';ctx.strokeStyle=colors.accent;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(outerLabel(),o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
   zoneHits.push({z:'__outer',...o,lw:ctx.measureText(outerLabel()).width+20*V.k})}
  Object.entries(boxes).forEach(([z,b])=>{
@@ -2118,7 +2154,7 @@ function tidyAll(){
 
 /* ---------- palette & crumb ---------- */
 const NETITEMS={__corp:{p:'U',l:'Internal users',s:'company network · VPN / dedicated'},__subnet:{p:'NET',l:'Subnet',s:'segment by tier, CIDR and zone'},__sg:{p:'SG',l:'Security group',s:'default-deny inbound rules'},__ag:{p:'APP',l:'Application group',s:'components of one business app'}};
-const PAL_GROUPS=[['Network',['__subnet','__sg','__ag']],['People and outside',['user','__corp','saas','ext']],['Edge and access',['cdn','waf','lb','egw','gw','idp']],['Compute',['svc','vm','fn','api','adp']],['Data and messaging',['queue','cache','db','obj']],['Shared platform',['reg','art','kms','sec','mon']]];
+const PAL_GROUPS=[['Network',['__subnet','__sg','__ag']],['People and outside',['user','__corp','saas','ext']],['Edge and access',['dns','cdn','waf','lb','egw','gw','idp']],['Compute',['svc','vm','fn','api','adp']],['Data and messaging',['queue','cache','db','obj']],['Shared platform',['reg','art','kms','sec','mon']]];
 function renderPalette(){const q=($('#palQ')&&$('#palQ').value||'').toLowerCase();
  const info=t=>T[t]?{p:T[t].p,l:T[t].label,s:pk().svc[t]||''}:NETITEMS[t];
  const body=PAL_GROUPS.map(([g,ts])=>{const items=ts.filter(t=>!q||info(t).l.toLowerCase().includes(q)||info(t).s.toLowerCase().includes(q)||t.includes(q));
@@ -2130,7 +2166,7 @@ $('#addBtn').onclick=e=>{e.stopPropagation();openPal($('#palette').hidden)};
 $('#palQ').addEventListener('input',renderPalette);
 $('#palQ').addEventListener('keydown',e=>{if(e.key==='Escape'){openPal(false);$('#addBtn').focus()}if(e.key==='Enter'){const b=$('#palList button');if(b)b.click()}});
 document.addEventListener('pointerdown',e=>{if(!$('#palette').hidden&&!e.target.closest('.addmenu'))openPal(false)});
-$('#palette').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;openPal(false);const t=b.dataset.t;if(t==='__corp'){const id=nextId('user');act(`Add ${id} (Internal users)`,()=>{const n=addNode('user','Employees');n.origin='corp';n.audience='workforce';n.rps=200},{after:()=>{V.sel=id;say(`Added ${id}, internal users on the company network. Connect it to an internal load balancer or API gateway; new flows use ${pk().vpn} by default.`,'s')}});return}
+$('#palette').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;openPal(false);const t=b.dataset.t;if(t==='__corp'){const id=nextId('user');act(`Add ${id} (Internal users)`,()=>{const n=addNode('user','Employees');n.origin='corp';n.audience='workforce';n.rps=200},{after:()=>{V.sel=id;say(`Added ${id}, internal users on the company network. Connect it to an internal load balancer or API gateway; new flows use ${pk().dedicated} by default (GT6).`,'s')}});return}
  if(t.startsWith('__')){if(who().role==='reviewer'){say('Reviewers cannot change the design.','g');return}openNetDlg({__subnet:'subnet',__sg:'sg',__ag:'ag'}[t]);return}const id=nextId(t);
  act(`Add ${id} (${T[t].label})`,()=>addNode(t),{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}. Use ▾ → Connect to wire it.`,'s')}})});
 function renderCrumb(){
@@ -2177,7 +2213,7 @@ function renderAdvisor(){
  $('#advCount').innerHTML=`<span class="crit">${c}</span> · <span class="warn">${w}</span>`;
  const body=$('#advBody');
  if(advTab==='find'){
-  body.innerHTML=`<div class="act" style="padding:8px 10px;border-bottom:1px solid var(--line)"><button class="btn" id="compBtn">Run compliance check</button><span class="why" style="align-self:center">ground truth · EA principles · ATT&CK · constraints</span></div>`+(findings.length?findings.map((f,i)=>`<div class="fd"><div class="h"><span class="pill ${f.sev}">${f.id}</span><span class="t">${esc(f.title)}</span></div><div class="why">${esc(f.why)}</div><div class="basis">${f.basis.map(b=>`<span>${esc(b)}</span>`).join('')}</div>${f.adr?`<details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Constraints and tradeoffs</summary><div class="adr">${esc(f.adr)}</div></details>`:''}<div class="act">${f.fix?`<button class="btn" data-fix="${i}">${fixLabel(f.fix)}</button>`:''}${f.target?`<button class="btn" data-go="${f.target}">Show ${f.target}</button>`:''}</div></div>`).join(''):`<div class="empty"><b class="ok">All clear.</b> The design meets every EA principle and ground-truth rule at ${S.mult}× load.</div>`);const cb=document.getElementById('compBtn');if(cb)cb.onclick=showCompliance;
+  body.innerHTML=`<div class="act" style="padding:8px 10px;border-bottom:1px solid var(--line)"><button class="btn" id="compBtn">Run compliance check</button><button class="btn" id="csBtn" title="Critical settings for every component">Critical settings</button><span class="why" style="align-self:center">ground truth · EA principles · ATT&CK · constraints</span></div>`+(findings.length?findings.map((f,i)=>`<div class="fd"><div class="h"><span class="pill ${f.sev}">${f.id}</span><span class="t">${esc(f.title)}</span></div><div class="why">${esc(f.why)}</div><div class="basis">${f.basis.map(b=>`<span>${esc(b)}</span>`).join('')}</div>${f.adr?`<details><summary style="font-size:11px;color:var(--accent);cursor:pointer">Constraints and tradeoffs</summary><div class="adr">${esc(f.adr)}</div></details>`:''}<div class="act">${f.fix?`<button class="btn" data-fix="${i}">${fixLabel(f.fix)}</button>`:''}${f.target?`<button class="btn" data-go="${f.target}">Show ${f.target}</button>`:''}</div></div>`).join(''):`<div class="empty"><b class="ok">All clear.</b> The design meets every EA principle and ground-truth rule at ${S.mult}× load.</div>`);const cb=document.getElementById('compBtn');if(cb)cb.onclick=showCompliance;
  }else if(advTab==='insp'){
   if(V.selE)return renderEdgeInspector(body);
   const n=S.nodes[V.sel];
@@ -2224,7 +2260,8 @@ function renderNodeInspector(body,n){
   <label>Read replicas <input id="iRr" type="number" min="0" max="${pk().rrMax}" value="${n.readReplicas||0}"></label>
   <label>Shards <input id="iSh" type="number" min="1" max="64" value="${n.shards||1}"></label>
   <label>Data size (GB) <input id="iGb" type="number" min="1" step="50" value="${n.sizeGB||0}"></label>
-  <label>Standby <select id="iSb"><option value="0">None</option><option value="1" ${n.standby?'selected':''}>Passive standby (failover)</option></select></label>`;
+  <label>Standby <select id="iSb"><option value="0">None</option><option value="1" ${n.standby?'selected':''}>Passive standby (failover)</option></select></label>
+  <label>Multi-region <select id="iMr">${[['','None (one region)'],['replica',mrdbName('replica')],['global',mrdbName('global')+' (active-passive)'],['aa',mrdbName('aa')+' (active-active)']].map(([v,l])=>`<option value="${v}" ${(n.multi||'')===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>${n.multi==='aa'?`<label>Planning limit (rps) <input id="iDq" type="number" min="100" step="1000" value="${n.quota||20000}" title="Serverless: scales automatically. Set the throughput you plan for."></label>`:''}`;
   h+=dbDecisionHTML(n);
  }else if(n.type==='queue'){
   h+=`<label>Kind <select id="iFl"><option value="kafka" ${n.flavor==='kafka'?'selected':''}>Event stream · ${esc(pk().q.kafka)}</option><option value="mq" ${n.flavor==='mq'?'selected':''}>Message broker · ${esc(pk().q.mq)}</option><option value="native" ${n.flavor==='native'?'selected':''}>Managed queue · ${esc(pk().q.native)}</option></select></label>
@@ -2239,6 +2276,13 @@ function renderNodeInspector(body,n){
   ${n.idpMode==='corp'?`<label>Corporate IdP <input id="iFed" value="${esc(n.fedIdp||'')}" placeholder="Entra ID, Okta, ADFS…"></label>`:''}
   <div class="why">${esc(svcName(n))}. Federation keeps passwords with the corporate IdP and reuses its MFA and joiner/leaver process; your app trusts its SAML/OIDC assertions.</div>
   <label>Replicas <input id="iRep" type="number" min="1" max="50" value="${n.rep}"></label>`;
+ }else if(n.type==='dns'){
+  h+=`<label>Routing policy <select id="nPol">${[['geolocation','Geolocation: by where users are'],['latency','Latency: nearest healthy region'],['weighted','Weighted: fixed split'],['failover','Failover: primary and standby']].map(([v,l])=>`<option value="${v}" ${(n.policy||'geolocation')===v?'selected':''}>${l}</option>`).join('')}</select></label>
+  <label>Users sent to region A (%) <input id="nShare" type="number" min="0" max="100" step="5" value="${n.shareA??50}"></label>
+  <label class="chkrow"><input type="checkbox" id="nHc" ${n.health?'checked':''}> Health checks on each region's endpoint</label>
+  <label class="chkrow"><input type="checkbox" id="nDef" ${n.defaultRec?'checked':''}> Default record (catches unmapped locations and failover)</label>
+  <label>TTL (seconds) <input id="nTtl" type="number" min="5" max="86400" step="5" value="${n.ttl||60}"></label>
+  <div class="why">${esc(pk().svc.dns)} answers each user with region A (${esc(regNames().a)}) or B (${esc(regNames().b)}). ${mr()?esc(dnsFailover().ok?'Failover: '+dnsFailover().why+'.':'No failover: '+dnsFailover().why+'.'):'Turn on two regions in the Load panel (Resilience) to use it across regions.'}</div>`;
  }else if(isManaged(n)){
   const res=(MQ[n.type]||{}).res;
   h+=`<div class="just"><b>Managed by ${esc(pk().name)}</b> · the provider scales it, so there are no instances to size. You change its configuration.<br>Now: <b>${esc(cfgText(n))}</b>${n.rateLimit?` · client rate limit ${fmt(n.rateLimit)} rps`:''}<br>Resiliency: <b>${res==='global'?'global (no regional failure to plan for)':res==='zonal'?'zonal: run one per zone':'regional: multi-zone by the provider; plan cross-region DR'}</b>${DR[n.type]?'<br><span style="color:var(--muted)">'+esc(DR[n.type])+'</span>':''}</div>
@@ -2261,7 +2305,11 @@ function renderNodeInspector(body,n){
  h+=`<div class="just" style="font-family:var(--f-mono);font-size:10.5px"><b style="font-family:var(--f-body)">SLM enrichment</b><br>${Object.entries(n.enrich||{}).map(([k,v])=>`${esc(k)}: ${esc(v)}`).join('<br>')}</div>
   <div class="act">${ext||plat||part?'':`<button class="btn" id="iOpen">Open sub-design${kids(n.id).length?' ('+kids(n.id).length+')':''}</button><button class="btn" id="iInst">${n.expanded?'Hide':'Show'} instances</button>`}<button class="btn danger" id="iDel">Remove</button></div></div>`;
  body.innerHTML=h;bindBP(n);bindNetInsp(n);
- {const o=document.getElementById('iOrigin');if(o)o.onchange=e=>{const v=e.target.value,id=n.id;act(`${id}: comes from ${v==='corp'?'the company network':'the internet'}`,()=>{const m=S.nodes[id];m.origin=v==='corp'?'corp':undefined;if(v==='corp'){m.audience='workforce';S.edges.filter(x=>x.from===id&&x.via==='internet').forEach(x=>x.via='vpn')}else S.edges.filter(x=>x.from===id&&['vpn','dedicated'].includes(x.via)).forEach(x=>x.via='internet')})}}
+ {const id=n.id,sv=(k,v,d)=>act(`${id}: ${d}`,()=>{S.nodes[id][k]=v});const on=(i,f)=>{const e=document.getElementById(i);if(e)e.onchange=f};
+  on('nPol',e=>sv('policy',e.target.value,`routing policy ${e.target.value}`));on('nShare',e=>sv('shareA',Math.min(100,Math.max(0,+e.target.value||0)),`region A share ${e.target.value}%`));
+  on('nHc',e=>sv('health',e.target.checked,`health checks ${e.target.checked?'on':'off'}`));on('nDef',e=>sv('defaultRec',e.target.checked,`default record ${e.target.checked?'on':'off'}`));on('nTtl',e=>sv('ttl',Math.max(5,+e.target.value||60),`TTL ${e.target.value} s`));
+  on('iMr',e=>sv('multi',e.target.value||undefined,`multi-region ${e.target.value?mrdbName(e.target.value):'none'}`));on('iDq',e=>sv('quota',Math.max(100,+e.target.value||20000),`planning limit ${e.target.value} rps`))}
+ {const o=document.getElementById('iOrigin');if(o)o.onchange=e=>{const v=e.target.value,id=n.id;act(`${id}: comes from ${v==='corp'?'the company network':'the internet'}`,()=>{const m=S.nodes[id];m.origin=v==='corp'?'corp':undefined;if(v==='corp'){m.audience='workforce';S.edges.filter(x=>x.from===id&&['internet','vpn'].includes(x.via)).forEach(x=>x.via='dedicated')}else S.edges.filter(x=>x.from===id&&['vpn','dedicated'].includes(x.via)).forEach(x=>x.via='internet')})}}
  const id=n.id,set=(desc,k,v)=>act(`${id}: ${desc}`,()=>{S.nodes[id][k]=v}),direct=(desc,fn)=>{pushUndo(`${id}: ${desc}`);fn();changed()};
  g('iName',v=>direct('rename',()=>{S.nodes[id].name=v}));g('iRps',v=>direct(`peak load ${v}`,()=>{S.nodes[id].rps=+v}));
  g('iConn',v=>{if(v)guardedConnect(id,v)});
@@ -2464,6 +2512,7 @@ function run(raw,opt={}){
  if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
  if(/^workload\b/i.test(c)){wlCmd(c);return}
+ if(regionCmd(c,l))return;
  if(m=l.match(/^(?:fail|lose|kill|take down|what if|simulate)\s+(?:an?\s+)?(?:availability\s+)?zone\s+([abc])\b|^zone\s+([abc])\s+(?:fails|outage|down)/)){const z=m[1]||m[2];if(!zoneList().includes(z)){say(`This design has ${zoneCount()} zone${zoneCount()>1?'s':''} (${zoneList().join(', ')}). Set more with "zones 3".`,'s');return}setOutage(z);return}
  if(/^(restore|recover|end)\s+(the\s+)?zone|^zone\s+outage\s+off/.test(l)){setOutage(null);return}
  if(m=l.match(/^zones?\s+([123])$/)){setZones(+m[1]);say(`The region now has ${zoneCount()} zones (${zoneList().join(', ')}).`,'s');return}
@@ -2499,7 +2548,7 @@ function run(raw,opt={}){
   let x=null;if(m=l.match(/(\d+(?:\.\d+)?)\s*(x|×|times)/))x=+m[1];else if(/double/.test(l))x=2;else if(/triple/.test(l))x=3;else if(/half|halve/.test(l))x=.5;else if(m=l.match(/(\d[\d,]*)\s*rps/)){const r=+m[1].replace(/,/g,''),base=kids('root').filter(n=>n.type==='user').reduce((a,n)=>a+n.rps,0)||1;x=r/base}
   if(x){setMult(x);say(`Load set to ${fmtMult(S.mult)} (${fmt(KPI.offered)} rps). Autoscaled to ${fmt(totalInst())} instances, ≈$${fmt(totalCost())}/month. Bottleneck: ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}.`,'s');return}
  }
- if(/^reset/.test(l)){Object.values(S.nodes).forEach(n=>n.failed=false);S.outage=null;setMult(1);say('What-if cleared.','s');return}
+ if(/^reset/.test(l)){Object.values(S.nodes).forEach(n=>n.failed=false);S.outage=null;S.routage=null;setMult(1);say('What-if cleared.','s');return}
  if(/^(fail|kill|take down)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=true);changed();say(`${ids.join(', ')} failed.`,'s');return}
  if(m=l.match(/^restore\s+v(\d+)/)){const v=S.versions[+m[1]-1];if(!v){say('No such version.','s');return}pushUndo(`Restore v${m[1]}`);const keep={versions:S.versions,log:S.log};S={...JSON.parse(v.data),...keep};migrate();V.scope='root';fit();changed();say(`Restored v${m[1]} (${v.note}).`,'s');return}
  if(/^(restore|recover|heal)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=false);changed();say(`${ids.join(', ')} restored.`,'s');return}
@@ -2570,7 +2619,7 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#mClose').c
 
 
 /* ---------- cost model (list-price estimates, editable in Settings) ---------- */
-const PRICE_BASE={cdn:{inst:0,perM:.85},waf:{inst:5,perM:.6},lb:{inst:18,perM:.25},egw:{inst:320,perM:.04},gw:{inst:0,perM:1},idp:{inst:55,perM:0},svc:{inst:36,perM:0},vm:{inst:70,perM:0},fn:{inst:0,perM:2.2},queue:{inst:150,perM:.4},cache:{inst:160,perM:0},db:{inst:380,perM:0},obj:{inst:0,perM:.4},reg:{inst:10,perM:0},art:{inst:5,perM:0},kms:{inst:3,perM:0},sec:{inst:2,perM:0},mon:{inst:60,perM:0}};
+const PRICE_BASE={dns:{inst:2,perM:.4},cdn:{inst:0,perM:.85},waf:{inst:5,perM:.6},lb:{inst:18,perM:.25},egw:{inst:320,perM:.04},gw:{inst:0,perM:1},idp:{inst:55,perM:0},svc:{inst:36,perM:0},vm:{inst:70,perM:0},fn:{inst:0,perM:2.2},queue:{inst:150,perM:.4},cache:{inst:160,perM:0},db:{inst:380,perM:0},obj:{inst:0,perM:.4},reg:{inst:10,perM:0},art:{inst:5,perM:0},kms:{inst:3,perM:0},sec:{inst:2,perM:0},mon:{inst:60,perM:0}};
 const PRICE_MULT={aws:1,azure:1.06,gcp:.97,vmware:.8};
 const TIER_COST={s:.5,m:1,l:2,xl:4,xxl:8};
 const SEC_MONTH=2.628e6;
@@ -2583,8 +2632,9 @@ function costOf(n){
  else inst=instCount(n)*p.inst;
  return inst+p.perM*(f.served||0)*SEC_MONTH/1e6;
 }
-const totalCost=()=>Object.values(S.nodes).reduce((a,n)=>a+costOf(n),0)+egressCost();
-const totalInst=()=>Object.values(S.nodes).filter(n=>n.parent==='root'&&!EXTERNAL.includes(n.type)).reduce((a,n)=>a+instCount(n),0);
+const REGIONAL=n=>mr()&&!['dns','cdn','user','ext','saas'].includes(n.type);
+const totalCost=()=>Object.values(S.nodes).reduce((a,n)=>a+costOf(n)*(REGIONAL(n)?2:1),0)+egressCost();
+const totalInst=()=>Object.values(S.nodes).filter(n=>n.parent==='root'&&!EXTERNAL.includes(n.type)).reduce((a,n)=>a+instCount(n)*(REGIONAL(n)?2:1),0);
 let SAFE=null;
 // Highest load multiplier at which every component stays under 85% with autoscaling free to reach its maximum.
 function safeLimit(){
@@ -3101,8 +3151,8 @@ $('#modelsBtn').addEventListener('click',renderDcStack);
 
 
 /* ---------- workload controls ---------- */
-function renderZ(){const c=$('#zCount'),o=$('#zOut');if(!c||!o)return;c.value=String(zoneCount());o.innerHTML='<option value="">None</option>'+zoneList().map(z=>`<option value="${z}" ${S.outage===z?'selected':''}>Zone ${z} fails</option>`).join('');
- const s=$('#zSum');if(s)s.innerHTML=S.outage?outageLine():''}
+function renderZ(){renderRegion&&renderRegion();const c=$('#zCount'),o=$('#zOut');if(!c||!o)return;c.value=String(zoneCount());o.innerHTML='<option value="">None</option>'+zoneList().map(z=>`<option value="${z}" ${S.outage===z?'selected':''}>Zone ${z} fails</option>`).join('');
+ const s=$('#zSum');if(s)s.innerHTML=S.outage||S.routage?outageLine():''}
 function renderWL(){renderZ();const w={...WL_DEF,...(S.workload||{})};[['wReq','reqKB'],['wResp','respKB'],['wRead','read'],['wHit','hit']].forEach(([id,k])=>{const e=$('#'+id);if(e&&document.activeElement!==e)e.value=w[k]})}
 function setWL(k,v,label){const w={...WL_DEF,...(S.workload||{})};if(+w[k]===+v)return;pushUndo(`Workload: ${label} ${w[k]} → ${v}`);S.workload={...w,[k]:+v};
  logAI('Simulation',`Workload ${label} set to ${v}`,`Request ${S.workload.reqKB} KB, response ${S.workload.respKB} KB, reads ${S.workload.read}%, cache hit ${S.workload.hit}%`,1);changed();renderDem()}
@@ -3127,6 +3177,63 @@ function setOutage(z){const was=S.outage||null;z=z||null;if(was===z)return;S.out
  say(`Zone ${z} outage (${zoneCount()} zones): ${r.ok?'the design survives':'the design does NOT survive'}. Errors ${(KPI.err*100).toFixed(1)}%, bottleneck ${KPI.worst?KPI.worst.id+(isFinite(F[KPI.worst.id].util)?' at '+pct(F[KPI.worst.id].util):' (down)'):'none'}.${r.down.length?`\nDown: ${r.down.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}${r.fo.length?`\nFails over: ${r.fo.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}${r.deg.length?`\nReduced capacity: ${r.deg.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}\nThe Design Advisor lists a fix for each. Type "restore zone" to end the outage.`,'s')}
 function setZones(nz){nz=Math.min(3,Math.max(1,+nz||2));if(nz===zoneCount())return;pushUndo(`Zones in the region: ${zoneCount()} → ${nz}`);S.settings.zones=nz;if(S.outage&&!zoneList().includes(S.outage))S.outage=null;changed();renderDem()}
 $('#zOut')&&($('#zOut').onchange=e=>setOutage(e.target.value));$('#zCount')&&($('#zCount').onchange=e=>setZones(e.target.value));
+
+
+/* ---------- multi-region: active-active regions, DNS steering, region outage ---------- */
+// The regional stack (everything inside the network) runs in both regions; DNS splits users between them.
+const mr=()=>!!(S.multi&&S.multi.on);
+const regNames=()=>({a:(S.multi&&S.multi.a)||{aws:'eu-west-1',azure:'westeurope',gcp:'europe-west1',vmware:'site-a'}[prov()],b:(S.multi&&S.multi.b)||{aws:'eu-central-1',azure:'northeurope',gcp:'europe-west4',vmware:'site-b'}[prov()]});
+const dnsNode=()=>kids('root').find(n=>n.type==='dns');
+// Multi-region database options, named per provider.
+const MRDB={aws:{replica:'cross-region read replica',global:'Aurora Global Database',aa:'Aurora DSQL'},azure:{replica:'cross-region read replica',global:'geo-replica with auto-failover group',aa:'Cosmos DB (multi-region writes)'},gcp:{replica:'cross-region read replica',global:'cross-region replica with failover',aa:'Spanner (multi-region)'},vmware:{replica:'async replica in site B',global:'async replica with automated failover',aa:'distributed SQL (CockroachDB / YugabyteDB)'}};
+const mrdbName=k=>(MRDB[prov()]||MRDB.aws)[k]||'none';
+// DNS failover works only with health checks, and for geolocation also a default record (otherwise a failed region's users are not moved).
+function dnsFailover(){const d=dnsNode();if(!d)return {ok:false,why:'there is no DNS steering users between regions'};
+ if(!d.health)return {ok:false,why:`${d.id} has no health checks, so it keeps sending users to the failed region`};
+ if((d.policy||'geolocation')==='geolocation'&&!d.defaultRec)return {ok:false,why:`${d.id} uses geolocation without a default record, so the failed region's users have nowhere else to go`};
+ return {ok:true,why:`${d.id} moves users after the health checks fail and the TTL (${d.ttl||60} s) expires`}}
+const shareA=()=>{const d=dnsNode();return Math.min(1,Math.max(0,((d&&d.shareA!=null)?d.shareA:50)/100))};
+// Load factor on the regional stack and the share of users lost (simulated as the worst-loaded region).
+function regionLoad(){if(!mr())return {f:1,lost:0};const a=shareA(),b=1-a,o=S.routage;
+ if(!o)return {f:Math.max(a,b),lost:0};
+ const sv=o==='a'?b:a,gone=o==='a'?a:b,fo=dnsFailover();
+ return fo.ok?{f:1,lost:0,fo}:{f:sv,lost:gone,fo}}
+function regionHit(n){if(!mr()||!S.routage||n.type!=='db')return null;const m=n.multi||'';
+ if(m==='aa')return {why:`${mrdbName('aa')} keeps serving in region ${S.routage==='a'?'B':'A'}: active-active, no data loss`};
+ if(S.routage!=='a')return m?{why:'loses its copy in region B until it returns'}:null;
+ if(m==='global')return {failover:true,why:`${mrdbName('global')} promotes region B in about a minute; recent writes (about 1 s) can be lost`};
+ if(m==='replica')return {down:true,why:'a read replica must be promoted by hand; writes stop until then'};
+ return {down:true,why:`lives only in region A (${regNames().a}), so both regions lose their database`}}
+// Extra commit latency for writes that must reach the other region (estimate).
+const mrWriteLat=n=>mr()&&n.type==='db'&&n.multi==='aa'?25*(1-rwOf(n)):0;
+
+/* ---------- critical settings report ---------- */
+function critReport(){const rows=[];kids('root').forEach(n=>bpItems(n).forEach(x=>rows.push({n,x})));return rows}
+function openCrit(){const rows=critReport(),open=rows.filter(r=>r.x.c&&!r.x.on).length;
+ $('#csBody').innerHTML=rows.length?`<p class="why" style="margin:0">${rows.length} settings across ${new Set(rows.map(r=>r.n.id)).size} components · <b class="${open?'crit':'ok'}">${open} critical open</b>. Confirm them in each component's Inspector.</p><div style="overflow:auto"><table class="opt cst"><tr><th>Component</th><th>Setting</th><th>Pillar</th><th></th><th>Status</th></tr>${rows.map(({n,x})=>`<tr><td><b>${n.id}</b> <span class="why">${esc(svcName(n))}</span></td><td>${esc(x.l)}${x.hint?`<br><span class="why">${esc(x.hint)}</span>`:''}</td><td>${esc(PILLARS[x.p].l)}</td><td>${x.c?'<b class="crit">critical</b>':''}</td><td class="${x.on?'ok':x.c?'crit':'warn'}">${x.on?'✓ confirmed':'open'}</td></tr>`).join('')}</table></div>`:'<p class="why">No components yet.</p>';
+ $('#csDlg').hidden=false}
+function critMarkdown(){return `# Critical settings · ${S.project}\n\n| Component | Product | Setting | Pillar | Critical | Status |\n|---|---|---|---|---|---|\n`+critReport().map(({n,x})=>`| ${n.id} ${n.name} | ${svcName(n)} | ${x.l}${x.hint?` (${x.hint})`:''} | ${PILLARS[x.p].l} | ${x.c?'yes':''} | ${x.on?'confirmed':'open'} |`).join('\n')}
+$('#csClose').onclick=()=>{$('#csDlg').hidden=true};
+$('#csCopy').onclick=async()=>{const t=critMarkdown();try{await navigator.clipboard.writeText(t);$('#csCopy').textContent='Copied'}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');$('#csCopy').textContent='Copied'}catch(_){}a.remove()}setTimeout(()=>{$('#csCopy').textContent='Copy as Markdown'},1500)};
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#csBtn'))openCrit()});
+
+/* ---------- region controls and console ---------- */
+function renderRegion(){const m=$('#rMode'),o=$('#rOut');if(!m||!o)return;m.value=mr()?'aa':'single';const nm=regNames();
+ o.innerHTML='<option value="">None</option>'+(mr()?`<option value="a" ${S.routage==='a'?'selected':''}>Region A (${esc(nm.a)}) fails</option><option value="b" ${S.routage==='b'?'selected':''}>Region B (${esc(nm.b)}) fails</option>`:'');o.disabled=!mr()}
+function setRegions(on,a,b){pushUndo(on?`Regions: active-active ${a||regNames().a} + ${b||regNames().b}`:'Regions: single region');S.multi={...(S.multi||{}),on,...(a?{a}:{}),...(b?{b}:{})};if(!on)S.routage=null;changed();renderDem();
+ if(on){const d=dnsNode(),dbs=kids('root').filter(n=>n.type==='db'&&!n.multi);say(`Active-active across ${regNames().a} and ${regNames().b}. The regional stack now runs in both regions (cost doubles).${d?'':' Add DNS (Add component → Edge and access → DNS) so users are steered between regions.'}${dbs.length?` ${dbs.map(n=>n.id).join(', ')} still live${dbs.length>1?'':'s'} in one region: choose Multi-region in the Inspector (${mrdbName('aa')} for active-active).`:''}`,'s')}}
+function setRegionOutage(r){r=r||null;if((S.routage||null)===r)return;S.routage=r;changed();renderDem();
+ if(!r){say('Region outage cleared.','s');return}const rl=regionLoad(),dbs=kids('root').filter(n=>n.type==='db').map(n=>[n,regionHit(n)]).filter(([,h])=>h);
+ const ok=KPI.err<.005;say(`Region ${r.toUpperCase()} (${regNames()[r]}) outage: ${ok?'the design survives':'the design does NOT survive'}. Errors ${(KPI.err*100).toFixed(1)}%.\nTraffic: ${rl.fo&&rl.fo.ok?`${rl.fo.why}; the other region now carries 100% of users (bottleneck ${KPI.worst?KPI.worst.id+(isFinite(F[KPI.worst.id].util)?' at '+pct(F[KPI.worst.id].util):' (down)'):'none'}).`:`${rl.fo?rl.fo.why:'no DNS'}: ${pct(rl.lost)} of users fail.`}${dbs.length?'\nData: '+dbs.map(([n,h])=>`${n.id} ${h.why}`).join('; ')+'.':''}\nType "restore region" to end it.`,'s')}
+function regionCmd(c,l){let m;
+ if(m=l.match(/^regions?\s+(?:active[- ]active|aa|2|two)(?:\s+([a-z0-9-]+))?(?:\s+(?:and\s+)?([a-z0-9-]+))?/)){setRegions(true,m[1],m[2]);return true}
+ if(/^regions?\s+(?:single|1|one)\b/.test(l)){setRegions(false);say('Single region.','s');return true}
+ if(m=l.match(/^(?:fail|lose|kill|what if|simulate)\s+(?:the\s+)?region\s+([ab])\b|^region\s+([ab])\s+(?:fails|outage|down)/)){if(!mr()){say('Turn on active-active first: "regions active-active eu-west-1 eu-central-1".','s');return true}setRegionOutage(m[1]||m[2]);return true}
+ if(/^(restore|recover|end)\s+(the\s+)?region/.test(l)){setRegionOutage(null);return true}
+ if(/^critical settings$/.test(l)){openCrit();return true}
+ return false}
+$('#rMode')&&($('#rMode').onchange=e=>setRegions(e.target.value==='aa'));
+$('#rOut')&&($('#rOut').onchange=e=>setRegionOutage(e.target.value));
 
 /* ---------- windows: every dialog moves by its title; the side panel resizes ---------- */
 document.querySelectorAll('.scrim>.modal:not(.gmodal)').forEach(m=>{const h=m.querySelector('h2');if(!h)return;let d=null;

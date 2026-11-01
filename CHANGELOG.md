@@ -5,6 +5,33 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.6] — 2026-11-01
+
+### Added
+- **Active-active across two regions** (Load panel → Resilience → Regions, or
+  `regions active-active eu-west-1 eu-central-1`). The regional stack runs in
+  both regions; cost and instances count both. **Region outage**
+  (`fail region a`, `restore region`): DNS moves the failed region's users only
+  with health checks (and, for geolocation, a default record); the surviving
+  region must then carry 100% of the traffic.
+- **DNS traffic steering** component (Route 53, Traffic Manager, Cloud DNS,
+  GSLB) with routing policy (geolocation, latency, weighted, failover), share
+  of users per region, health checks, default record and TTL; Terraform for
+  Route 53 health checks and records.
+- **Multi-region databases**: none, cross-region read replica, Aurora Global
+  Database (active-passive), or **Aurora DSQL** (active-active, no data loss;
+  Spanner, Cosmos DB or distributed SQL on other platforms). Writes add an
+  estimated cross-region commit latency; DSQL capacity is a planning limit.
+- **Ground truth GT6** (internal users over Direct Connect, VPN only as
+  backup) and **GT7** (internet users enter through health-checked DNS), added
+  to every design and editable in the Ground Truth tab. Internal users now
+  default to Direct Connect.
+- **Critical settings** for DNS, Direct Connect (internal users) and
+  active-active databases, and a **Critical settings report** across all
+  components (Advisor → Critical settings, or `critical settings`), with
+  "Copy as Markdown".
+- DNS traffic steering added to the default Technical Capabilities.
+
 ## [0.2.5] — 2026-11-01
 
 ### Added
