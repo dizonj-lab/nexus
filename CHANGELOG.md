@@ -5,6 +5,13 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-11-01
+
+### Fixed
+- The Action Guard opened as a narrow column because an older dialog width
+  rule overrode it; it now uses the full width, with the two opinions side by
+  side.
+
 ## [0.2.1] — 2026-11-01
 
 ### Fixed
