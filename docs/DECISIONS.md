@@ -177,3 +177,22 @@ product as the default (F5, Kong, Keycloak, OpenShift, PostgreSQL, Kafka,
 Harbor, Artifactory, Vault, an HSM, Prometheus and Grafana). Each design can
 name its own products; changes are recorded in History.
 
+## D32 — Building is not breaking
+A change that only adds components cannot violate policy by itself; its new
+findings describe an unwired component. Such changes are reviewed, not
+blocked. Connecting, changing and removing keep full enforcement, so a flow
+that bypasses the WAF is still blocked.
+
+## D33 — Network segments and groups are part of the design model
+Subnets (tier, CIDR, zone), security groups (default-deny, allowed sources,
+ports) and application groups are stored in the design and checked as policy
+as code: tier placement (EA-P5) and allowed flows (EA-P5, EA-P1). External
+systems are never reachable by a direct network path.
+
+## D34 — Best practices belong to the role, not the product
+Each component type carries its critical settings, mapped to Well-Architected
+pillars, with provider-specific wording. Changing the product keeps the
+checks; product-specific settings will come from the platform agent (WP5).
+Opinions state their engine and confidence; the model's own confidence is
+shown next to the share of its points that were grounded.
+

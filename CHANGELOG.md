@@ -5,6 +5,48 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.3] — 2026-11-01
+
+### Fixed
+- **Building from a blank design**: adding a component was blocked by ground
+  truth because the new, unwired component had no route. A change that only
+  adds components is now reviewed, not blocked; connecting and removing keep
+  full enforcement. This also unblocked load testing on new designs.
+- The load test explains what is missing when there is no traffic (no Users
+  component, or zero load) instead of doing nothing.
+
+### Added
+- **External systems**: a direct network path (VPC to VPC, same network) to an
+  external system or SaaS is a technical constraint. Use private connectivity,
+  a site-to-site VPN, a dedicated circuit, or the API over the internet.
+- **Opinion 1** names its engine (rules with their versions, plus the
+  simulator) and its confidence; an ⓘ opens the rationale with citations.
+  **Opinion 2** shows the model's own confidence and how grounded its points
+  were, with its rationale behind the same ⓘ. A progress gauge runs while the
+  second opinion is fetched.
+- **Critical configuration** per component, mapped to Well-Architected pillars,
+  with provider-specific wording and "Confirm all recommended". Settings that
+  already exist (replicas, standby, encryption, rate limits) are read, not
+  asked twice. One advisor finding lists unconfirmed critical settings.
+- **Subnets**: create from Add component → Network, or
+  `create subnet app-a tier app cidr 10.0.1.0/24 zone a with SVC1 SVC2`; move
+  components by dragging them into a subnet, from the Inspector, or with
+  `move DB1 to data-a`. Placement is checked against tiers (a data store in a
+  public subnet is critical).
+- **Security groups and application groups**: drawn as coloured outlines;
+  security groups are default-deny, and flows from outside the allowed
+  sources become findings with a one-click fix
+  (`create security group sg-db with DB1 allow from sg-app`,
+  `allow sg-db from sg-app`).
+- **Windows**: every dialog moves by its title and resizes; the side panel
+  resizes by its left edge; the canvas stays usable while a dialog is open.
+
+### Changed
+- **Tidy** arranges the selected network segment. Click a segment's label or
+  border first; selecting the outer network tidies all of its subnets, while
+  internet users and third parties stay where they are.
+- Legend: standard text size, no Tidy button, a toggle for groups.
+
 ## [0.2.2] — 2026-11-01
 
 ### Fixed
