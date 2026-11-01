@@ -344,7 +344,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.9">NEXUS<small>Architecture Workbench · v0.2.9</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.10">NEXUS<small>Architecture Workbench · v0.2.10</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -877,6 +877,7 @@ function zoneHit(n,r0){if(expanded()&&n.region==='B')return null;if(['dns','cdn'
  const r=r0??(F[n.id]&&F[n.id].rep)??(autoOf(n)?Math.max(autoOf(n).min,n.rep||1):(n.rep||1));if(r<2)return z==='a'?{down:true,why:'runs one instance, in zone a'}:null;
  const lost=Array.from({length:r},(_,i)=>ZN[i%N]).filter(x=>x===z).length;
  return lost?{frac:(r-lost)/r,lost,why:`loses ${lost} of ${r} instances in zone ${z}${autoOf(n)?'; autoscaling replaces them in the other zones after the scale-out delay':''}`}:null}
+const regionGone=n=>!!(n&&mr()&&S.routage&&n.region&&n.region===S.routage.toUpperCase());
 const isDownNow=n=>!!n&&(n.failed||!!(n.parent==='root'&&(zoneHit(n)||{}).down));
 // Single-primary database: writes land on each shard's primary; reads spread over primary + read replicas.
 function dbLoad(n,i,o={}){
@@ -933,7 +934,7 @@ function simulate(){
  const root=kids('root'),users=root.filter(n=>n.type==='user');
  const offered=users.reduce((a,n)=>a+(n.rps||0)*S.mult,0),offNet=users.filter(n=>n.origin!=='corp').reduce((a,n)=>a+(n.rps||0)*S.mult,0);
  let worst=null,err=0,lat=0,thr=0,lag=0,noRoute=0;
- root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(!(f.zx&&f.zx.down&&S.routage&&n.region===S.routage.toUpperCase())&&(!worst||f.util>F[worst.id].util))worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
+ root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(offered)err=Math.max(err,f.drop/offered);if(regionGone(n))return;if(!worst||f.util>F[worst.id].util)worst=n;lat=Math.max(lat,f.lat)});
  if(offered)err=Math.max(err,noRoute/offered,regionLoad().lost);
  KPI={offered,err:Math.min(1,err),lat:lat+(offered?xferMs():0),worst,thr:offered?thr/offered:0,lag,noRoute,mbps:mbpsOf(offered),offNet};
 }
@@ -1006,6 +1007,7 @@ function analyze(log=true){
   const f=F[n.id];if(!f)return;
   if(n.type==='user'){if(f.noRoute)add('crit','noroute:'+n.id,n.id,`${n.id} "${n.name}" has no route into the system`,`${fmt(f.in)} rps from ${n.name} fail: every request errors until a path through the perimeter exists.`,['EA-P2','GT3'],null);return}
   if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return;
+  if(regionGone(n))return;
   {const zx=f.zx;if(zx&&zx.down){add('crit','zout:'+n.id,n.id,`${n.id} is down in the ${S.routage?'region '+S.routage.toUpperCase():'zone '+S.outage} outage`,`${n.name} ${zx.why}. ${fmt(f.in)} rps arrive and fail. ${n.type==='db'?'Add a standby in another zone.':isManaged(n)?'Deploy one per zone.':'Run 2+ instances spread across zones, and do not pin it to one zone.'}`,['EA-P2'],S.routage&&n.type==='db'?{k:'mraa',n:n.id}:n.type==='db'?{k:'standby',n:n.id}:isManaged(n)?{k:'perAz',n:n.id}:{k:'scale',n:n.id,to:2});return}
    if(zx&&zx.failover)add('warn','zfo:'+n.id,n.id,`${n.id} fails over in the ${S.routage?'region '+S.routage.toUpperCase():'zone '+S.outage} outage`,`${n.name}: ${zx.why}. Writes pause during the failover; clients must reconnect.`,['EA-P2'],null)}
   if(n.failed){add('crit','fail:'+n.id,n.id,`${n.id} is down (what-if)`,`${fmt(f.in)} rps arrive and fail. ${n.standby?'The standby would take over in production.':'There is no standby to fail over to.'}`,['EA-P2'],{k:'restore',n:n.id});return}
@@ -2664,11 +2666,11 @@ let SAFE=null;
 // Highest load multiplier at which every component stays under 85% with autoscaling free to reach its maximum.
 function safeLimit(){
  const keep=S.mult,simOn=SIM.on;SIM.on=false;
- const ok=m=>{S.mult=m;simulate();return KPI.err<.001&&kids('root').every(n=>EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||!F[n.id]||F[n.id].util<.85)};
+ const ok=m=>{S.mult=m;simulate();return KPI.err<.001&&kids('root').every(n=>EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||regionGone(n)||!F[n.id]||F[n.id].util<.85)};
  let res;
  if(!ok(.01))res={m:0};else if(ok(2000))res={m:Infinity};
  else{let lo=.01,hi=2000;for(let i=0;i<28;i++){const mid=Math.sqrt(lo*hi);if(ok(mid))lo=mid;else hi=mid}
-  ok(hi);const by=kids('root').filter(n=>!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)&&F[n.id]).sort((a,b)=>F[b.id].util-F[a.id].util)[0];res={m:lo,by:by&&by.id}}
+  ok(hi);const by=kids('root').filter(n=>!EXTERNAL.includes(n.type)&&!PLATFORM.includes(n.type)&&!regionGone(n)&&F[n.id]).sort((a,b)=>F[b.id].util-F[a.id].util)[0];res={m:lo,by:by&&by.id}}
  S.mult=keep;SIM.on=simOn;simulate();return res;
 }
 

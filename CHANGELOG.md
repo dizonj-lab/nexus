@@ -5,6 +5,15 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.10] — 2026-11-01
+
+### Fixed
+- During a region outage with region B drawn separately, the failed region's
+  components no longer fill the Advisor with "down" findings and zone
+  advice, and no longer distort latency, the bottleneck or "safe up to"
+  (which showed 942 ms and 0×). They are the scenario; the numbers now
+  describe the surviving region.
+
 ## [0.2.9] — 2026-11-01
 
 ### Fixed
