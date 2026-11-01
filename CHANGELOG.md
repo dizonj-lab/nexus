@@ -5,6 +5,53 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-11-01
+
+WP0: the application scaffold, sign-in with role-based access, and the agent harness.
+
+### Added
+- **Web app** (Next.js 16, React 19): landing page with the access matrix,
+  About, sign-in, projects (blank or sample, by provider), project page with
+  Workbench, Changesets, Agents, Members and History tabs, administration
+  (users, audit trail) and account (change password).
+- **API** (FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 16): sessions in signed
+  httpOnly cookies, Argon2 passwords, login lockout, CSRF header, audit trail,
+  design store with optimistic versioning and revisions, API keys stripped
+  from stored designs, design-model JSON schema validation.
+- **Role-based access**: system roles (admin, member) and project roles
+  (viewer, reviewer, security architect, architect, lead architect, owner)
+  checked as permissions; nobody grants above their own role; a project keeps
+  an owner.
+- **Changesets**: proposed by people or agents, dry-run when proposed,
+  applied or rejected by architects and above; applying creates a revision.
+- **Agent harness**: agent cards in YAML (orchestrator, security, HA/DR,
+  explainer), tool policy = card tools ∩ the caller's permissions, budgets,
+  full traces, evals against the real model. Agents cannot apply changes.
+- **Canvas bridge**: the prototype runs inside the app, loads and autosaves
+  the project's design, and follows the user's project role (read-only for
+  viewers and reviewers).
+- **Action Guard opinions**: the change as asked and a second opinion's
+  alternative side by side, each with an animated before/after diagram,
+  computed risk, security and cost, pros and cons tagged with Well-Architected
+  pillars, collapsible references, and a choice to implement either; the
+  choice is recorded as a decision. The guard is movable and can be made
+  see-through.
+- **Canvas**: routing that avoids components; curved line style; lighter flow
+  lines; shared platform services colour-coded with matching connectors;
+  zones drawn as isometric floor plates in 3D; "Add component" menu in the
+  header with full names and search; breadcrumb in the header.
+- **Data centre**: vendor-neutral roles with industry-standard default
+  products, overridable per design in Settings or with
+  `stack database = Oracle Database 19c`.
+- **Deployment**: Compose with PostgreSQL, API, app and nginx edge; sign-in
+  required for `/llm/` and `/c4/`; `buddy.sh` generates secrets and the first
+  administrator.
+
+### Changed
+- Roadmap: MCP servers move to WP1, the goal loop to WP2, topology and HA/DR
+  become WP3 (D26–D31).
+- "Datacenter" is now "Data centre" with generic zone names.
+
 ## [0.1.16] — 2026-10-31
 
 Natural-language design in the Systems Architect Console.

@@ -1,0 +1,676 @@
+{
+ "schema": 3,
+ "project": "Customer Portal",
+ "deploy": "aws",
+ "mult": 1,
+ "nodes": {
+  "U1": {
+   "id": "U1",
+   "type": "user",
+   "name": "Customers",
+   "x": 60,
+   "y": 250,
+   "parent": "root",
+   "rep": 1,
+   "cap": null,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "internet",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h"
+   },
+   "rps": 1200
+  },
+  "WAF1": {
+   "id": "WAF1",
+   "type": "waf",
+   "name": "Perimeter WAF",
+   "x": 270,
+   "y": 250,
+   "parent": "root",
+   "rep": 1,
+   "cap": 8000,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "edge",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h"
+   }
+  },
+  "GW1": {
+   "id": "GW1",
+   "type": "gw",
+   "name": "API gateway",
+   "x": 480,
+   "y": 250,
+   "parent": "root",
+   "rep": 1,
+   "cap": 5000,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "dmz",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "15 min"
+   }
+  },
+  "IDP1": {
+   "id": "IDP1",
+   "type": "idp",
+   "name": "Identity (OIDC)",
+   "x": 480,
+   "y": 420,
+   "parent": "root",
+   "rep": 1,
+   "cap": 3000,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "dmz",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "15 min"
+   },
+   "idpMode": "native",
+   "audience": "customers",
+   "fedIdp": "Entra ID"
+  },
+  "SVC1": {
+   "id": "SVC1",
+   "type": "svc",
+   "name": "Orders API",
+   "x": 710,
+   "y": 160,
+   "parent": "root",
+   "rep": 2,
+   "cap": 800,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "app",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h",
+    "runtime": "container · distroless",
+    "cpu": "0.5 vCPU / 1 GiB per replica"
+   }
+  },
+  "SVC2": {
+   "id": "SVC2",
+   "type": "svc",
+   "name": "Catalog API",
+   "x": 710,
+   "y": 340,
+   "parent": "root",
+   "rep": 1,
+   "cap": 800,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "app",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h",
+    "runtime": "container · distroless",
+    "cpu": "0.5 vCPU / 1 GiB per replica"
+   }
+  },
+  "C1": {
+   "id": "C1",
+   "type": "cache",
+   "name": "Session cache",
+   "x": 950,
+   "y": 70,
+   "parent": "root",
+   "rep": 1,
+   "cap": 20000,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "data",
+    "encryptRest": true,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h"
+   }
+  },
+  "DB1": {
+   "id": "DB1",
+   "type": "db",
+   "name": "Orders DB",
+   "x": 950,
+   "y": 250,
+   "parent": "root",
+   "rep": 1,
+   "cap": 1500,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "data",
+    "encryptRest": true,
+    "classification": "Confidential (PII)",
+    "owner": "tbd",
+    "rto": "15 min",
+    "engine": "PostgreSQL 16",
+    "backup": "PITR 7 days"
+   },
+   "tier": "m",
+   "rw": 0.8,
+   "readReplicas": 0,
+   "shards": 1,
+   "sizeGB": 350
+  },
+  "OS1": {
+   "id": "OS1",
+   "type": "obj",
+   "name": "Product images",
+   "x": 950,
+   "y": 430,
+   "parent": "root",
+   "rep": 1,
+   "cap": 6000,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "data",
+    "encryptRest": true,
+    "classification": "Confidential (PII)",
+    "owner": "tbd",
+    "rto": "1 h"
+   }
+  },
+  "SAAS1": {
+   "id": "SAAS1",
+   "type": "saas",
+   "name": "CRM (SaaS)",
+   "x": 710,
+   "y": 520,
+   "parent": "root",
+   "rep": 1,
+   "cap": 2000,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "internet",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h",
+    "dataShared": "Customer contact data",
+    "contract": "DPA required"
+   },
+   "pl": true
+  },
+  "EP1": {
+   "id": "EP1",
+   "type": "api",
+   "name": "POST /orders",
+   "x": 150,
+   "y": 140,
+   "parent": "SVC1",
+   "rep": 1,
+   "cap": 1500,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "app",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h"
+   }
+  },
+  "EP2": {
+   "id": "EP2",
+   "type": "api",
+   "name": "GET /orders/{id}",
+   "x": 150,
+   "y": 320,
+   "parent": "SVC1",
+   "rep": 1,
+   "cap": 1500,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "app",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h"
+   }
+  },
+  "ADP1": {
+   "id": "ADP1",
+   "type": "adp",
+   "name": "Payments adapter",
+   "x": 430,
+   "y": 140,
+   "parent": "SVC1",
+   "rep": 1,
+   "cap": 1200,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "app",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h"
+   }
+  },
+  "X1": {
+   "id": "X1",
+   "type": "ext",
+   "name": "Payment provider",
+   "x": 710,
+   "y": 140,
+   "parent": "SVC1",
+   "rep": 1,
+   "cap": 1200,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "internet",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h",
+    "dataShared": "Customer contact data",
+    "contract": "DPA required"
+   },
+   "pl": true
+  },
+  "ADP2": {
+   "id": "ADP2",
+   "type": "adp",
+   "name": "Orders DB adapter",
+   "x": 430,
+   "y": 320,
+   "parent": "SVC1",
+   "rep": 1,
+   "cap": 1200,
+   "standby": false,
+   "failed": false,
+   "enrich": {
+    "zone": "app",
+    "encryptRest": false,
+    "classification": "Internal",
+    "owner": "tbd",
+    "rto": "1 h"
+   }
+  }
+ },
+ "edges": [
+  {
+   "from": "U1",
+   "to": "WAF1",
+   "proto": "HTTPS",
+   "via": "net"
+  },
+  {
+   "from": "WAF1",
+   "to": "GW1",
+   "proto": "HTTPS",
+   "via": "net"
+  },
+  {
+   "from": "GW1",
+   "to": "SVC1",
+   "proto": "mTLS",
+   "via": "net"
+  },
+  {
+   "from": "GW1",
+   "to": "SVC2",
+   "proto": "mTLS",
+   "via": "net"
+  },
+  {
+   "from": "GW1",
+   "to": "IDP1",
+   "proto": "HTTPS",
+   "via": "net"
+  },
+  {
+   "from": "SVC1",
+   "to": "DB1",
+   "proto": "SQL/TLS",
+   "via": "net"
+  },
+  {
+   "from": "SVC1",
+   "to": "C1",
+   "proto": "RESP/TLS",
+   "via": "net"
+  },
+  {
+   "from": "SVC2",
+   "to": "DB1",
+   "proto": "SQL/TLS",
+   "via": "net"
+  },
+  {
+   "from": "SVC2",
+   "to": "OS1",
+   "proto": "HTTP",
+   "via": "net"
+  },
+  {
+   "from": "SVC2",
+   "to": "SAAS1",
+   "proto": "HTTPS",
+   "via": "internet"
+  },
+  {
+   "from": "EP1",
+   "to": "ADP1",
+   "proto": "mTLS",
+   "via": "net"
+  },
+  {
+   "from": "ADP1",
+   "to": "X1",
+   "proto": "HTTPS",
+   "via": "privatelink"
+  },
+  {
+   "from": "EP2",
+   "to": "ADP2",
+   "proto": "mTLS",
+   "via": "net"
+  }
+ ],
+ "caps": [
+  {
+   "id": "TC1",
+   "name": "Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)",
+   "types": [
+    "svc",
+    "api",
+    "adp",
+    "part"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC2",
+   "name": "PostgreSQL 16, managed or on vSphere",
+   "types": [
+    "db"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC3",
+   "name": "Redis 7 cache",
+   "types": [
+    "cache"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC4",
+   "name": "Kong API gateway",
+   "types": [
+    "gw"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC5",
+   "name": "WAF (cloud-native or F5 Advanced WAF)",
+   "types": [
+    "waf"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC6",
+   "name": "L7 load balancer",
+   "types": [
+    "lb"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC7",
+   "name": "S3-compatible object storage",
+   "types": [
+    "obj"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC8",
+   "name": "Entra ID / Keycloak OIDC, SAML federation",
+   "types": [
+    "idp"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC9",
+   "name": "VMware vSphere 8 virtual servers",
+   "types": [
+    "vm"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC10",
+   "name": "Kafka 3.7 event streaming",
+   "types": [
+    "queue"
+   ],
+   "on": false
+  },
+  {
+   "id": "TC11",
+   "name": "Serverless functions",
+   "types": [
+    "fn"
+   ],
+   "on": false
+  },
+  {
+   "id": "TC12",
+   "name": "Global CDN",
+   "types": [
+    "cdn"
+   ],
+   "on": false
+  },
+  {
+   "id": "TC13",
+   "name": "Third-party integrations via adapter",
+   "types": [
+    "ext"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC14",
+   "name": "Public users over internet",
+   "types": [
+    "user"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC15",
+   "name": "Egress gateway with FQDN allow-list",
+   "types": [
+    "egw"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC16",
+   "name": "SaaS integrations (approved vendor list)",
+   "types": [
+    "saas"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC17",
+   "name": "Container registry with image scanning",
+   "types": [
+    "reg"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC18",
+   "name": "Artifact repository",
+   "types": [
+    "art"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC19",
+   "name": "Key management (customer-managed keys)",
+   "types": [
+    "kms"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC20",
+   "name": "Secrets management",
+   "types": [
+    "sec"
+   ],
+   "on": true
+  },
+  {
+   "id": "TC21",
+   "name": "Observability stack and SIEM feed",
+   "types": [
+    "mon"
+   ],
+   "on": true
+  }
+ ],
+ "ea": [
+  {
+   "id": "P1",
+   "t": "Zero trust. Never trust the network; authenticate and authorize every hop with mTLS and short-lived tokens."
+  },
+  {
+   "id": "P2",
+   "t": "Design for failure. Instance-based components run 2+ instances across zones; zonal managed services run one per zone; regional managed services rely on the provider across zones and need a cross-region DR plan that meets their RTO; data stores run active/passive at minimum."
+  },
+  {
+   "id": "P3",
+   "t": "Reuse before buy before build. Prefer catalogued capabilities; new platforms need an ADR."
+  },
+  {
+   "id": "P4",
+   "t": "Design for 60% steady-state utilization so the system absorbs a 1.6× burst."
+  },
+  {
+   "id": "P5",
+   "t": "Segment by trust zone. Each perimeter is default-deny; flows only move one zone at a time."
+  },
+  {
+   "id": "P6",
+   "t": "Scale the simplest way first: cache, then scale up, then read replicas, and shard only when nothing else fits."
+  },
+  {
+   "id": "P7",
+   "t": "Protect before you scale. Rate-limit at the edge so one client or a burst cannot take the platform down."
+  },
+  {
+   "id": "P8",
+   "t": "Each service owns its data. Other services use its API or its events, never its database."
+  }
+ ],
+ "gt": [
+  {
+   "id": "GT1",
+   "t": "TLS 1.2+ on every flow, including east-west.",
+   "src": "Security Standard SS-04 §3"
+  },
+  {
+   "id": "GT2",
+   "t": "No public object storage.",
+   "src": "OPA policy deny_public_bucket.rego"
+  },
+  {
+   "id": "GT3",
+   "t": "Internet-facing endpoints sit behind a WAF.",
+   "src": "CIS Controls v8 · 13.10"
+  },
+  {
+   "id": "GT4",
+   "t": "Data stores are encrypted at rest with customer-managed keys.",
+   "src": "Data Protection Policy DP-2"
+  },
+  {
+   "id": "GT5",
+   "t": "Traffic to third parties uses private connectivity or the egress gateway with an FQDN allow-list.",
+   "src": "Network Security Standard NS-07"
+  }
+ ],
+ "files": [],
+ "ver": {
+  "caps": 5,
+  "ea": 7,
+  "gt": 3
+ },
+ "versions": [],
+ "log": [],
+ "adrs": [],
+ "settings": {
+  "view": {
+   "lines": "ortho",
+   "deps": false,
+   "layout": "focus",
+   "side": "pAdv",
+   "sideOpen": true
+  },
+  "user": {
+   "name": "You",
+   "role": "architect"
+  },
+  "escalation": {
+   "base": "",
+   "model": "gpt-oss:latest",
+   "key": "",
+   "auto": true
+  },
+  "slm": 0,
+  "ml": 0,
+  "llm": "off",
+  "guard": "enforce",
+  "engine": "auto",
+  "llmApi": {
+   "base": "/llm/v1",
+   "model": "qwen2.5:3b-instruct",
+   "key": ""
+  },
+  "autoscale": {
+   "on": true,
+   "min": 2,
+   "max": 50,
+   "target": 60,
+   "outDelay": 2,
+   "inCool": 10
+  },
+  "price": {}
+ },
+ "history": []
+}

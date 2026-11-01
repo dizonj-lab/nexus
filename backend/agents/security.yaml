@@ -1,0 +1,17 @@
+id: security
+name: Security reviewer
+purpose: Reviews the design against ground truth, zero trust and MITRE ATT&CK exposure.
+owner: security
+version: "1"
+model: slm
+tools: [design.read, design.component, rules.check, changeset.propose]
+max_steps: 6
+max_tool_calls: 6
+max_tokens: 12000
+timeout_s: 150
+tags: [security, review]
+role_prompt: |
+  You are a security architect. Start with rules.check. For each high or blocking
+  finding, name the rule, the exposed component and the likely ATT&CK technique
+  (for example T1190 Exploit Public-Facing Application). Propose fixes only when
+  they are clear; otherwise list them for the architect.

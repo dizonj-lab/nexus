@@ -133,3 +133,47 @@ step by step. Plans are validated and repaired once before they are shown.
 Recurring structures are deterministic patterns the model can call, so the
 model chooses and the rules build. A fixed eval set measures model quality
 on the architect's own design.
+
+## D26 — MCP and the harness come before features
+Every later capability is built as tools behind the harness from the start.
+The roadmap moves MCP servers to WP1 and the goal loop to WP2; topology and
+HA/DR follow as WP3. Features scale by adding a tool set, an agent card and
+rules, without changing the core.
+
+## D27 — Sign-in and per-project roles from WP0
+Accounts are created by an administrator (no self sign-up). Sessions are
+signed, httpOnly, SameSite=Lax cookies; state-changing calls also need a
+custom header. Passwords use Argon2; five failures lock an address for 15
+minutes; a password, role or status change signs the user out everywhere.
+System roles are admin and member. Project roles, from least to most access:
+viewer, reviewer, security architect, architect, lead architect, owner.
+Permissions, not roles, are checked. Nobody can grant a role above their own,
+and a project always keeps an owner. Non-members get 404, not 403.
+
+## D28 — Agents never outrank the person who runs them
+The harness gives an agent the tools on its card that the caller's role
+allows, inside a budget (steps, tool calls, tokens, time), and traces every
+model turn, tool call and denial. There is no tool that applies a change:
+agents propose changesets, and someone with changeset:apply decides.
+
+## D29 — One simulator; the prototype is the test oracle
+The authoritative simulator moves to Python as an MCP server in WP1; the
+browser only animates its results. Until then the prototype canvas is
+embedded through a postMessage bridge, and its outputs on sample designs
+become golden tests the new servers must match.
+
+## D30 — Opinions are computed, cited and chosen
+The Action Guard shows the change as asked (opinion 1) and a second
+opinion's alternative (opinion 2) side by side. Both are dry-run by the same
+rules and simulator, which compute risk, security and cost; the model only
+explains. Each pro and con is tagged with a Well-Architected pillar (AWS,
+Azure, Google Cloud) from a fixed reference list; uncited points are
+dropped. Choosing either opinion records a decision with both sets of
+numbers.
+
+## D31 — Data centres are vendor-neutral with industry defaults
+The data centre provider names roles, not vendors, with a widely used
+product as the default (F5, Kong, Keycloak, OpenShift, PostgreSQL, Kafka,
+Harbor, Artifactory, Vault, an HSM, Prometheus and Grafana). Each design can
+name its own products; changes are recorded in History.
+

@@ -12,46 +12,41 @@ and LikeC4 are generated from the same design model.
 
 | Path | Contents |
 | ---- | -------- |
-| `poc/prototype/index.html` | Clickable single-file prototype (v0.1.0). Open it in a browser. |
+| `frontend/` | Next.js app: landing, sign-in, projects, members, changesets, agents, administration, About |
+| `backend/` | FastAPI API: auth, RBAC, design store, changesets, agent harness (`app/harness`, cards in `agents/`) |
+| `schema/` | Design-model JSON schema and the sample design |
+| `poc/prototype/index.html` | The canvas (single file), embedded by the app; also runs on its own |
 | `architecture/likec4/nexus.c4` | Target architecture as a LikeC4 model |
-| `architecture/diagrams/` | Rendered views: context, containers, MCP layer, what-if flow |
+| `deploy/` | Docker Compose for Buddy: PostgreSQL, API, app, nginx edge |
 | `docs/` | Architecture, decisions, roadmap, current state |
 
-## Run
+## Run locally
 
 ```bash
-# prototype
-open poc/prototype/index.html        # or xdg-open on Linux
-
-# architecture diagrams, interactive
-cd architecture/likec4 && npx likec4 start
-```
-
-## Test deployment
-
-One site: prototype at `/`, LikeC4 architecture at `/c4/`.
-
-```bash
-bash deploy/build-site.sh && python3 -m http.server 8080 -d site
+cd backend && uv venv && uv pip install -e '.[dev]'
+NEXUS_ADMIN_EMAIL=you@example.local NEXUS_ADMIN_PASSWORD='Change-Me-2026' .venv/bin/uvicorn app.main:app --port 8000
 ```
 
 ```bash
-docker build -f deploy/Dockerfile -t nexus-site . && docker run --rm -p 8080:8080 nexus-site
+cd frontend && npm install && npm run dev      # http://localhost:3000
 ```
-
-On Buddy (home LLM server, 192.168.1.93):
 
 ```bash
-bash deploy/buddy.sh
+cd backend && .venv/bin/python -m pytest -q   # 41 tests
 ```
 
-Prototype at `http://192.168.1.93:8088/`, LikeC4 at `http://192.168.1.93:8088/c4/`.
+## Deploy on Buddy
 
-The architect console calls the model server on Buddy at `/llm/v1` (nginx proxies it to `NEXUS_LLM_UPSTREAM`, default Ollama on port 11434). Ollama must listen on all interfaces for the container to reach it (`OLLAMA_HOST=0.0.0.0`).
+```bash
+cd ~/nexus && git pull && ./deploy/buddy.sh
+```
 
-## Versioning
+The first run asks for the administrator's email and name, creates
+`deploy/.env` with random secrets and prints the first password. Then open
+`http://<buddy>:8088/`.
 
-Semantic Versioning. `0.x` while the work packages in `docs/ROADMAP.md` are being
-built: each completed work package raises the minor version (WP1 → 0.2.0) and
-fixes raise the patch. `1.0.0` is the first release teams can share and run.
-Every release is a git tag `vX.Y.Z` with a `CHANGELOG.md` entry.
+Agent evals against the real model:
+
+```bash
+docker compose -f deploy/compose.yml exec backend python -m app.harness.evals
+```

@@ -129,7 +129,18 @@ button{cursor:pointer}
 
 .stage{position:relative;overflow:hidden;min-height:0}
 #cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
-.crumb{position:absolute;left:58px;top:10px;display:flex;gap:4px;align-items:center;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:3px 8px;z-index:3}
+.addmenu{position:relative}
+.embedded .brand,.embedded #projName,.embedded #roleSel{display:none}
+.addpop{position:absolute;left:0;top:calc(100% + 6px);z-index:40;width:min(560px,92vw);max-height:min(70vh,560px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px}
+.addpop #palQ{width:100%;margin-bottom:8px;font-size:13px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.addpop .pg h4{margin:8px 2px 4px;font:600 10px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.addpop .pg{display:grid;grid-template-columns:1fr 1fr;gap:2px}.addpop .pg h4{grid-column:1/-1}
+.addpop button{display:flex;gap:8px;align-items:center;text-align:left;border:0;background:none;border-radius:6px;padding:5px 6px;color:var(--ink);cursor:pointer}
+.addpop button:hover,.addpop button:focus-visible{background:var(--accent-soft)}
+.addpop .pid{font:600 10px/1 var(--f-mono);color:var(--accent);min-width:34px}
+.addpop .pl{display:grid;line-height:1.25}.addpop .pl b{font-size:12.5px;font-weight:600}.addpop .pl small{font-size:11px;color:var(--muted)}
+body[data-role="reviewer"] #addBtn{opacity:.4;pointer-events:none}
+.crumb{display:flex;gap:4px;align-items:center;font-size:12px;border:1px solid var(--line);border-radius:5px;padding:3px 8px;max-width:340px;overflow:hidden;white-space:nowrap}
 .crumb button{border:0;background:none;padding:0 2px;color:var(--accent)}
 .crumb span{color:var(--muted)}
 .palette{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:2px;z-index:3;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px;max-height:calc(100% - 20px);overflow:auto}
@@ -229,6 +240,28 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .upload label{border:1px dashed var(--line);border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--ink)}
 .upload input{display:none}
 
+.gmodal{width:min(1000px,100%);position:relative}
+.ghead{display:flex;align-items:center;gap:10px;cursor:move;user-select:none}.ghead h2{flex:1;min-width:0}
+.ghead label.gop{display:flex!important;flex-direction:row;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:default;margin:0;white-space:nowrap}.ghead label.gop input{width:90px!important;min-width:0;height:auto;padding:0;margin:0}
+.opns{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:760px){.opns{grid-template-columns:1fr}}
+.opn{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:8px;align-content:start;min-width:0}
+.opn header{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.mini{display:grid;grid-template-columns:1fr;gap:6px}.mini .key{font-size:10.5px;color:var(--muted)}.mini .key b{font-weight:600}.mini .key .a{color:var(--ok)}.mini .key .m{color:var(--warn)}.mini .key .r{color:var(--crit)}.mini figure{margin:0;border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:4px}
+.mini figcaption{font:600 9.5px/1 var(--f-mono);letter-spacing:.08em;color:var(--muted);padding:2px 2px 4px}
+.mini svg{display:block;width:100%;height:auto}
+.mini .n rect{fill:var(--surface);stroke-width:1.4}.mini .n text{font:600 8.5px var(--f-mono);fill:var(--ink);text-anchor:middle}
+.mini .n.ok rect{stroke:var(--ok)}.mini .n.warn rect{stroke:var(--warn)}.mini .n.crit rect{stroke:var(--crit)}.mini .n.muted rect{stroke:var(--muted);stroke-dasharray:3 2}
+.mini .e{stroke:var(--muted);stroke-width:1;opacity:.55;fill:none;stroke-dasharray:3 3;animation:mdash 1.2s linear infinite}
+.mini .e.add{stroke:var(--ok);opacity:.95;stroke-width:1.6}.mini .e.rem{stroke:var(--crit);opacity:.9;stroke-width:1.6;animation:none;stroke-dasharray:2 2}
+.mini .n.add rect{stroke:var(--ok);stroke-width:2.4;animation:mpulse 1.4s ease-in-out infinite}.mini .n.rem rect{stroke:var(--crit);stroke-width:2;stroke-dasharray:2 2;opacity:.7}.mini .n.mod rect{stroke:var(--warn);stroke-width:2.4;animation:mpulse 1.4s ease-in-out infinite}
+@keyframes mdash{to{stroke-dashoffset:-12}}@keyframes mpulse{50%{stroke-width:4}}
+@media (prefers-reduced-motion:reduce){.mini .e,.mini .n rect{animation:none!important}}
+.met td,.met th{font-size:12px}.met .better{color:var(--ok)}.met .worse{color:var(--crit)}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pc h4{margin:0 0 3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pc ul{margin:0;padding-left:14px;font-size:12px;display:grid;gap:3px}.pc .pro li::marker{content:'+ ';color:var(--ok)}.pc .con li::marker{content:'− ';color:var(--crit)}
+.pchip{display:inline-block;font:500 9.5px/1.4 var(--f-mono);padding:0 4px;border-radius:3px;background:var(--accent-soft);color:var(--accent);margin-left:3px;cursor:pointer;border:0}
+.pchip.model{background:transparent;border:1px dashed var(--muted);color:var(--muted)}
+.refs summary,.gdet summary{cursor:pointer;font-size:12px;color:var(--muted)}.refs ol{font-size:12px;margin:6px 0 0;padding-left:18px;display:grid;gap:3px}.refs a{color:var(--accent)}
 .scrim{position:fixed;inset:0;background:rgba(10,15,25,.45);z-index:50;display:grid;place-items:center;padding:16px}
 .modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(520px,100%);max-height:90%;overflow:auto;padding:16px;display:grid;gap:12px}
 .modal h2{margin:0;font-family:var(--f-display);font-size:17px;text-wrap:balance}
@@ -267,6 +300,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .ribbon .btn{padding:4px 8px}
 .ribbon .btn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .insp .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}@media (max-width:700px){.row3{grid-template-columns:1fr}}
 #treeSvg text.i{font-size:9.5px;fill:var(--muted)}
 
 .modal.wide{width:min(720px,100%)}
@@ -293,14 +327,16 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS architecture workbench v0.1.16">NEXUS<small>v0.1.16</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.0">NEXUS<small>Architecture Workbench · v0.2.0</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange by trust zone and reduce crossings (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
+    <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
+    <nav class="crumb" id="crumb" aria-label="Where you are in the design"></nav>
     <span class="seg" id="viewSeg" role="group" aria-label="View">
       <button data-v="flow" aria-pressed="true">Flow</button><button data-v="flat" aria-pressed="false">Flat</button><button data-v="iso" aria-pressed="false">3D</button><button data-v="rel" aria-pressed="false">Relations</button>
     </span>
     <label class="ctl"><span class="hide-sm">Deploy</span>
-      <select id="deploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">GCP</option><option value="vmware">Datacenter</option><option value="hybrid">Hybrid</option><option value="local">Local</option></select>
+      <select id="deploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">GCP</option><option value="vmware">Data centre</option><option value="hybrid">Hybrid</option><option value="local">Local</option></select>
     </label>
     <label class="ctl" title="What-if load multiplier"><span class="hide-sm">Load</span> <input id="mult" type="range" min="-0.6" max="3" step="0.02" value="0" aria-label="What-if load multiplier, 0.25× to 1000×"><span id="multV" style="font-family:var(--f-mono);min-width:34px">1×</span></label>
     <div class="kpis" id="kpis"></div>
@@ -311,8 +347,6 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
   <div class="main" id="main">
   <div class="stage" id="stage">
     <canvas id="cv" aria-label="System design canvas"></canvas>
-    <div class="palette" id="palette" aria-label="Add component"></div>
-    <div class="crumb" id="crumb"></div>
     <div class="nmenu" id="nmenu" hidden></div>
     <div class="hint" id="hint">Click ▾ (or right-click) for actions · Drag a group by its label or border · Ctrl/⌘-click or Shift-drag to select several · Scroll to zoom</div>
 
@@ -340,7 +374,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <header><span class="ttl">Legend</span><span class="sp"></span><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
       <div class="tune" hidden></div>
       <div class="pbody" style="max-height:340px">
-        <div class="bar"><label style="display:flex;gap:4px;align-items:center">Lines <select id="lgLines" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="ortho">Right-angle, jump at crossings</option><option value="straight">Straight</option></select></label>
+        <div class="bar"><label style="display:flex;gap:4px;align-items:center">Lines <select id="lgLines" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="ortho">Right-angle, jump at crossings</option><option value="curved">Curved, around components</option><option value="straight">Straight</option></select></label>
           <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="lgDeps"> All dependency lines</label><button class="btn" id="lgTidy" style="padding:1px 7px;font-size:11px">Tidy layout</button></div>
         <svg class="lg" viewBox="0 0 280 326" width="100%" role="img" aria-label="Legend of line styles, colours and badges">
           <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--ink)">
@@ -349,7 +383,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
           <path d="M2 44 H18 a5 5 0 0 1 10 0 H46" stroke="var(--ok)" stroke-width="2" fill="none"/><line x1="23" y1="36" x2="23" y2="54" stroke="var(--muted)" stroke-width="2"/><text x="56" y="48">Jumps over a crossing line</text>
           <line x1="2" y1="64" x2="46" y2="64" stroke="var(--crit)" stroke-width="2" stroke-dasharray="5 4"/><text x="56" y="68">Public internet or plaintext: fix</text>
           <line x1="2" y1="82" x2="46" y2="82" stroke="var(--ok)" stroke-width="2" stroke-dasharray="10 3 2 3"/><text x="56" y="86">Private link, VPN or dedicated</text>
-          <line x1="2" y1="100" x2="46" y2="100" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="2 4"/><text x="56" y="104">Uses a shared platform service</text>
+          <line x1="2" y1="100" x2="10" y2="100" stroke="#0d9488" stroke-width="2" stroke-dasharray="6 4"/><line x1="11" y1="100" x2="19" y2="100" stroke="#7c5cff" stroke-width="2"/><line x1="20" y1="100" x2="28" y2="100" stroke="#d97706" stroke-width="2"/><line x1="29" y1="100" x2="37" y2="100" stroke="#d4458f" stroke-width="2"/><line x1="38" y1="100" x2="46" y2="100" stroke="#0284c7" stroke-width="2"/><text x="56" y="104">Shared service, one colour each</text>
           <rect x="2" y="112" width="44" height="14" rx="3" fill="var(--surface)" stroke="var(--line)"/><text x="7" y="122" font-family="IBM Plex Mono, monospace" font-size="8.5">HTTPS·40</text><text x="56" y="123">Protocol · connectivity · rps</text>
           <text x="0" y="146" fill="var(--muted)" font-size="9.5" letter-spacing=".08em">LOAD AT THE TARGET</text>
           <circle cx="8" cy="160" r="5" fill="var(--ok)"/><text x="18" y="164">under 60%</text><circle cx="88" cy="160" r="5" fill="var(--warn)"/><text x="98" y="164">60–85%</text><circle cx="160" cy="160" r="5" fill="var(--crit)"/><text x="170" y="164">over 85% or failed</text>
@@ -432,6 +466,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <div class="row5"><label>Minimum <input id="aMin" type="number" min="1" max="1000"></label><label>Maximum <input id="aMax" type="number" min="1" max="10000"></label><label>Target util. % <input id="aTgt" type="number" min="20" max="95"></label><label>Scale out after (min) <input id="aOut" type="number" min="0" max="60"></label><label>Scale in after (min) <input id="aIn" type="number" min="1" max="240"></label></div>
       <p>Components start at the minimum, scale out when demand pushes them past the target utilization, and scale back in to the minimum once demand has stayed low for the scale-in cool-down. A component's own autoscale setting overrides this policy. Databases, caches and queues are scaled by decision, not by policy.</p></div>
     <div class="msec"><h3>Cost model</h3><p id="pNote"></p><div style="overflow-x:auto"><table class="price" id="priceTable"></table></div><div><button class="btn" id="pReset" type="button">Reset to list-price estimates</button></div></div>
+    <div class="msec"><h3>Data centre stack</h3><p>Products used when Deploy is <b>Data centre</b> or <b>Hybrid</b>. Leave a field empty for the industry default shown. The console understands <code>stack database = Oracle Database 19c</code>. Every change is recorded in History.</p><div class="row3" id="dcStack"></div><div><button class="btn" id="dcReset" type="button">Reset to industry defaults</button></div></div>
     <div class="msec"><h3>Action Guard</h3>
       <label>Review every design change before it is applied
       <select id="mGuard"><option value="enforce">Enforce · ground-truth violations need a written justification</option><option value="advise">Advise · warn, but let me apply</option><option value="off">Off · apply immediately</option></select></label></div>
@@ -448,19 +483,35 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </div>
 
 <div class="scrim" id="guard" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="gTitle">
-    <h2 id="gTitle">Action Guard</h2>
+  <div class="modal gmodal" role="dialog" aria-modal="true" aria-labelledby="gTitle">
+    <div class="ghead" id="gHead" title="Drag to move"><h2 id="gTitle">Action Guard</h2><label class="gop" title="Transparency: see the canvas behind">◐ <input type="range" id="gOp" min="0.35" max="1" step="0.05" value="1" aria-label="Action Guard opacity"></label></div>
     <div class="verdict" id="gVerdict"></div>
     <div class="gsec"><h3>Checks</h3><div class="checks" id="gChecks"></div></div>
-    <div class="gsec" id="gImpactWrap"><h3>Consequences if applied</h3><table class="opt" id="gImpact"></table><ul id="gCons"></ul></div>
-    <div class="gsec" id="gNewWrap"><h3>New risks</h3><ul id="gNew"></ul></div>
-    <div class="gsec" id="gResWrap"><h3>Resolved</h3><ul id="gRes"></ul></div>
-    <div class="gsec" id="gTradeWrap"><h3>Tradeoffs</h3><ul id="gTrade"></ul></div>
+    <div class="opns">
+      <section class="opn" id="op1">
+        <header><b>Opinion 1 · the change as asked</b><span class="why">Rules engine and simulator</span></header>
+        <div class="mini" id="o1Diag"></div>
+        <table class="opt met" id="o1Met"></table>
+        <div class="pc" id="o1PC"></div>
+        <details class="gdet"><summary>Consequences and findings</summary>
+          <div class="gsec" id="gImpactWrap"><table class="opt" id="gImpact" hidden></table><ul id="gCons"></ul></div>
+          <div class="gsec" id="gNewWrap"><h3>New risks</h3><ul id="gNew"></ul></div>
+          <div class="gsec" id="gResWrap"><h3>Resolved</h3><ul id="gRes"></ul></div>
+          <div class="gsec" id="gTradeWrap"><h3>Tradeoffs</h3><ul id="gTrade"></ul></div>
+        </details>
+      </section>
+      <section class="opn" id="op2">
+        <header><b>Opinion 2 · second opinion</b><span class="why" id="o2Model"></span></header>
+        <div id="o2Body"></div>
+        <div><button class="btn" id="gSecond" type="button">Get second opinion</button></div>
+      </section>
+    </div>
+    <details class="refs" id="gRefs"><summary>References</summary><ol id="gRefList"></ol></details>
     <div class="just" id="gSecondOut" hidden></div>
     <label id="gJustWrap">Justification (recorded as an exception decision)
       <textarea id="gJust" rows="2" placeholder="Why this exception is acceptable, who approved it, and until when"></textarea></label>
     <p id="gNote"></p>
-    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" id="gCancel">Cancel</button><button class="btn" id="gSecond" type="button">Second opinion</button><button class="btn" id="gAlt" hidden>Insert a service between</button><button class="btn primary" id="gApply">Apply</button></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap"><button class="btn" id="gCancel">Cancel</button><button class="btn" id="gAlt" hidden>Insert a service between</button><button class="btn" id="gApply2" hidden>Implement opinion 2</button><button class="btn primary" id="gApply">Implement opinion 1</button></div>
   </div>
 </div>
 
@@ -537,18 +588,21 @@ const PACK={
   pl:'Private Service Connect',dedicated:'Cloud Interconnect',vpn:'Cloud VPN',
   dbClass:{s:'db-custom-2-8192',m:'db-custom-4-16384',l:'db-custom-8-32768',xl:'db-custom-16-65536',xxl:'db-custom-32-131072'},shard:'AlloyDB + Citus or Spanner',
   waf:'Cloud Armor sqli-v33, xss-v33'},
- vmware:{name:'Datacenter',outer:'DATACENTER · Site A active / Site B passive · NSX',rrMax:5,
-  zone:{internet:'INTERNET',edge:'DMZ EDGE · NSX SEGMENT',dmz:'INGRESS SEGMENT',app:'APP SEGMENT · DFW',data:'DATA SEGMENT · DFW'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'External CDN',waf:'Avi WAF',lb:'NSX Advanced LB',egw:'NSX Edge + forward proxy',gw:'Kong on VM',idp:'Keycloak',svc:'Tanzu pods',vm:'vSphere VM',fn:'Knative',api:'Route',adp:'Sidecar container',queue:'RabbitMQ',cache:'Redis on VM',db:'PostgreSQL (Patroni)',obj:'MinIO',reg:'Harbor',art:'MinIO (artifacts)',kms:'Vault transit',sec:'HashiCorp Vault',mon:'Prometheus + Loki'},
-  q:{kafka:'Kafka (Strimzi)',mq:'RabbitMQ',native:'RabbitMQ'},
-  idp:{native:'Keycloak',corp:'Keycloak brokering corporate IdP',social:'Keycloak + social',work:'Keycloak + Active Directory'},
+ vmware:{name:'Data centre',outer:'DATA CENTRE · Site A active / Site B standby',rrMax:5,
+  zone:{internet:'INTERNET',edge:'DMZ · PERIMETER',dmz:'INGRESS ZONE',app:'APPLICATION ZONE',data:'DATA ZONE'},
+  // Vendor-neutral roles with a widely used product as the default; teams override them per design (stack command or Settings).
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Akamai CDN',waf:'F5 Advanced WAF',lb:'F5 BIG-IP LTM',egw:'Forward proxy + NGFW',gw:'Kong Gateway',idp:'Keycloak',svc:'Kubernetes (OpenShift)',vm:'Virtual machine (vSphere)',fn:'Knative',api:'Route',adp:'Sidecar container',queue:'RabbitMQ',cache:'Redis',db:'PostgreSQL (Patroni HA)',obj:'S3-compatible storage (MinIO)',reg:'Harbor',art:'JFrog Artifactory',kms:'HSM (Thales Luna)',sec:'HashiCorp Vault',mon:'Prometheus + Grafana + ELK'},
+  q:{kafka:'Apache Kafka',mq:'RabbitMQ',native:'RabbitMQ'},
+  idp:{native:'Keycloak',corp:'Keycloak brokering AD / Entra ID',social:'Keycloak + social',work:'Active Directory (LDAP / Kerberos)'},
   pl:'Private circuit',dedicated:'MPLS / dark fibre',vpn:'IPsec VPN',
   dbClass:{s:'2 vCPU / 8 GiB',m:'4 vCPU / 16 GiB',l:'8 vCPU / 32 GiB',xl:'16 vCPU / 64 GiB',xxl:'32 vCPU / 128 GiB'},shard:'Citus',
-  waf:'Avi CRS signatures'}
+  waf:'OWASP CRS + F5 attack signatures'}
 };
 Object.values(PACK).forEach(p=>{p.zone.platform='SHARED PLATFORM SERVICES';p.zone.third='THIRD PARTIES · OUTSIDE YOUR BOUNDARY';p.svc.part='Part'});
 const prov=()=>({aws:'aws',azure:'azure',gcp:'gcp'}[S.deploy]||'vmware');
-const pk=()=>PACK[prov()];
+// Data centre designs can name their own products (S.dcStack); everything else uses the pack defaults.
+let DCK='',DCV=null;
+const pk=()=>{const p=PACK[prov()];if(p!==PACK.vmware||!S.dcStack)return p;const k=JSON.stringify(S.dcStack);if(k!==DCK){DCK=k;DCV={...p,svc:{...p.svc,...(S.dcStack.svc||{})},q:{...p.q,...(S.dcStack.q||{})}}}return DCV};
 const VIAS=['net','internet','privatelink','vpn','dedicated'];
 const viaName=v=>({net:'In-network',internet:'Public internet',privatelink:pk().pl,vpn:pk().vpn,dedicated:pk().dedicated}[v]||v);
 const viaShort=v=>({net:'',internet:'internet',privatelink:pk().pl,vpn:'VPN',dedicated:pk().dedicated}[v]);
@@ -676,7 +730,9 @@ function ensureP8(){if(!S.ea.some(g=>g.id==='P8')){S.ea.push({id:'P8',t:'Each se
 
 /* ---------- persistence and undo ---------- */
 const KEY='nexus.workbench.v1';
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
+if(EMBED)document.documentElement.classList.add('embedded');
+function persist(){if(EMBED){embedChanged();return}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let normalized=[];
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();ensureP2();ensureSettings();normalized=normalizeParts();return true}}catch(e){}return false}
 const UNDO=[],REDO=[];
@@ -1044,10 +1100,10 @@ function drill(id){
 const CHECKS=[['Technically supported','Technical'],['Zero-trust path','EA-P5'],['Ground truth','GT'],['Capabilities','EA-P3'],['Resilience','EA-P2'],['Capacity','EA-P4'],['Threat exposure','ATT&CK'],['Platform dependencies','Platform']];
 const RANK={ok:0,review:1,risk:2,block:3};
 function preview(fn,opts={}){
- const keep={S,F,EF,findings,KPI};const before={find:findings.slice(),kpi:{...KPI},F:{...F}};
+ const keep={S,F,EF,findings,KPI};const before={find:findings.slice(),kpi:{...KPI},F:{...F},cost:totalCost()};
  S=clone(keep.S);let error=null;
  let alt=null;try{fn();simulate();analyze(false)}catch(e){error=e.message;alt=e.alt||null}
- const after={find:findings,kpi:{...KPI},F:{...F},nodes:clone(S.nodes),edges:clone(S.edges)};
+ const after={find:findings,kpi:{...KPI},F:{...F},nodes:clone(S.nodes),edges:clone(S.edges),cost:totalCost()};
  S=keep.S;F=keep.F;EF=keep.EF;findings=keep.findings;KPI=keep.KPI;
  const bk=new Set(before.find.map(f=>f.key)),ak=new Set(after.find.map(f=>f.key));
  const added=after.find.filter(f=>!bk.has(f.key)),resolved=before.find.filter(f=>!ak.has(f.key));
@@ -1068,8 +1124,80 @@ function preview(fn,opts={}){
  if(opts.remove&&RANK[verdict]<RANK.review)verdict='review';
  if(gone.some(id=>['waf','idp','egw','kms','sec'].includes(S.nodes[id].type))&&RANK[verdict]<RANK.risk)verdict='risk';
  const checks=CHECKS.map(([n,p])=>{const bad=added.filter(f=>f.basis.some(b=>b.startsWith(p)));return {n,p,ok:!bad.length&&!(p==='Technical'&&error),bad}});
- return {verdict,added,resolved,before:before.kpi,after:after.kpi,afterF:after.F,checks,cons,error,alt};
+ return {verdict,added,resolved,before:before.kpi,after:after.kpi,afterF:after.F,beforeF:before.F,afterNodes:after.nodes,afterEdges:after.edges,checks,cons,error,alt,
+  score:{before:{...scoreOf(before.find,before.kpi),cost:before.cost},after:{...scoreOf(after.find,after.kpi),cost:after.cost}}};
 }
+/* ---------- opinions: scores, Well-Architected pillars, references ---------- */
+// Scores come from findings and the simulation, never from a model.
+// Risk 0–100 (lower is better): 1.2 × weighted findings (critical 10, warning 4, info 1) + 2 points per 1% errors.
+// Security 0–100 (higher is better): 100 − 2.5 × weighted security findings (ground truth, ATT&CK, zero trust, segmentation).
+const SEVW={crit:10,warn:4,info:1};
+const isSecF=f=>f.basis.some(b=>/^GT|ATT&CK|^EA-P1$|^EA-P5$/.test(b));
+function scoreOf(find,kpi){return {risk:Math.min(100,Math.round(find.reduce((a,f)=>a+(SEVW[f.sev]||1),0)*1.2+(kpi.err||0)*200)),sec:Math.max(0,Math.round(100-find.filter(isSecF).reduce((a,f)=>a+(SEVW[f.sev]||1),0)*2.5))}}
+const PILLARS={
+ security:{l:'Security',refs:[['AWS Well-Architected Framework · Security pillar','https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html'],['Azure Well-Architected Framework · Security','https://learn.microsoft.com/en-us/azure/well-architected/security/'],['Google Cloud Architecture Framework · Security, privacy and compliance','https://cloud.google.com/architecture/framework/security']]},
+ reliability:{l:'Reliability',refs:[['AWS Well-Architected Framework · Reliability pillar','https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html'],['Azure Well-Architected Framework · Reliability','https://learn.microsoft.com/en-us/azure/well-architected/reliability/'],['Google Cloud Architecture Framework · Reliability','https://cloud.google.com/architecture/framework/reliability']]},
+ performance:{l:'Performance efficiency',refs:[['AWS Well-Architected Framework · Performance efficiency pillar','https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html'],['Azure Well-Architected Framework · Performance efficiency','https://learn.microsoft.com/en-us/azure/well-architected/performance-efficiency/'],['Google Cloud Architecture Framework · Performance optimization','https://cloud.google.com/architecture/framework/performance-optimization']]},
+ cost:{l:'Cost optimization',refs:[['AWS Well-Architected Framework · Cost optimization pillar','https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html'],['Azure Well-Architected Framework · Cost optimization','https://learn.microsoft.com/en-us/azure/well-architected/cost-optimization/'],['Google Cloud Architecture Framework · Cost optimization','https://cloud.google.com/architecture/framework/cost-optimization']]},
+ operations:{l:'Operational excellence',refs:[['AWS Well-Architected Framework · Operational excellence pillar','https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html'],['Azure Well-Architected Framework · Operational excellence','https://learn.microsoft.com/en-us/azure/well-architected/operational-excellence/'],['Google Cloud Architecture Framework · Operational excellence','https://cloud.google.com/architecture/framework/operational-excellence']]}
+};
+function pillarsOf(basis){const out=new Set();(basis||[]).forEach(b=>{
+ if(/^GT|ATT&CK|^EA-P1$|^EA-P5$/.test(b))out.add('security');else if(/^EA-P2$|^EA-P7$|Technical/.test(b))out.add('reliability');
+ else if(/^EA-P4$|^EA-P6$/.test(b))out.add('performance');else if(/^EA-P3$|^EA-P8$/.test(b))out.add('operations');else if(/cost/i.test(b))out.add('cost')});return [...out]}
+function refsFor(items){const R=[],seen=new Set(),add=(k,t,u)=>{if(!seen.has(k)){seen.add(k);R.push([t,u])}};
+ items.forEach(it=>{(it.p||[]).forEach(p=>PILLARS[p].refs.forEach(([t,u])=>add(u,t,u)));
+  (it.basis||[]).forEach(b=>{const m=b.match(/T(\d{4})(?:\.(\d{3}))?/);if(/ATT&CK/.test(b)&&m)add(b,`MITRE ATT&CK ${m[0]}`,`https://attack.mitre.org/techniques/T${m[1]}/${m[2]?m[2]+'/':''}`);
+   const g=(S.gt||[]).find(x=>x.id===b);if(g&&g.src)add('gt:'+b,`${g.id} · ${g.src} (your ground truth)`,'');
+   const e=(S.ea||[]).find(x=>'EA-'+x.id===b);if(e)add('ea:'+b,`${b} · ${e.t.split('.')[0]} (your EA principle)`,'')})});return R}
+const chips=it=>(it.p||[]).map(p=>`<button type="button" class="pchip${it.src==='model'?' model':''}" title="${esc(PILLARS[p].l)}: open the references">${esc(PILLARS[p].l)}</button>`).join('');
+// Pros and cons from a dry run: findings resolved or added, simulated effects and stated tradeoffs.
+function prosCons(r,tradeoffs){const pro=[],con=[];
+ r.resolved.forEach(f=>pro.push({t:`Resolves: ${f.title}`,p:pillarsOf(f.basis),basis:f.basis}));
+ r.added.forEach(f=>con.push({t:`New: ${f.title}`,p:pillarsOf(f.basis),basis:f.basis}));
+ r.cons.forEach(c=>con.push({t:c,p:/security control|protect/i.test(c)?['security']:['reliability']}));
+ const b=r.score.before,a=r.score.after,d=a.cost-b.cost;
+ if(r.after.err<r.before.err-.001)pro.push({t:`Errors fall ${(r.before.err*100).toFixed(1)}% → ${(r.after.err*100).toFixed(1)}%`,p:['reliability']});
+ if(r.after.lat<r.before.lat-1)pro.push({t:`Latency ${fmt(r.before.lat)} → ${fmt(r.after.lat)} ms`,p:['performance']});else if(r.after.lat>r.before.lat+1)con.push({t:`Latency ${fmt(r.before.lat)} → ${fmt(r.after.lat)} ms`,p:['performance']});
+ if(d<-1)pro.push({t:`Saves ≈$${fmt(-d)}/month`,p:['cost']});else if(d>1)con.push({t:`Costs ≈$${fmt(d)}/month more`,p:['cost']});
+ (tradeoffs||[]).forEach(t=>{(/^\+/.test(t)?pro:con).push({t:t.replace(/^[+−-]\s*/,''),p:[]})});
+ return {pro,con}}
+function pcHTML(pc){const li=it=>`<li>${esc(it.t)} ${chips(it)}</li>`;
+ return `<div class="pro"><h4>Pros</h4><ul>${pc.pro.map(li).join('')||'<li class="why">none found</li>'}</ul></div><div class="con"><h4>Cons</h4><ul>${pc.con.map(li).join('')||'<li class="why">none found</li>'}</ul></div>`}
+function metHTML(r){const b=r.score.before,a=r.score.after;
+ const row=(l,x,y,f,better)=>{const cl=Math.abs(y-x)<1e-9?'':better(y,x)?'better':'worse';return `<tr><td>${l}</td><td class="num">${f(x)}</td><td class="num ${cl}">→ ${f(y)}</td></tr>`};
+ return `<tr><th title="Risk: 1.2 × weighted findings (critical 10, warning 4, info 1) + 2 per 1% errors (lower is better). Security: 100 − 2.5 × weighted security findings (higher is better). Cost: list-price estimate.">Computed ⓘ</th><th>Now</th><th>After</th></tr>`+
+  row('Risk (0–100)',b.risk,a.risk,v=>v,(y,x)=>y<x)+row('Security (0–100)',b.sec,a.sec,v=>v,(y,x)=>y>x)+row('Cost / month',b.cost,a.cost,v=>'$'+fmt(v),(y,x)=>y<x)+
+  row('Errors ≈',r.before.err,r.after.err,v=>(v*100).toFixed(1)+'%',(y,x)=>y<x)+`<tr><td>Bottleneck</td><td class="num">${r.before.worst?r.before.worst.id:'—'}</td><td class="num">→ ${r.after.worst?r.after.worst.id:'—'}</td></tr>`}
+// Small animated before/after diagram of the top level, both drawn on the same scale.
+function miniHTML(r){
+ const bn=Object.values(S.nodes).filter(n=>n.parent==='root'),an=Object.values(r.afterNodes||{}).filter(n=>n.parent==='root'),all=[...bn,...an];if(!all.length)return '';
+ const x0=Math.min(...all.map(n=>n.x))-90,x1=Math.max(...all.map(n=>n.x))+90,y0=Math.min(...all.map(n=>n.y))-45,y1=Math.max(...all.map(n=>n.y))+45;
+ const W_=420,H_=Math.max(110,Math.min(190,W_*(y1-y0)/(x1-x0))),X=x=>(x-x0)*W_/(x1-x0),Y=y=>(y-y0)*H_/(y1-y0);
+ const bIds=new Set(bn.map(n=>n.id)),aIds=new Set(an.map(n=>n.id)),ek=e=>e.from+'>'+e.to;
+ const bE=S.edges.filter(e=>bIds.has(e.from)&&bIds.has(e.to)),aE=(r.afterEdges||[]).filter(e=>aIds.has(e.from)&&aIds.has(e.to)),bK=new Set(bE.map(ek)),aK=new Set(aE.map(ek));
+ const sig=n=>JSON.stringify({...n,x:0,y:0,enrich:0,expanded:0});
+ const modified=new Set(an.filter(n=>bIds.has(n.id)&&sig(S.nodes[n.id])!==sig(n)).map(n=>n.id));
+ const draw=(nodes,edges,Fm,side)=>{const pos=Object.fromEntries(nodes.map(n=>[n.id,n]));
+  const es=edges.map(e=>{const a=pos[e.from],b=pos[e.to],cls=side==='b'&&!aK.has(ek(e))?'rem':side==='a'&&!bK.has(ek(e))?'add':'';return `<path class="e ${cls}" d="M${X(a.x).toFixed(1)} ${Y(a.y).toFixed(1)} L${X(b.x).toFixed(1)} ${Y(b.y).toFixed(1)}"/>`}).join('');
+  const ns=nodes.map(n=>{const f=Fm&&Fm[n.id],sc=EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)?'muted':f?st(f.util):'ok',cls=side==='b'&&!aIds.has(n.id)?'rem':side==='a'&&!bIds.has(n.id)?'add':side==='a'&&modified.has(n.id)?'mod':'';
+   return `<g class="n ${sc} ${cls}"><title>${esc(n.id+' '+n.name)}</title><rect x="${(X(n.x)-21).toFixed(1)}" y="${(Y(n.y)-8).toFixed(1)}" width="42" height="16" rx="3"/><text x="${X(n.x).toFixed(1)}" y="${(Y(n.y)+3).toFixed(1)}">${esc(n.id)}</text></g>`}).join('');
+  return `<svg viewBox="-20 -10 ${W_+40} ${H_+20}" role="img" aria-label="${side==='b'?'Before':'After'} the change">${es}${ns}</svg>`};
+ return `<figure><figcaption>BEFORE</figcaption>${draw(bn,bE,r.beforeF,'b')}</figure><figure><figcaption>AFTER</figcaption>${draw(an,aE,r.afterF,'a')}</figure><div class="key"><b class="a">green</b> added · <b class="m">amber</b> changed · <b class="r">red</b> removed · moving dashes are live flows</div>`}
+// Opinion 2's change, as operations on the current design (the same vocabulary as backend changesets).
+const OP_FIELDS=['name','rep','tier','readReplicas','shards','partitions','consumers','brokers','rateLimit','standby','flavor'];
+function applyOps(ops){const idm={},R=x=>idm[x]||x;if(!Array.isArray(ops)||!ops.length)throw new Error('no operations');
+ ops.slice(0,30).forEach((o,i)=>{const n_=`step ${i+1}`;
+  if(o.op==='add_node'){const nd=o.node||{};if(!T[nd.type]||nd.type==='part')throw new Error(`${n_}: unknown component type "${nd.type}"`);const par=nd.parent&&S.nodes[R(nd.parent)]?R(nd.parent):'root';const n=addNode(nd.type,nd.name,par);if(nd.id)idm[nd.id]=n.id;OP_FIELDS.forEach(k=>{if(k!=='name'&&nd[k]!=null)n[k]=nd[k]})}
+  else if(o.op==='update_node'){const n=S.nodes[R(o.id)];if(!n)throw new Error(`${n_}: ${o.id} does not exist`);Object.entries(o.set||{}).forEach(([k,v])=>{if(OP_FIELDS.includes(k))n[k]=v})}
+  else if(o.op==='remove_node'){if(!S.nodes[R(o.id)])throw new Error(`${n_}: ${o.id} does not exist`);removeNode(R(o.id))}
+  else if(o.op==='add_edge'){if(!S.nodes[R(o.from)]||!S.nodes[R(o.to)]||connect(R(o.from),R(o.to),o.proto,o.via)===false)throw new Error(`${n_}: cannot connect ${o.from} → ${o.to}`)}
+  else if(o.op==='remove_edge'){removeEdge(R(o.from),R(o.to))}
+  else throw new Error(`${n_}: unknown operation "${o.op}"`)})}
+let OP2=null;
+function renderRefs(){const items=[...(pending&&pending.pc1?[...pending.pc1.pro,...pending.pc1.con]:[]),...(OP2&&OP2.pc?[...OP2.pc.pro,...OP2.pc.con]:[]),...(pending?pending.r.added.concat(pending.r.resolved).map(f=>({basis:f.basis})):[])];
+ const R=refsFor(items);$('#gRefs').querySelector('summary').textContent=`References (${R.length}) · Well-Architected frameworks, MITRE ATT&CK and your own standards`;
+ $('#gRefList').innerHTML=R.map(([t,u])=>`<li>${u?`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`:esc(t)}</li>`).join('')}
+
 let pending=null;
 function act(desc,fn,opts={}){
  if(who().role==='reviewer'){ENG='access';say(`Reviewers can inspect, simulate and comment, but not change the design. Switch role to propose "${desc}".`,'g');ENG=null;return}
@@ -1107,29 +1235,83 @@ function showGuard(){
  const needJ=r.verdict==='block'&&mode==='enforce';
  $('#gJustWrap').hidden=r.verdict!=='block'&&r.verdict!=='risk';$('#gJust').value='';
  $('#gNote').textContent=needJ?'Enforce mode: a written justification of at least 20 characters is required. It is recorded as an exception decision.':opts.adr?'Applying records an architecture decision with these tradeoffs. You can undo it.':'Reviewed by the Guardian rules engine (stand-in for the SLM). Every outcome is written to the AI log. You can undo it.';
- $('#gApply').textContent=r.verdict==='ok'?'Apply':needJ?'Apply with exception':'Apply anyway';
+ $('#gApply').textContent=r.verdict==='ok'?'Implement opinion 1':needJ?'Implement opinion 1 with exception':'Implement opinion 1 anyway';
  const inv=r.verdict==='invalid';$('#gApply').hidden=inv;$('#gAlt').hidden=!r.alt;if(inv){$('#gJustWrap').hidden=true;$('#gNote').textContent='This is a technical constraint of the platform, not a policy, so no exception can override it.'+(r.alt?' Insert a service between them instead.':'');['#gImpactWrap'].forEach(s=>$(s).hidden=true)}else $('#gImpactWrap').hidden=false;
  $('#gApply').className='btn '+(r.verdict==='ok'||r.verdict==='review'?'primary':'danger');
  const upd=()=>{$('#gApply').disabled=needJ&&$('#gJust').value.trim().length<20};$('#gJust').oninput=upd;upd();
- $('#gSecondOut').hidden=true;$('#gSecondOut').innerHTML='';$('#gSecond').hidden=r.verdict==='invalid'&&!r.alt;
+ $('#gSecondOut').hidden=true;$('#gSecondOut').innerHTML='';$('#gSecond').hidden=inv;
+ OP2=null;$('#gApply2').hidden=true;$('#o2Model').textContent='';
+ $('#o2Body').innerHTML='<p class="why" style="margin:0">An independent model reviews this change against the facts shown and the Well-Architected pillars, and may propose a different change. NEXUS dry-runs that change with the same rules and simulator, so its numbers are computed, not claimed.</p>';
+ $('#gSecond').textContent='Get second opinion';$('#gSecond').disabled=false;
+ pending.pc1=prosCons(r,opts.tradeoffs);
+ $('#o1Diag').innerHTML=inv?'':miniHTML(r);$('#o1Met').innerHTML=inv?'':metHTML(r);$('#o1PC').innerHTML=pcHTML(pending.pc1);
+ renderRefs();$('#gRefs').open=false;
+ const op=+((S.settings.view||{}).guardOp||1);$('#gOp').value=op;guardOpacity(op);$('#guard .gmodal').style.transform='';
  $('#guard').hidden=false;$('#gCancel').focus();
 }
 $('#gAlt').onclick=()=>{if(!pending||!pending.r.alt)return;const {from,to}=pending.r.alt;pending=null;$('#guard').hidden=true;act(`Insert a service between ${from} and ${to}`,()=>insertServiceBetween(from,to),{tradeoffs:['+ The service owns the data access: connection pooling, queries, validation and authorization','+ The gateway keeps doing what it does well: routing, auth and rate limits','− One more component to build, deploy and scale']})};
 $('#gSecond').onclick=async()=>{
- if(!pending)return;const L=escCfg(),E=S.settings.escalation||{},box=$('#gSecondOut'),r=pending.r;
- box.hidden=false;box.innerHTML=`<span class="why">Asking ${esc(L.model)} at ${esc(L.base)}…</span>`;
- const summary={change:pending.desc,verdict:r.verdict,newRisks:r.added.map(f=>({title:f.title,why:f.why,basis:f.basis})),resolved:r.resolved.map(f=>f.title),consequences:r.cons,tradeoffs:pending.opts.tradeoffs||[],errorsBefore:r.before.err,errorsAfter:r.after.err,platform:pk().name,
-  design:Object.values(S.nodes).filter(n=>n.parent==='root').map(n=>`${n.id} ${n.type} "${n.name}"`),flows:flowsIn('root').map(e=>`${e.from}->${e.to} ${e.proto}${e.via!=='net'?' via '+e.via:''}`)};
+ if(!pending)return;const L=escCfg(),r=pending.r,body=$('#o2Body');
+ $('#gSecond').disabled=true;$('#o2Model').textContent=L.model;body.innerHTML=`<p class="why" style="margin:0">Asking ${esc(L.model)} at ${esc(L.base)}…</p>`;
+ const top=Object.values(S.nodes).filter(n=>n.parent==='root');
+ const facts={proposedChange:pending.desc,platform:pk().name,guardVerdict:r.verdict,computedNow:r.score.before,computedAfterProposedChange:r.score.after,
+  errorsNow:r.before.err,errorsAfter:r.after.err,bottleneckNow:r.before.worst&&r.before.worst.id,bottleneckAfter:r.after.worst&&r.after.worst.id,
+  newFindings:r.added.map(f=>({title:f.title,why:f.why,basis:f.basis})),resolvedFindings:r.resolved.map(f=>f.title),consequences:r.cons,statedTradeoffs:pending.opts.tradeoffs||[],
+  design:top.map(n=>`${n.id} ${n.type} "${n.name}"${n.rep>1?' ×'+n.rep:''}`),flows:flowsIn('root').map(e=>`${e.from}->${e.to} ${e.proto}${e.via!=='net'?' via '+e.via:''}`),
+  principles:(S.ea||[]).map(x=>'EA-'+x.id+': '+x.t),groundTruth:(S.gt||[]).map(x=>x.id+': '+x.t)};
+ const sys=`You are a senior reviewing architect giving an independent second opinion on a proposed change to a system design.
+Use only the facts given. Do not invent components, products, numbers or standards. Judge against the Well-Architected pillars shared by the AWS Well-Architected Framework, the Azure Well-Architected Framework and the Google Cloud Architecture Framework: security, reliability, performance, cost, operations.
+Tag every pro and con with exactly one pillar from that list.
+If you would make a different change, give it as operations on the CURRENT design. It replaces the proposed change, so include the parts you agree with. Allowed operations:
+{"op":"add_node","node":{"id":"NEW1","type":"<type>","name":"..."}} (types: ${Object.keys(T).filter(t=>t!=='part').join(', ')}; later steps may refer to NEW1)
+{"op":"update_node","id":"<existing id>","set":{"rep"|"readReplicas"|"shards"|"partitions"|"consumers"|"brokers"|"rateLimit"|"standby"|"tier": value}}
+{"op":"remove_node","id":"<existing id>"}  {"op":"add_edge","from":"<id>","to":"<id>","proto":"HTTPS"}  {"op":"remove_edge","from":"<id>","to":"<id>"}
+If you agree with the proposed change as it is, set "alternative" to null.
+Respond with JSON only: {"opinion":"agree|agree with conditions|disagree","summary":"two sentences","alternative":{"title":"...","ops":[...]} or null,"pros":[{"text":"...","pillar":"..."}],"cons":[{"text":"...","pillar":"..."}]}`;
  const t0=performance.now();
- try{const res=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},body:JSON.stringify({model:L.model,temperature:.2,response_format:{type:'json_object'},messages:[{role:'system',content:'You are a senior reviewing architect giving an independent second opinion on a proposed change to a system design. Judge it against zero trust, resilience, data ownership, cost and operability. Be concise and specific. Respond with JSON only: {"opinion":"agree|agree with conditions|disagree","summary":"two sentences","risks":["..."],"alternatives":["..."]}'},{role:'user',content:JSON.stringify(summary)}]})});
+ try{
+  const res=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},body:JSON.stringify({model:L.model,temperature:.2,response_format:{type:'json_object'},messages:[{role:'system',content:sys},{role:'user',content:JSON.stringify(facts)}]})});
   if(!res.ok)throw new Error('HTTP '+res.status);const j=await res.json(),o=extractJSON(j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'');if(!o)throw new Error('the model did not return a review');
-  const ms=performance.now()-t0;logAI(`Model ${L.model} · second opinion`,`Second opinion: ${o.opinion} on "${pending.desc}"`,o.summary||'',.7);
-  box.innerHTML=`<b>Second opinion · ${esc(L.model)} · ${(ms/1000).toFixed(1)} s · <span class="${/disagree/.test(o.opinion)?'crit':/condition/.test(o.opinion)?'warn':'ok'}">${esc(o.opinion||'')}</span></b><br>${esc(o.summary||'')}${(o.risks||[]).length?'<br><b>Risks</b><ul>'+o.risks.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':''}${(o.alternatives||[]).length?'<b>Alternatives</b><ul>'+o.alternatives.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':''}<span class="why">Advisory only. The decision stays with you.</span>`}
- catch(e){box.innerHTML=`<span class="crit">No second opinion:</span> ${esc(e.message)}. Set an escalation model in Settings → Second opinion and escalation.`}
+  if(!pending)return;const ms=performance.now()-t0;
+  // Only points tagged with a known pillar are kept; anything else is dropped as uncited.
+  let dropped=0;const take=a=>(Array.isArray(a)?a:[]).filter(x=>{const ok=x&&x.text&&PILLARS[String(x.pillar||'').toLowerCase()];if(!ok)dropped++;return ok}).slice(0,6).map(x=>({t:String(x.text).slice(0,240),p:[String(x.pillar).toLowerCase()],src:'model'}));
+  const mp=take(o.pros),mc=take(o.cons);
+  const alt=o.alternative&&Array.isArray(o.alternative.ops)&&o.alternative.ops.length?o.alternative:null;let r2=null,err2=null;
+  if(alt){r2=preview(()=>applyOps(alt.ops),{});if(r2.error){err2=r2.error;r2=null}}
+  const det=r2?prosCons(r2,[]):{pro:[],con:[]};
+  OP2={o,alt,r2,err2,pc:{pro:[...det.pro,...mp],con:[...det.con,...mc]},dropped,model:L.model};
+  logAI(`Model ${L.model} · second opinion`,`Second opinion: ${o.opinion} on "${pending.desc}"${alt?` · alternative: ${alt.title}`:''}`,(o.summary||'')+(err2?` · alternative rejected by the dry run: ${err2}`:'')+(dropped?` · ${dropped} uncited point(s) dropped`:''),.7);
+  const opc=/disagree/.test(o.opinion)?'crit':/condition/.test(o.opinion)?'warn':'ok';
+  body.innerHTML=`<div><span class="pill ${opc}">${esc(o.opinion||'no verdict')}</span> <span class="why">${(ms/1000).toFixed(1)} s</span></div><p style="margin:0;font-size:12.5px">${esc(o.summary||'')}</p>`+
+   (alt?`<p style="margin:0;font-size:12.5px"><b>Instead:</b> ${esc(alt.title||'alternative change')} <span class="why">(${alt.ops.length} step${alt.ops.length>1?'s':''})</span></p>`:'<p class="why" style="margin:0">Agrees with the change as asked: there is nothing different to implement.</p>')+
+   (err2?`<p class="crit" style="margin:0;font-size:12px">The alternative failed the dry run and cannot be implemented: ${esc(err2)}</p>`:'')+
+   (r2?`<div class="mini">${miniHTML(r2)}</div><table class="opt met">${metHTML(r2)}</table>`:'')+
+   `<div class="pc">${pcHTML(OP2.pc)}</div><p class="why" style="margin:0">Dashed tags are the model's own points; solid tags come from the dry run. ${dropped?`${dropped} point(s) without a recognised pillar were dropped. `:''}Advisory only: you decide.</p>`;
+  if(r2){$('#gApply2').hidden=false;$('#gApply2').className='btn '+(r2.verdict==='ok'||r2.verdict==='review'?'primary':'danger');$('#gApply2').textContent=`Implement opinion 2${r2.verdict==='block'?' with exception':''}`;$('#gApply').classList.remove('primary')}
+  $('#gSecond').textContent='Ask again';$('#gSecond').disabled=false;renderRefs()}
+ catch(e){body.innerHTML=`<p class="crit" style="margin:0">No second opinion: ${esc(e.message)}.</p><p class="why" style="margin:0">Set an escalation model in Settings → Second opinion and escalation.</p>`;$('#gSecond').disabled=false}
 };
+function decisionADR(chosen){const r=pending.r,o2=OP2;return {title:`Chose opinion ${chosen} for: ${pending.desc}`,
+ context:`Opinion 1 (the change as asked): risk ${r.score.before.risk}→${r.score.after.risk}, security ${r.score.before.sec}→${r.score.after.sec}, cost $${fmt(r.score.before.cost)}→$${fmt(r.score.after.cost)}/month.\n`+
+  (o2&&o2.r2?`Opinion 2 (${o2.model}: ${o2.alt.title}): risk ${o2.r2.score.before.risk}→${o2.r2.score.after.risk}, security ${o2.r2.score.before.sec}→${o2.r2.score.after.sec}, cost $${fmt(o2.r2.score.before.cost)}→$${fmt(o2.r2.score.after.cost)}/month.`:`Opinion 2 (${o2?o2.model:'none'}): ${o2?o2.o.opinion+' · '+(o2.o.summary||''):'not requested'}`),
+ decision:chosen===1?'Implement the change as asked rather than the second opinion.':`Implement the second opinion: ${o2.alt.title}.`,
+ tradeoffs:(chosen===1?[...pending.pc1.pro.map(x=>'+ '+x.t),...pending.pc1.con.map(x=>'− '+x.t)]:[...o2.pc.pro.map(x=>'+ '+x.t),...o2.pc.con.map(x=>'− '+x.t)]).join('\n'),
+ basis:[...new Set((chosen===1?r.added:o2.r2.added).flatMap(f=>f.basis))]}}
+$('#gApply2').onclick=()=>{if(!pending||!OP2||!OP2.r2)return;const r2=OP2.r2,j=$('#gJust').value.trim();
+ if(r2.verdict==='block'&&S.settings.guard==='enforce'&&j.length<20){$('#gJustWrap').hidden=false;$('#gNote').textContent='Opinion 2 also breaks ground truth: write a justification of at least 20 characters first.';$('#gJust').focus();return}
+ const p=pending,adr=decisionADR(2),ops=OP2.alt.ops,title=OP2.alt.title||'alternative';pending=null;$('#guard').hidden=true;
+ logAI('Guardian',`Architect chose opinion 2 over opinion 1: ${title}`,`Opinion 1 was "${p.desc}"`,1);
+ commit(`Second opinion: ${title}`,()=>applyOps(ops),{adr},r2,(r2.verdict==='block'||r2.verdict==='risk')&&j?j:null)};
+function guardOpacity(v){$('#guard .gmodal').style.opacity=v;$('#guard').style.background=`rgba(10,15,25,${(.45*(v-.35)/.65).toFixed(2)})`}
+$('#gOp').oninput=e=>{const v=+e.target.value;guardOpacity(v);S.settings.view.guardOp=v};
+(()=>{const h=$('#gHead'),m=$('#guard .gmodal');let d=null;
+ h.addEventListener('pointerdown',e=>{if(e.target.closest('input,label'))return;const t=(m.style.transform.match(/-?\d+(\.\d+)?/g)||[0,0]).map(Number);d={x:e.clientX,y:e.clientY,tx:t[0],ty:t[1]};h.setPointerCapture(e.pointerId)});
+ h.addEventListener('pointermove',e=>{if(!d)return;m.style.transform=`translate(${d.tx+e.clientX-d.x}px,${d.ty+e.clientY-d.y}px)`});
+ h.addEventListener('pointerup',()=>d=null);
+ $('#guard').addEventListener('click',e=>{if(e.target.closest('.pchip')){$('#gRefs').open=true;$('#gRefs').scrollIntoView({block:'nearest'})}})})();
 $('#gCancel').onclick=()=>{if(pending){logAI('Guardian',`Cancelled: ${pending.desc}`,`Architect declined after review (${pending.r.verdict})`,1);say(`Cancelled: ${pending.desc}.`,'g')}pending=null;$('#guard').hidden=true};
-$('#gApply').onclick=()=>{if(!pending)return;const p=pending;pending=null;$('#guard').hidden=true;const j=$('#gJust').value.trim();commit(p.desc,p.fn,p.opts,p.r,(p.r.verdict==='block'||p.r.verdict==='risk')&&j?j:null)};
-$('#guard').addEventListener('click',e=>{if(e.target.id==='guard')$('#gCancel').click()});
+$('#gApply').onclick=()=>{if(!pending)return;const p=pending;if(OP2&&!p.opts.adr){p.opts={...p.opts,adr:decisionADR(1)};logAI('Guardian',`Architect chose opinion 1 over the second opinion: ${p.desc}`,OP2.o.summary||'',1)}pending=null;$('#guard').hidden=true;const j=$('#gJust').value.trim();commit(p.desc,p.fn,p.opts,p.r,(p.r.verdict==='block'||p.r.verdict==='risk')&&j?j:null)};
+$('#guard').addEventListener('click',e=>{if(e.target.id==='guard'&&+$('#gOp').value>=1)$('#gCancel').click()});
 
 /* ---------- code generators ---------- */
 const slug=n=>n.id.toLowerCase();
@@ -1304,11 +1486,11 @@ function fit(){
  const ns=kids(V.scope);if(!ns.length||!W){V.x=W/2;V.y=H/2;return}
  V.k=1;V.x=0;V.y=0;
  const qs=ns.map(n=>P(n.x,n.y));const minX=Math.min(...qs.map(p=>p.x))-NW,maxX=Math.max(...qs.map(p=>p.x))+NW,minY=Math.min(...qs.map(p=>p.y))-NH,maxY=Math.max(...qs.map(p=>p.y))+NH+40;
- const adv=$('#pAdv'),leftPad=document.body.classList.contains('focus')?60:W>1150&&!adv.classList.contains('collapsed')&&!adv._moved?adv.offsetLeft+adv.offsetWidth+10:W>900?60:20;
+ const adv=$('#pAdv'),leftPad=document.body.classList.contains('focus')?24:W>1150&&!adv.classList.contains('collapsed')&&!adv._moved?adv.offsetLeft+adv.offsetWidth+10:W>900?60:20;
  const rightPad=document.body.classList.contains('focus')?24:W>900&&['#pIac','#pTree','#pLeg'].some(id=>{const el=$(id);return el&&!el.hidden&&!el.classList.contains('collapsed')&&el.offsetLeft>W/2})?370:20;
  const aw=Math.max(200,W-leftPad-rightPad),ah=Math.max(150,H-90);
  V.k=Math.min(1.25,Math.max(.35,Math.min(aw/(maxX-minX),ah/(maxY-minY))));
- V.x=leftPad+(aw-(maxX-minX)*V.k)/2-minX*V.k;V.y=46+(ah-(maxY-minY)*V.k)/2-minY*V.k;
+ V.x=leftPad+(aw-(maxX-minX)*V.k)/2-minX*V.k;V.y=20+(ah-(maxY-minY)*V.k)/2-minY*V.k;
 }
 function nodeAt(sx,sy){
  const ns=kids(V.scope);
@@ -1330,28 +1512,48 @@ function edgeAt(sx,sy){
  return best;
 }
 const drawZone=n=>['saas','ext'].includes(n.type)?'third':zoneOf(n);
-// Orthogonal routing: leave the source side, run in the gap between columns, enter the target side.
+// Routing that avoids components. Computed in design coordinates and cached per layout:
+// 1) straight if aligned and clear, 2) one elbow slid into a free gap, 3) a detour through a free corridor.
+const RC={sig:'',m:new Map()};
+function obstacles(a,b){const pad=12;return kids(a.parent).filter(n=>n!==a&&n!==b).map(n=>({x0:n.x-NW/2-pad,x1:n.x+NW/2+pad,y0:n.y-NH/2-pad,y1:n.y+NH/2+pad}))}
+function segHits(p,q,R){const x0=Math.min(p.x,q.x),x1=Math.max(p.x,q.x),y0=Math.min(p.y,q.y),y1=Math.max(p.y,q.y);return R.some(r=>x0<r.x1&&x1>r.x0&&y0<r.y1&&y1>r.y0)}
+function pathHits(pts,R){for(let i=0;i<pts.length-1;i++)if(segHits(pts[i],pts[i+1],R))return true;return false}
+function routeWorld(a,b,horiz){
+ // u is the main axis (x when horizontal); results are mapped back at the end
+ const ax=horiz?a.x:a.y,ay=horiz?a.y:a.x,bx=horiz?b.x:b.y,by=horiz?b.y:b.x,half=(horiz?NW:NH)/2,sg=Math.sign(bx-ax)||1;
+ const R=obstacles(a,b).map(r=>horiz?r:{x0:r.y0,x1:r.y1,y0:r.x0,y1:r.x1}),ok=pts=>!pathHits(pts,R);
+ const sx=ax+sg*half,ex=bx-sg*(half+3);let best=null;
+ if(Math.abs(by-ay)<2){const q=[{x:sx,y:ay},{x:ex,y:by}];if(ok(q))best=q}
+ if(!best){const mid=(sx+ex)/2,span=Math.abs(ex-sx)/2-6;
+  for(let d=0;d<=span&&!best;d+=8)for(const k of d?[1,-1]:[1]){const mx=mid+k*d,q=[{x:sx,y:ay},{x:mx,y:ay},{x:mx,y:by},{x:ex,y:by}];if(ok(q)){best=q;break}}}
+ if(!best){const o=20,m1=sx+sg*o,m2=ex-sg*o,c0=(ay+by)/2;
+  for(let d=0;d<=1200&&!best;d+=12)for(const k of d?[1,-1]:[1]){const cy=c0+k*d,q=[{x:sx,y:ay},{x:m1,y:ay},{x:m1,y:cy},{x:m2,y:cy},{x:m2,y:by},{x:ex,y:by}];if(ok(q)){best=q;break}}}
+ if(!best){const mx=(sx+ex)/2;best=Math.abs(by-ay)<2?[{x:sx,y:ay},{x:ex,y:by}]:[{x:sx,y:ay},{x:mx,y:ay},{x:mx,y:by},{x:ex,y:by}]}
+ return horiz?best:best.map(q=>({x:q.y,y:q.x}));
+}
 function routeEdge(a,b){
  const pa=P(a.x,a.y),pb=P(b.x,b.y),hw=NW/2*V.k,hh=NH/2*V.k,dx=pb.x-pa.x,dy=pb.y-pa.y;
  if(V.mode==='iso'||S.settings.view.lines==='straight'){const len=Math.hypot(dx,dy)||1,cut=V.mode==='iso'?40*V.k:Math.min(hw/Math.abs(dx/len||1e-9),hh/Math.abs(dy/len||1e-9));
   return [{x:pa.x+dx/len*cut,y:pa.y+dy/len*cut},{x:pb.x-dx/len*(cut+3),y:pb.y-dy/len*(cut+3)}]}
- if(Math.abs(dx)>=hw*2+14*V.k){const sg=Math.sign(dx),sx=pa.x+sg*hw,ex=pb.x-sg*(hw+3);
-  if(Math.abs(dy)<2)return [{x:sx,y:pa.y},{x:ex,y:pb.y}];const mx=(sx+ex)/2;return [{x:sx,y:pa.y},{x:mx,y:pa.y},{x:mx,y:pb.y},{x:ex,y:pb.y}]}
- const sg=Math.sign(dy)||1,sy=pa.y+sg*hh,ey=pb.y-sg*(hh+3);
- if(Math.abs(dx)<2)return [{x:pa.x,y:sy},{x:pb.x,y:ey}];const my=(sy+ey)/2;return [{x:pa.x,y:sy},{x:pa.x,y:my},{x:pb.x,y:my},{x:pb.x,y:ey}];
+ const key=a.id+'>'+b.id;let w=RC.m.get(key);
+ if(!w){w=routeWorld(a,b,Math.abs(b.x-a.x)>=NW+14);RC.m.set(key,w)}
+ return w.map(q=>P(q.x,q.y));
 }
 function polyLen(p){let L=0;for(let i=0;i<p.length-1;i++)L+=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);return L}
 function pointAt(p,t){const L=polyLen(p)*t;let acc=0;for(let i=0;i<p.length-1;i++){const s=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);if(acc+s>=L){const u=s?(L-acc)/s:0;return {x:p[i].x+(p[i+1].x-p[i].x)*u,y:p[i].y+(p[i+1].y-p[i].y)*u}}acc+=s}return p[p.length-1]}
 // Trace a route with rounded corners; horizontal runs hop over vertical runs of other flows.
 function tracePath(e,vsegs){
- const p=e._pts,Rr=Math.min(9*V.k,12),J=Math.max(3.5,5*V.k);ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);
+ const p=e._pts,curved=S.settings.view.lines==='curved',Rr=curved?Math.max(18,70*V.k):Math.min(9*V.k,12),J=Math.max(3.5,5*V.k);ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);
+ const seg=(u,v)=>Math.hypot(v.x-u.x,v.y-u.y);
  for(let i=0;i<p.length-1;i++){const A=p[i],B=p[i+1],horiz=Math.abs(A.y-B.y)<.5&&Math.abs(A.x-B.x)>1;
-  if(horiz&&vsegs){const dir=Math.sign(B.x-A.x),lo=Math.min(A.x,B.x)+Rr+J,hi=Math.max(A.x,B.x)-Rr-J;
+  if(horiz&&vsegs&&!curved){const dir=Math.sign(B.x-A.x),lo=Math.min(A.x,B.x)+Rr+J,hi=Math.max(A.x,B.x)-Rr-J;
    const xs=vsegs.filter(v=>v.e!==e&&v.e.from!==e.from&&v.e.to!==e.to&&v.x>lo&&v.x<hi&&A.y>v.y1+J&&A.y<v.y2-J).map(v=>v.x).sort((a,b)=>dir*(a-b));
    let last=-1e9;xs.forEach(x=>{if(Math.abs(x-last)<J*2.2)return;last=x;ctx.lineTo(x-dir*J,A.y);dir>0?ctx.arc(x,A.y,J,Math.PI,2*Math.PI,false):ctx.arc(x,A.y,J,0,Math.PI,true)})}
-  if(i<p.length-2)ctx.arcTo(B.x,B.y,p[i+2].x,p[i+2].y,Rr);else ctx.lineTo(B.x,B.y)}
+  if(i<p.length-2){const C=p[i+2],r=Math.max(0,Math.min(Rr,seg(A,B)/(i===0?1:2),seg(B,C)/(i+2===p.length-1?1:2)));ctx.arcTo(B.x,B.y,C.x,C.y,r)}else ctx.lineTo(B.x,B.y)}
 }
-const colOf=n=>{const f=F[n.id];if(n.type==='user')return f&&f.noRoute?colors.crit:colors.accent;if(!f||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return colors.muted;return colors[st(f.util)]};
+// Each shared platform service has its own colour; its box and every connector to it use it.
+const SHARED_COL={reg:'#0d9488',art:'#7c5cff',kms:'#d97706',sec:'#d4458f',mon:'#0284c7'};
+const colOf=n=>{if(SHARED_COL[n.type])return SHARED_COL[n.type];const f=F[n.id];if(n.type==='user')return f&&f.noRoute?colors.crit:colors.accent;if(!f||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return colors.muted;return colors[st(f.util)]};
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
 let particles=[],last=performance.now(),connecting=null,mouse={x:0,y:0},zoneHits=[];
 V.multi=new Set();V.hoverZ=null;V.marquee=null;
@@ -1389,16 +1591,28 @@ function details(n){
  const m=missingDeps(n);if(DEPS[n.type]&&n.parent==='root')L.push(m.length?`Missing: ${m.map(d=>P_.svc[d]).join(', ')}`:`Uses: ${deps.map(d=>d.id).join(', ')}`);
  return L.slice(0,6);
 }
+// 3D: zones are floor plates in the same isometric projection as the components; labels run along their back edge.
+function drawIsoZones(ns){
+ const byZ={};ns.forEach(n=>{const z=drawZone(n);(byZ[z]=byZ[z]||[]).push(n)});
+ const quad=(b)=>[P(b.x0,b.y0),P(b.x1,b.y0),P(b.x1,b.y1),P(b.x0,b.y1)];
+ const plate=(q,col,alpha,dash,lw)=>{ctx.beginPath();q.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.globalAlpha=alpha*.13;ctx.fillStyle=col;ctx.fill();ctx.setLineDash(dash);ctx.globalAlpha=alpha;ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1};
+ const label=(q,txt,col)=>{const a=q[0],b=q[1];ctx.save();ctx.translate(a.x,a.y);ctx.rotate(Math.atan2(b.y-a.y,b.x-a.x));ctx.globalAlpha=.85;ctx.fillStyle=col;ctx.fillText(txt,10*V.k,-6*V.k);ctx.restore();ctx.globalAlpha=1};
+ const Wb={};Object.entries(byZ).forEach(([z,a])=>{Wb[z]={x0:Math.min(...a.map(n=>n.x))-95,x1:Math.max(...a.map(n=>n.x))+95,y0:Math.min(...a.map(n=>n.y))-60,y1:Math.max(...a.map(n=>n.y))+60}});
+ const inner=Object.entries(Wb).filter(([z])=>z!=='internet'&&z!=='third').map(([,b])=>b);
+ if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-40,x1:Math.max(...inner.map(b=>b.x1))+40,y0:Math.min(...inner.map(b=>b.y0))-40,y1:Math.max(...inner.map(b=>b.y1))+40},q=quad(o);plate(q,colors.accent,.55,[],1.3);label(q,pk().outer,colors.accent)}
+ Object.entries(Wb).forEach(([z,b])=>{const col=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted,q=quad(b);plate(q,col,z==='third'?.4:.6,[5,4],1);label(q,pk().zone[z]||z.toUpperCase(),col)});
+}
 function frame(now){
  const dt=Math.min(.05,(now-last)/1000);last=now;miniHits=[];chipHits=[];zoneHits=[];
  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=colors.bg;ctx.fillRect(0,0,W,H);
  ctx.fillStyle=colors.grid;const g=40*V.k;if(g>12&&V.mode!=='iso'){for(let x=V.x%g;x<W;x+=g)for(let y=V.y%g;y<H;y+=g)ctx.fillRect(x-1,y-1,2,2)}
  const ns=kids(V.scope),es=edgesIn(V.scope),fls=es.filter(isFlow);
+ const sig=V.scope+'|'+S.settings.view.lines+'|'+ns.map(n=>n.id+':'+Math.round(n.x)+','+Math.round(n.y)).join(';');if(sig!==RC.sig){RC.sig=sig;RC.m.clear()}
  const rel=V.mode==='rel'&&V.sel?new Set([V.sel,...es.filter(e=>e.from===V.sel||e.to===V.sel).flatMap(e=>[e.from,e.to])]):null;
  const byZ={};ns.forEach(n=>{const z=drawZone(n);(byZ[z]=byZ[z]||[]).push(P(n.x,n.y))});
  ctx.font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;
  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
- const boxes={};Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
+ const boxes={};if(V.mode!=='iso')Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
  const inner=Object.entries(boxes).filter(([z])=>z!=='internet'&&z!=='third').map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-14*V.k,x1:Math.max(...inner.map(b=>b.x1))+14*V.k,y0:Math.min(...inner.map(b=>b.y0))-24*V.k,y1:Math.max(...inner.map(b=>b.y1))+12*V.k};
   const hz=V.hoverZ==='__outer';ctx.strokeStyle=colors.accent;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(pk().outer,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
@@ -1408,6 +1622,7 @@ function frame(now){
   zoneHits.push({z,...b,lw:ctx.measureText(pk().zone[z]||z).width+20*V.k});
   ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.fillText(pk().zone[z]||z.toUpperCase(),b.x0+8*V.k,b.y0+13*V.k);ctx.globalAlpha=1;
  });
+ if(V.mode==='iso')drawIsoZones(ns);
  const VW=S.settings.view,focus=id=>V.sel===id||V.hover===id;
  const drawn=es.filter(e=>isFlow(e)||VW.deps||focus(e.from)||focus(e.to));
  es.forEach(e=>{e._drawn=false});
@@ -1422,9 +1637,10 @@ function frame(now){
   e._g={sx:s0.x,sy:s0.y,ex:e0.x,ey:e0.y};
   const sel=V.selE&&V.selE.from===e.from&&V.selE.to===e.to&&isFlow(e),hovE=V.hoverE===e;
   const dim=rel&&!(rel.has(e.from)&&rel.has(e.to)&&(e.from===V.sel||e.to===V.sel));
-  if(dep){ctx.globalAlpha=dim?.08:.75;ctx.strokeStyle=colors.accent;ctx.lineWidth=1.2;ctx.setLineDash([2,4]);tracePath(e,null);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;return}
+  if(dep){const sc=SHARED_COL[b.type]||colors.accent;ctx.globalAlpha=dim?.08:.7;ctx.strokeStyle=sc;ctx.lineWidth=1.6;ctx.lineCap='round';ctx.setLineDash([6,4]);tracePath(e,null);ctx.stroke();ctx.setLineDash([]);
+   const an=Math.atan2(e0.y-pe.y,e0.x-pe.x),ah=6*Math.min(1.2,V.k+.2);ctx.fillStyle=sc;ctx.beginPath();ctx.moveTo(e0.x,e0.y);ctx.lineTo(e0.x-ah*Math.cos(an-.5),e0.y-ah*Math.sin(an-.5));ctx.lineTo(e0.x-ah*Math.cos(an+.5),e0.y-ah*Math.sin(an+.5));ctx.closePath();ctx.fill();ctx.globalAlpha=1;return}
   const w=Math.max(1.3,Math.min(9,1+Math.log10(1+f)*1.5))*Math.min(1,V.k+.25);
-  const a0=Math.max(.3,.9-(w-1.3)*.07);
+  const a0=Math.max(.2,.58-(w-1.3)*.045);
   ctx.globalAlpha=dim?.15:1;ctx.lineJoin='round';
   if(sel||hovE){ctx.strokeStyle=hexA(colors.accent,sel?.35:.2);ctx.lineWidth=w+8;ctx.lineCap='round';tracePath(e,vsegs);ctx.stroke()}
   const gr=ctx.createLinearGradient(s0.x,s0.y,e0.x,e0.y);gr.addColorStop(0,hexA(c,a0*.35));gr.addColorStop(.6,hexA(c,a0*.75));gr.addColorStop(1,hexA(c,a0));
@@ -1480,7 +1696,7 @@ function drawNode(n,now,rel){
  const w=NW*k,h=NH*k,x=p.x-w/2,y=p.y-h/2,inst=showInst(n);
  if(crit&&!reduce.matches){const a=.25+.2*Math.sin(now/220);ctx.strokeStyle=colors.crit;ctx.globalAlpha=baseA*a;ctx.lineWidth=6*k;rr(x-3*k,y-3*k,w+6*k,h+6*k,10*k);ctx.stroke();ctx.globalAlpha=baseA}
  if(cnt>1&&!inst){for(let j=Math.min(2,cnt-1);j>=1;j--){ctx.fillStyle=colors.surface;ctx.strokeStyle=c;ctx.lineWidth=1;rr(x+4*k*j,y-4*k*j,w,h,7*k);ctx.fill();ctx.stroke()}}
- ctx.fillStyle=colors.surface;rr(x,y,w,h,7*k);ctx.fill();
+ ctx.fillStyle=colors.surface;rr(x,y,w,h,7*k);ctx.fill();if(SHARED_COL[n.type]){ctx.fillStyle=hexA(SHARED_COL[n.type],.1);rr(x,y,w,h,7*k);ctx.fill()}
  ctx.lineWidth=sel?2.5:hov?2:1.5;ctx.strokeStyle=sel?colors.accent:c;if(n.failed||(EXTERNAL.includes(n.type)&&n.type!=='user')||PLATFORM.includes(n.type))ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
  if(!EXTERNAL.includes(n.type)&&isFinite(T[n.type].cap)){const u=Math.min(1,isFinite(f.util)?f.util:1);ctx.fillStyle=c;rr(x+8*k,y+h-7*k,(w-16*k)*u,3*k,1.5*k);ctx.fill()}
  ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+12*k,y+14*k,4*k,0,7);ctx.fill();
@@ -1633,13 +1849,22 @@ function tidyLayout(){
 }
 
 /* ---------- palette & crumb ---------- */
-const PAL=['user','saas','ext','cdn','waf','lb','egw','gw','idp','svc','vm','fn','api','adp','queue','cache','db','obj','reg','art','kms','sec','mon'];
-$('#palette').innerHTML=PAL.map((t,i)=>([3,9,14,18].includes(i)?'<hr>':'')+`<button data-t="${t}" title="Add ${T[t].label}" aria-label="Add ${T[t].label}">${T[t].p}</button>`).join('');
-$('#palette').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const t=b.dataset.t,id=nextId(t);
+const PAL_GROUPS=[['People and outside',['user','saas','ext']],['Edge and access',['cdn','waf','lb','egw','gw','idp']],['Compute',['svc','vm','fn','api','adp']],['Data and messaging',['queue','cache','db','obj']],['Shared platform',['reg','art','kms','sec','mon']]];
+function renderPalette(){const q=($('#palQ')&&$('#palQ').value||'').toLowerCase();
+ const body=PAL_GROUPS.map(([g,ts])=>{const items=ts.filter(t=>!q||T[t].label.toLowerCase().includes(q)||(pk().svc[t]||'').toLowerCase().includes(q)||t.includes(q));
+  return items.length?`<div class="pg"><h4>${g}</h4>${items.map(t=>`<button role="menuitem" data-t="${t}"><span class="pid" style="${SHARED_COL[t]?`color:${SHARED_COL[t]}`:''}">${T[t].p}</span><span class="pl"><b>${esc(T[t].label)}</b><small>${esc(pk().svc[t]||'')}</small></span></button>`).join('')}</div>`:''}).join('');
+ $('#palList').innerHTML=body||'<p class="why">Nothing matches.</p>'}
+$('#palette').innerHTML='<input id="palQ" placeholder="Search components, e.g. database" aria-label="Search components"><div id="palList"></div>';
+function openPal(o){$('#palette').hidden=!o;$('#addBtn').setAttribute('aria-expanded',o);if(o){renderPalette();$('#palQ').value='';renderPalette();setTimeout(()=>$('#palQ').focus(),0)}}
+$('#addBtn').onclick=e=>{e.stopPropagation();openPal($('#palette').hidden)};
+$('#palQ').addEventListener('input',renderPalette);
+$('#palQ').addEventListener('keydown',e=>{if(e.key==='Escape'){openPal(false);$('#addBtn').focus()}if(e.key==='Enter'){const b=$('#palList button');if(b)b.click()}});
+document.addEventListener('pointerdown',e=>{if(!$('#palette').hidden&&!e.target.closest('.addmenu'))openPal(false)});
+$('#palette').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;openPal(false);const t=b.dataset.t,id=nextId(t);
  act(`Add ${id} (${T[t].label})`,()=>addNode(t),{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}. Use ▾ → Connect to wire it.`,'s')}})});
 function renderCrumb(){
  const path=[];let c=S.nodes[V.scope];while(c){path.unshift(c);c=S.nodes[c.parent]}
- $('#crumb').innerHTML=`<button data-s="root">${esc(S.project)}</button>`+path.map(n=>`<span>/</span><button data-s="${n.id}">${n.id} ${esc(n.name)}</button>`).join('');
+ $('#crumb').innerHTML=`<button data-s="root" title="Top level of the design">⌂ ${esc(S.project)}</button>`+path.map(n=>`<span>/</span><button data-s="${n.id}">${n.id} ${esc(n.name)}</button>`).join('');
 }
 $('#crumb').addEventListener('click',e=>{const b=e.target.closest('button');if(b){V.scope=b.dataset.s;V.sel=null;V.selE=null;fit();changed()}});
 
@@ -1989,6 +2214,7 @@ function run(raw,opt={}){
  if(!opt.noModel&&S.settings.engine!=='rules'&&!(S.settings.engine==='auto'&&Date.now()-MODEL.failedAt<60000)&&(isVision(l)||isComplex(l)))return visionOrModel(c,l);
  if(isVision(l))return visionOrModel(c,l,true);
  if(/^(why|explain|what is wrong|what's wrong)/.test(l)&&ids.length){const fs=findings.filter(f=>f.target===ids[0]||f.why.includes(ids[0]));say(fs.length?fs.map(f=>`${f.id} ${f.title}: ${f.why} [${f.basis.join(', ')}]`).join('\n'):`${ids[0]} has no findings: ${fmt((F[ids[0]]||{}).in||0)} rps at ${pct((F[ids[0]]||{}).util||0)}.`,'s');return}
+ if(/^stack\b/i.test(c)){stackCmd(c);return}
  if(m=c.match(/^(principle|truth|ground truth|capability)\s*:\s*(.+)/i)){addRule({principle:'ea',truth:'gt','ground truth':'gt',capability:'cap'}[m[1].toLowerCase()],m[2]);say('Added. Version bumped.','s');return}
  if(/what if|what happens|simulate/.test(l)){
   if(ids.length&&/fail|down|lost|outage|dies/.test(l)){ids.forEach(id=>S.nodes[id].failed=true);say(`Simulating failure of ${ids.join(', ')}. See the red paths and the advisor.`,'s');changed();return}
@@ -2565,14 +2791,65 @@ function changed(){
  persist();
 }
 
+
+/* ---------- data centre stack (non-cloud products per component) ---------- */
+const STACK_TYPES=['cdn','waf','lb','egw','gw','idp','svc','vm','fn','queue','cache','db','obj','reg','art','kms','sec','mon'];
+function stackType(w){w=String(w||'').toLowerCase().trim();if(w==='kafka')return 'q:kafka';if(w==='mq'||w==='message broker')return 'q:mq';
+ return STACK_TYPES.find(t=>t===w||T[t].p.toLowerCase()===w||T[t].label.toLowerCase()===w||T[t].label.toLowerCase().startsWith(w)&&w.length>2)||null}
+function setStack(key,val,label){S.dcStack=S.dcStack||{svc:{},q:{}};S.dcStack.svc=S.dcStack.svc||{};S.dcStack.q=S.dcStack.q||{};
+ const [grp,t]=key.startsWith('q:')?['q',key.slice(2)]:['svc',key];const before=(S.dcStack[grp][t])||PACK.vmware[grp][t];
+ if((val||'')===(S.dcStack[grp][t]||''))return;pushUndo(`Data centre stack: ${label} ${before} → ${val||PACK.vmware[grp][t]}`);
+ if(val)S.dcStack[grp][t]=val;else delete S.dcStack[grp][t];changed()}
+function stackCmd(c){
+ if(/^stack\s*$/i.test(c)){say('Data centre stack (used when Deploy is Data centre or Hybrid):\n'+STACK_TYPES.map(t=>`${T[t].label}: ${(S.dcStack&&S.dcStack.svc&&S.dcStack.svc[t])||PACK.vmware.svc[t]}${S.dcStack&&S.dcStack.svc&&S.dcStack.svc[t]?' (yours)':''}`).join('\n')+`\nEvent stream: ${pk().q.kafka} · Message broker: ${pk().q.mq}\nChange one with: stack database = Oracle Database 19c`,'s');return}
+ if(/^stack\s+reset\b/i.test(c)){if(S.dcStack){pushUndo('Data centre stack reset to industry defaults');delete S.dcStack;changed()}say('Data centre stack reset to the industry defaults.','s');return}
+ const m=c.match(/^stack\s+(.+?)\s*(?:=|:|\bto\b|\bis\b)\s*(.+)$/i);
+ if(!m){say('Use: stack · stack database = Oracle Database 19c · stack lb = Citrix ADC · stack reset','s');return}
+ const k=stackType(m[1]);if(!k){say(`I do not know the component "${m[1]}". Try: ${STACK_TYPES.join(', ')}, kafka, mq.`,'s');return}
+ const label=k.startsWith('q:')?(k==='q:kafka'?'Event stream':'Message broker'):T[k].label;setStack(k,m[2].trim().slice(0,60),label);
+ say(`${label} in the data centre is now ${m[2].trim()}.${prov()==='vmware'?'':' It applies when Deploy is Data centre or Hybrid.'}`,'s');
+}
+function renderDcStack(){const el=$('#dcStack');if(!el)return;const cur=(S.dcStack&&S.dcStack.svc)||{},cq=(S.dcStack&&S.dcStack.q)||{};
+ el.innerHTML=STACK_TYPES.map(t=>`<label>${esc(T[t].label)}<input data-st="${t}" value="${esc(cur[t]||'')}" placeholder="${esc(PACK.vmware.svc[t])}"></label>`).join('')+
+  `<label>Event stream<input data-st="q:kafka" value="${esc(cq.kafka||'')}" placeholder="${esc(PACK.vmware.q.kafka)}"></label><label>Message broker<input data-st="q:mq" value="${esc(cq.mq||'')}" placeholder="${esc(PACK.vmware.q.mq)}"></label>`}
+$('#dcStack')&&$('#dcStack').addEventListener('change',e=>{const i=e.target.closest('input[data-st]');if(!i)return;const k=i.dataset.st;setStack(k,i.value.trim().slice(0,60),k.startsWith('q:')?(k==='q:kafka'?'Event stream':'Message broker'):T[k].label)});
+$('#dcReset')&&($('#dcReset').onclick=()=>{if(S.dcStack){pushUndo('Data centre stack reset to industry defaults');delete S.dcStack;changed()}renderDcStack()});
+$('#modelsBtn').addEventListener('click',renderDcStack);
+
+/* ---------- embedded in the NEXUS app (WP0) ---------- */
+// The app owns sign-in, roles and storage. It sends nexus:init {design,user,role,canEdit};
+// the canvas answers nexus:ready once it listens, and nexus:changed {design} after each change.
+const ROLE_MAP={owner:'lead',lead:'lead',architect:'architect',security:'security',reviewer:'reviewer',viewer:'reviewer'};
+const EMB={ready:false,canEdit:false,t:null};
+function embedChanged(){if(!EMB.ready||!EMB.canEdit)return;clearTimeout(EMB.t);EMB.t=setTimeout(()=>{parent.postMessage({type:'nexus:changed',design:JSON.parse(JSON.stringify(S))},location.origin)},1200)}
+window.addEventListener('message',ev=>{
+ if(!EMBED||ev.source!==parent||ev.origin!==location.origin)return;
+ const m=ev.data||{};
+ if(m.type!=='nexus:init')return;
+ EMB.ready=false;
+ const local=S.settings||{};// API keys stay in this browser tab; the server never stores them
+ if(m.design&&m.design.nodes)S=m.design;
+ migrate();ensureP8();ensureP2();ensureSettings();normalizeParts();
+ if(local.escalation&&local.escalation.key)S.settings.escalation.key=local.escalation.key;
+ if(local.llmApi&&local.llmApi.key)S.settings.llmApi.key=local.llmApi.key;
+ S.settings.user={name:(m.user&&m.user.name)||'You',role:ROLE_MAP[m.role]||'reviewer'};
+ EMB.canEdit=!!m.canEdit;
+ UNDO.length=0;REDO.length=0;LEDGER_PENDING=null;
+ const rs=$('#roleSel');if(rs){rs.disabled=true;rs.title='Set by your role in this project'}
+ V.scope='root';V.sel=null;V.selE=null;
+ renderRole();changed();fit();
+ EMB.ready=true;
+ if(m.first)say(`Signed in as ${S.settings.user.name}, ${m.roleLabel||m.role} on this project. ${EMB.canEdit?'Changes save to the project automatically.':'Read-only: you can inspect and simulate; changes are not saved.'}`,'s');
+});
+
 /* ---------- boot ---------- */
-if(!load()){seed();ensureSettings()}
+if(EMBED){seed();ensureSettings()}else if(!load()){seed();ensureSettings()}
 resize();
 changed();
 placePanels(true);
 setLayout(S.settings.view.layout||'focus');
 fit();
-say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
+if(EMBED)parent.postMessage({type:'nexus:ready'},location.origin);else say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
 if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
 say('Click ▾ on any component for actions. Every change is reviewed by the Action Guard and can be undone (Ctrl+Z). "help" lists console commands.','s');
 requestAnimationFrame(frame);

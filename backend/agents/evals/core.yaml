@@ -1,0 +1,32 @@
+# Harness evals: run with `python -m app.harness.evals` against the configured model.
+# Each case runs one agent on the sample design and checks what it did, not how it phrased it.
+- id: orch-waf
+  agent: orchestrator
+  goal: Put a WAF in front of every internet-facing entry point that lacks one.
+  expect:
+    tools_called: [design.read]
+    status: completed
+- id: orch-scale-svc2
+  agent: orchestrator
+  goal: SVC2 runs a single instance. Propose a change so it meets principle P2.
+  expect:
+    tools_called: [changeset.propose]
+    proposal: true
+- id: sec-review
+  agent: security
+  goal: Review the design for security issues and list the top three.
+  expect:
+    tools_called: [rules.check]
+    answer_mentions_any: [GT1, HTTP, TLS]
+- id: res-spof
+  agent: resilience
+  goal: What are the single points of failure?
+  expect:
+    tools_called: [design.read]
+    answer_mentions_any: [SVC2, DB1]
+- id: explain-readonly
+  agent: explainer
+  goal: Explain what this design does in five sentences.
+  expect:
+    status: completed
+    tools_not_called: [changeset.propose]

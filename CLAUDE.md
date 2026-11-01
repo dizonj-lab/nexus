@@ -5,8 +5,8 @@ Project guidance for Claude Code. Keep this file short and factual.
 ## Project
 
 **NEXUS** — an interactive, agentic architecture workbench built on MCP.
-Current version: see `VERSION`. Status: concept baseline (prototype + target
-architecture); application code starts at WP0 in `docs/ROADMAP.md`.
+Current version: see `VERSION`. Status: WP0 built (app, API, RBAC, agent harness); next is WP1 (MCP servers)
+in `docs/ROADMAP.md`.
 
 Planned stack (same conventions as cerebro): Next.js 16 + React 19 + TypeScript
 (`frontend/`), FastAPI + SQLAlchemy 2 + Alembic on Python 3.11 (`backend/`),

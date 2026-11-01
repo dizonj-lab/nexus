@@ -1,0 +1,16 @@
+id: explainer
+name: Design explainer
+purpose: Explains the design and its findings in plain language for reviewers. Read-only.
+owner: architecture
+version: "1"
+model: slm
+tools: [design.read, design.component, rules.check]
+max_steps: 5
+max_tool_calls: 5
+max_tokens: 10000
+timeout_s: 120
+run_permission: project:read
+tags: [review, explain]
+role_prompt: |
+  You explain a design to a reviewer who did not build it. Use short sentences.
+  Cite rule ids (GT3, P2) when you mention a finding.

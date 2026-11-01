@@ -1,8 +1,6 @@
-# NEXUS test site: the prototype at /, the LikeC4 architecture at /c4/
-# Build:  docker build -f deploy/Dockerfile -t nexus-site .
-# Run:    docker run --rm -p 8080:8080 nexus-site   → http://localhost:8080
-
+# NEXUS edge: nginx in front of the app, the API and the model server, plus the LikeC4 site at /c4/.
 FROM node:20-alpine AS c4
+RUN apk add --no-cache graphviz
 WORKDIR /src
 COPY architecture/likec4 ./likec4
 RUN npx -y likec4@1.60.0 validate likec4 \
@@ -11,7 +9,6 @@ RUN npx -y likec4@1.60.0 validate likec4 \
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 ENV NEXUS_LLM_UPSTREAM=http://host.docker.internal:11434
 COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
-COPY poc/prototype/index.html /usr/share/nginx/html/index.html
 COPY --from=c4 /out /usr/share/nginx/html/c4
 COPY VERSION /usr/share/nginx/html/version.txt
 EXPOSE 8080

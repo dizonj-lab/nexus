@@ -73,13 +73,17 @@ model {
   nexus = system 'NEXUS' {
     description 'Interactive, agentic architecture workbench'
 
+    edge = container 'Edge' {
+      technology 'nginx'
+      description 'One origin: app, API, model server and LikeC4 site; sign-in required for the model server and diagrams'
+    }
     web = webapp 'Workbench UI' {
       technology 'Next.js 16, React 19, Canvas'
-      description 'Canvas, floating cards, console, governance panes'
+      description 'Landing page, sign-in, projects, members, changesets, agent runs, administration; embeds the canvas (prototype until WP1)'
     }
     api = container 'NEXUS API' {
       technology 'FastAPI, Python 3.11'
-      description 'Projects, versions, component IDs, sharing, WebSocket updates'
+      description 'Sign-in sessions, per-project roles (RBAC), design store with versions, changesets, agent runs, audit trail'
     }
     gateway = container 'MCP gateway' {
       technology 'MCP Streamable HTTP, OAuth 2.1'
@@ -91,7 +95,7 @@ model {
     }
     harness = container 'Agent harness' {
       technology 'Python, MCP client, eval suite'
-      description 'Runs every agent with tool permissions, budgets, traces and regression evals; nothing reaches the design without an approval gate'
+      description 'Agent cards (role, tools, model tier, budget); tool policy = card tools ∩ the caller\'s permissions; budgets; traces; evals. Agents propose changesets only'
     }
     experts = agent 'Domain expert agents' {
       description 'Specialists consulted by the orchestrator; each cites its basis'
@@ -194,6 +198,10 @@ model {
   nexus.web -> nexus.api 'REST + WebSocket'
   nexus.api -> nexus.db 'reads / appends events'
   nexus.api -> nexus.orchestrator 'console intents, review requests'
+  nexus.api -> nexus.harness 'agent runs, with the caller\'s permissions'
+  nexus.edge -> nexus.web 'pages'
+  nexus.edge -> nexus.api '/api'
+  nexus.edge -> nexus.router '/llm (signed-in only)'
   nexus.api -> nexus.guardian 'every proposed change'
   nexus.api -> nexus.workflow 'changesets, approvals'
   nexus.workflow -> nexus.db 'ledger, ADRs, comments'

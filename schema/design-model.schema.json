@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nexus.local/schema/design-model.schema.json",
+  "title": "NEXUS design model",
+  "description": "The single source of truth for a design. Terraform, LikeC4 and the Design Tree are generated from it. Schema 3 is the prototype's format; unknown properties are kept so the prototype can keep evolving until WP1 fixes the model.",
+  "type": "object",
+  "required": ["schema", "project", "deploy", "nodes", "edges"],
+  "properties": {
+    "schema": {"type": "integer", "minimum": 3},
+    "project": {"type": "string", "maxLength": 80},
+    "deploy": {"enum": ["aws", "azure", "gcp", "vmware", "local", "hybrid"]},
+    "mult": {"type": "number", "minimum": 0},
+    "nodes": {
+      "type": "object",
+      "maxProperties": 2000,
+      "propertyNames": {"pattern": "^[A-Za-z][A-Za-z0-9._-]{0,31}$"},
+      "additionalProperties": {"$ref": "#/$defs/node"}
+    },
+    "edges": {"type": "array", "maxItems": 5000, "items": {"$ref": "#/$defs/edge"}},
+    "caps": {"type": "array", "items": {"type": "object", "required": ["id"]}},
+    "ea": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+    "gt": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+    "adrs": {"type": "array", "items": {"type": "object"}},
+    "history": {"type": "array", "items": {"type": "object"}},
+    "versions": {"type": "array", "items": {"type": "object"}},
+    "log": {"type": "array", "items": {"type": "object"}},
+    "settings": {"type": "object"}
+  },
+  "$defs": {
+    "componentType": {
+      "enum": ["user", "ext", "saas", "cdn", "waf", "lb", "egw", "gw", "idp", "svc", "vm", "fn", "api", "adp",
+               "queue", "cache", "db", "obj", "part", "reg", "art", "kms", "sec", "mon"]
+    },
+    "node": {
+      "type": "object",
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"$ref": "#/$defs/componentType"},
+        "name": {"type": "string", "maxLength": 80},
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "parent": {"type": ["string", "null"]},
+        "rep": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "tier": {"type": "string"},
+        "readReplicas": {"type": "integer", "minimum": 0},
+        "shards": {"type": "integer", "minimum": 1},
+        "partitions": {"type": "integer", "minimum": 1},
+        "consumers": {"type": "integer", "minimum": 1},
+        "brokers": {"type": "integer", "minimum": 1},
+        "rateLimit": {"type": ["number", "null"], "minimum": 0},
+        "standby": {"type": ["boolean", "integer"]},
+        "justification": {"type": "string"}
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"type": "string"},
+        "to": {"type": "string"},
+        "proto": {"type": "string"},
+        "via": {"type": "string"},
+        "kind": {"enum": ["flow", "dep"]}
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "t"],
+      "properties": {"id": {"type": "string"}, "t": {"type": "string"}, "src": {"type": "string"}}
+    }
+  }
+}

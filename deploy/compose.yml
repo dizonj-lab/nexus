@@ -1,29 +1,65 @@
-# NEXUS test site on Buddy (home LLM server, 192.168.1.93).
-#   cd nexus && docker compose -f deploy/compose.yml up -d --build
-#   → http://192.168.1.93:8088      prototype
-#   → http://192.168.1.93:8088/c4/  LikeC4 architecture
-# Host port is configurable because 3000/8080 are often taken by Open WebUI etc.:
-#   NEXUS_PORT=8090 docker compose -f deploy/compose.yml up -d --build
-# Model server for the architect console (default: Ollama on Buddy):
-#   NEXUS_LLM_UPSTREAM=http://host.docker.internal:8000 docker compose -f deploy/compose.yml up -d --build
+# NEXUS on Buddy: web app, API, PostgreSQL and the nginx edge.
+#   ./deploy/buddy.sh           first run creates deploy/.env with secrets and the first administrator
+#   → http://<buddy>:8088/      landing page and sign-in
+# Settings live in deploy/.env (never committed). See deploy/env.example.
 name: nexus
 services:
-  site:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile
-    image: nexus-site:latest
-    ports:
-      - "${NEXUS_PORT:-8088}:8080"
+  db:
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
-      # OpenAI-compatible model server on Buddy. Ollama listens on 11434,
-      # vLLM usually on 8000. The console calls it at /llm/v1.
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - nexus-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: { context: .., dockerfile: backend/Dockerfile }
+    image: nexus-backend:latest
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      NEXUS_ENV: production
+      NEXUS_DATABASE_URL: postgresql+psycopg://nexus:${POSTGRES_PASSWORD}@db:5432/nexus
+      NEXUS_SECRET_KEY: ${NEXUS_SECRET_KEY:?set NEXUS_SECRET_KEY in deploy/.env}
+      NEXUS_COOKIE_SECURE: ${NEXUS_COOKIE_SECURE:-false}
+      NEXUS_ADMIN_EMAIL: ${NEXUS_ADMIN_EMAIL:-}
+      NEXUS_ADMIN_PASSWORD: ${NEXUS_ADMIN_PASSWORD:-}
+      NEXUS_ADMIN_NAME: ${NEXUS_ADMIN_NAME:-Administrator}
+      # Agents call the model server directly (OpenAI-compatible).
+      NEXUS_LLM_BASE_URL: ${NEXUS_LLM_UPSTREAM:-http://host.docker.internal:11434}/v1
+      NEXUS_SLM_MODEL: ${NEXUS_SLM_MODEL:-qwen2.5:7b-instruct}
+      NEXUS_LLM_MODEL: ${NEXUS_LLM_MODEL:-gpt-oss:latest}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  frontend:
+    build: { context: .., dockerfile: frontend/Dockerfile }
+    image: nexus-frontend:latest
+    restart: unless-stopped
+    depends_on: [backend]
+
+  web:
+    build: { context: .., dockerfile: deploy/web.Dockerfile }
+    image: nexus-web:latest
+    restart: unless-stopped
+    depends_on: [backend, frontend]
+    ports:
+      # NEXUS_BIND=127.0.0.1 when a tunnel or reverse proxy fronts it; the default serves the home LAN.
+      - "${NEXUS_BIND:-0.0.0.0}:${NEXUS_PORT:-8088}:8080"
+    environment:
       NEXUS_LLM_UPSTREAM: ${NEXUS_LLM_UPSTREAM:-http://host.docker.internal:11434}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    extra_hosts: ["host.docker.internal:host-gateway"]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
       interval: 30s
       timeout: 3s
       retries: 3
+
+volumes:
+  nexus-db:
