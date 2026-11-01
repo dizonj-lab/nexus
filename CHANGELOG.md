@@ -5,6 +5,26 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.5] — 2026-11-01
+
+### Added
+- **Zone outage simulation**: set the zones in the region (1–3) and fail one,
+  in the Load panel (Resilience) or with `fail zone a` / `restore zone` /
+  `zones 3`. Each component is affected by how it is deployed:
+  instances spread round-robin over the zones lose their share; a single
+  instance (zone a) or a component pinned by its subnet's zone goes down; a
+  database fails over to its standby (1–2 minutes) or goes down without one;
+  regional managed services survive; zonal ones survive only one per zone.
+  A failed cache sends its reads to the database. The result says whether
+  the design survives, with errors, the bottleneck, and a fix per component;
+  the Inspector shows each component's zone placement.
+- **Internal users**: Add component → People and outside → Internal users
+  (company network), or set "Comes from" on any Users component. New flows
+  use a site-to-site VPN by default. Rules: internal users enter through an
+  internal load balancer or API gateway (zero trust), are flagged when routed
+  over the public internet, and need workforce sign-in federated to the
+  corporate directory. Their traffic is not billed as internet data transfer.
+
 ## [0.2.4] — 2026-11-01
 
 ### Added

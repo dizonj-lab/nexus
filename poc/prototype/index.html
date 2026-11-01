@@ -339,7 +339,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.4">NEXUS<small>Architecture Workbench · v0.2.4</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.5">NEXUS<small>Architecture Workbench · v0.2.5</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -422,6 +422,9 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
         <label>Response <input id="wResp" type="number" min="0" max="1048576" step="1"> KB</label>
         <label>Reads <input id="wRead" type="number" min="0" max="100" step="5"> %</label>
         <label>Cache hit <input id="wHit" type="number" min="0" max="100" step="5"> %</label></div>
+      <div class="bar wlbar" title="Zone outage: which components survive the loss of one availability zone"><b>Resilience</b>
+        <label>Zones <select id="zCount"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+        <label>Outage <select id="zOut"></select></label><span id="zSum" class="why"></span></div>
       <div class="pbody" style="max-height:330px"><div class="demstats" id="demStats"></div><div id="demCharts"></div></div>
     </section>
 
@@ -626,10 +629,11 @@ const PACK={
   dbClass:{s:'2 vCPU / 8 GiB',m:'4 vCPU / 16 GiB',l:'8 vCPU / 32 GiB',xl:'16 vCPU / 64 GiB',xxl:'32 vCPU / 128 GiB'},shard:'Citus',
   waf:'OWASP CRS + F5 attack signatures'}
 };
-Object.values(PACK).forEach(p=>{p.zone.platform='SHARED PLATFORM SERVICES';p.zone.third='THIRD PARTIES · OUTSIDE YOUR BOUNDARY';p.svc.part='Part'});
+Object.values(PACK).forEach(p=>{p.zone.corp=`CORPORATE NETWORK · ${p.vpn} / ${p.dedicated}`;p.zone.platform='SHARED PLATFORM SERVICES';p.zone.third='THIRD PARTIES · OUTSIDE YOUR BOUNDARY';p.svc.part='Part'});
 const prov=()=>({aws:'aws',azure:'azure',gcp:'gcp'}[S.deploy]||'vmware');
 // Data centre designs can name their own products (S.dcStack); everything else uses the pack defaults.
 let DCK='',DCV=null;
+const outerLabel=()=>pk().outer.replace(/\b\d (AZs?|zones?)\b/,m=>`${zoneCount()} ${m.split(' ')[1]}`);
 const pk=()=>{const p=PACK[prov()];if(p!==PACK.vmware||!S.dcStack)return p;const k=JSON.stringify(S.dcStack);if(k!==DCK){DCK=k;DCV={...p,svc:{...p.svc,...(S.dcStack.svc||{})},q:{...p.q,...(S.dcStack.q||{})}}}return DCV};
 const VIAS=['net','internet','privatelink','vpn','dedicated'];
 const viaName=v=>({net:'In-network',internet:'Public internet',privatelink:pk().pl,vpn:pk().vpn,dedicated:pk().dedicated}[v]||v);
@@ -637,12 +641,13 @@ const viaShort=v=>({net:'',internet:'internet',privatelink:pk().pl,vpn:'VPN',ded
 const idpKey=n=>n.audience==='workforce'?'work':(n.idpMode||'native');
 function svcName(n){
  const P=pk();
+ if(n.type==='user'&&n.origin==='corp')return 'Company network';
  if(n.type==='db')return `${P.svc.db} · ${P.dbClass[n.tier||'m']}`;
  if(n.type==='queue')return P.q[n.flavor||'native'];
  if(n.type==='idp')return P.idp[idpKey(n)]+(idpKey(n)==='corp'&&n.fedIdp?` (${n.fedIdp})`:'');
  return P.svc[n.type]||T[n.type].label;
 }
-const zoneOf=n=>{if(!n)return 'app';if(n.type==='part'){const p=S.nodes[n.parent];return p?zoneOf(p):'app'}return T[n.type].zone};
+const zoneOf=n=>{if(!n)return 'app';if(n.type==='user'&&n.origin==='corp')return 'corp';if(n.type==='part'){const p=S.nodes[n.parent];return p?zoneOf(p):'app'}return T[n.type].zone};
 
 const SYN=[['cdn',/\bcdn\b|edge cache|cloudfront|front ?door/],['egw',/egress|\bnat\b|forward proxy|outbound/],['waf',/\bwaf\b|web application firewall/],['lb',/load ?balancer|\blb\b/],['reg',/registry|\becr\b|\bacr\b|harbor/],['kms',/\bkms\b|key management|key vault|\bhsm\b/],['sec',/secret/],['mon',/observability|monitoring|logging|cloudwatch|prometheus|siem/],['art',/artifact|artefact|package store/],['queue',/queue|kafka|\bmsk\b|event ?bus|event hubs?|service bus|\bsqs\b|pub ?sub|rabbit|\bmq\b|messaging|streaming/],['gw',/gateway|\bapim\b|\bkong\b/],['idp',/identity|\bidp\b|\bsso\b|keycloak|entra|okta|cognito|federat/],['cache',/cache|redis|memcache/],['obj',/object|bucket|\bblob|\bs3\b/],['db',/database|\bdb\b|postgres|\bsql\b|mysql|mongo|oracle|aurora|\brds\b/],['fn',/function|lambda|serverless/],['vm',/\bvm\b|virtual (server|machine)|\bec2\b/],['api',/endpoint|route/],['adp',/adapter/],['saas',/saas|salesforce|stripe|workday|servicenow|twilio|sendgrid/],['ext',/external|third.party|partner|on.?prem|legacy/],['user',/users?\b|customers?|clients?|actor|staff/],['svc',/service|microservice|container|\bapi\b|\bapp\b/]];
 const typeOf=s=>{for(const [t,r] of SYN) if(r.test(s)) return t; return null};
@@ -812,10 +817,32 @@ const mbpsOf=rps=>rps*(wl().reqKB+wl().respKB)*8/1000;
 const EGRESS_GB={aws:.09,azure:.087,gcp:.12,vmware:0};
 // Tiered like the providers' list prices: the first 10 TB at the base rate, cheaper per GB beyond 10, 50 and 150 TB.
 const EGRESS_TIERS=[[10240,1],[40960,.944],[102400,.778],[Infinity,.556]];
-function egressCost(){if(!KPI||!KPI.offered)return 0;const base=EGRESS_GB[prov()]??0;let gb=KPI.offered*(1-(KPI.err||0))*wl().respKB*2.63e6/1048576,c=0;
+function egressCost(){if(!KPI||!KPI.offered)return 0;const base=EGRESS_GB[prov()]??0;let gb=(KPI.offNet??KPI.offered)*(1-(KPI.err||0))*wl().respKB*2.63e6/1048576,c=0;
  for(const [size,f] of EGRESS_TIERS){const x=Math.min(gb,size);c+=x*base*f;gb-=x;if(gb<=0)break}return c}
 // Provider request-size limits (documented maximums) that the payload must fit.
 const PAYLOAD_LIMIT=[['aws','gw',10240,'Amazon API Gateway accepts payloads up to 10 MB'],['aws','fn',6144,'AWS Lambda accepts synchronous payloads up to 6 MB'],['gcp','svc',32768,'Cloud Run accepts HTTP/1 requests up to 32 MiB']];
+/* ---------- zones and zone outage ---------- */
+// Instances spread round-robin over the region's zones (a, b, c). A subnet with a zone pins its components to it.
+const ZN='abc';
+const zoneCount=()=>Math.min(3,Math.max(1,+((S.settings&&S.settings.zones)||2)));
+const zoneList=()=>ZN.slice(0,zoneCount()).split('');
+const homeZone=n=>{const x=n.net&&(S.nets||[]).find(y=>y.id===n.net);const z=x&&x.az?String(x.az).trim().toLowerCase().slice(-1):null;return z&&ZN.includes(z)?z:null};
+function placementText(n){const N=zoneCount(),home=homeZone(n);
+ if(isManaged(n)){const res=(MQ[n.type]||{}).res;return res==='zonal'?(n.perAz?`one per zone (${zoneList().join(', ')})`:`zonal, in zone ${home||'a'}`):`${res||'regional'}: the provider spans zones`}
+ if(n.type==='db')return `primary in zone ${home||'a'}${n.standby&&N>1?`, standby in zone ${ZN[(ZN.indexOf(home||'a')+1)%N]}`:', no standby'}`;
+ if(home)return `pinned to zone ${home} by subnet ${(S.nets||[]).find(y=>y.id===n.net).name}`;
+ const r=(F[n.id]&&F[n.id].rep)||repOf(n);return r<2?'one instance, in zone a':`${r} instances spread over zones ${zoneList().join(', ')}`}
+// What an outage of zone S.outage does to one component.
+function zoneHit(n,r0){const z=S.outage;if(!z||!zoneList().includes(z)||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return null;
+ const N=zoneCount(),home=homeZone(n);
+ if(isManaged(n)){const res=(MQ[n.type]||{}).res;if(res!=='zonal')return null;if(n.perAz)return N>1?{frac:(N-1)/N,why:`loses its zone ${z} copy; the others carry on`}:{down:true,why:'only one zone'};return (home||'a')===z?{down:true,why:`zonal service deployed only in zone ${home||'a'}`}:null}
+ if(n.type==='db'){const pz=home||'a';if(pz!==z)return n.standby&&N>1?{why:'its standby zone is lost: no failover target until it returns'}:null;
+  return n.standby&&N>1?{failover:true,why:`primary in zone ${pz} lost: fails over to the standby in about 1–2 minutes`}:{down:true,why:`primary in zone ${pz} lost and there is no standby`}}
+ if(home)return home===z?{down:true,why:`pinned to zone ${home} by its subnet`}:null;
+ const r=r0??(F[n.id]&&F[n.id].rep)??(autoOf(n)?Math.max(autoOf(n).min,n.rep||1):(n.rep||1));if(r<2)return z==='a'?{down:true,why:'runs one instance, in zone a'}:null;
+ const lost=Array.from({length:r},(_,i)=>ZN[i%N]).filter(x=>x===z).length;
+ return lost?{frac:(r-lost)/r,lost,why:`loses ${lost} of ${r} instances in zone ${z}${autoOf(n)?'; autoscaling replaces them in the other zones after the scale-out delay':''}`}:null}
+const isDownNow=n=>!!n&&(n.failed||!!(n.parent==='root'&&(zoneHit(n)||{}).down));
 // Single-primary database: writes land on each shard's primary; reads spread over primary + read replicas.
 function dbLoad(n,i,o={}){
  const rw=o.rw??rwOf(n),k=1+(o.rr??n.readReplicas??0),sh=o.shards??n.shards??1,c=(o.cap??n.cap)*scaleOf(n);
@@ -848,17 +875,18 @@ function flowScope(pid,entryIn){
   const n=S.nodes[id],t=T[n.type],i0=inn[id],outs=es.filter(e=>e.from===id);
   let rep=n.rep||1,desired=null;const au=isFinite(t.cap)?autoOf(n):null;
   if(au){const lim=n.rateLimit?Math.min(i0,n.rateLimit):i0;desired=Math.min(au.max,Math.max(au.min,Math.ceil(lim/(capOf(n)*scaleOf(n)*tgtUtil()))||au.min));rep=SIM.on?(SIM.cur[id]??au.min):desired}
+  const zx=n.parent==='root'?zoneHit(n,rep):null,zf=zx&&zx.frac?zx.frac:1;
   const thr=n.rateLimit?Math.max(0,i0-n.rateLimit):0,i=i0-thr;
   let util,served,pass,lag=0,dbx=null,qx=null,noRoute=false;
   if(n.type==='user'){util=0;served=i;noRoute=i>0&&!outs.length;pass=served}
-  else if(n.failed){util=Infinity;served=0;pass=0}
-  else if(n.type==='db'){dbx=dbLoad(n,i);util=dbx.util;served=util<=1?i:i/util;pass=served}
-  else if(n.type==='queue'){qx=queueLoad(n,i);util=qx.util;served=Math.min(i,qx.brokerCap);pass=Math.min(served,qx.consCap);lag=served-pass}
-  else{const c=isManaged(n)?quotaOf(n):capOf(n)*rep*scaleOf(n);if(isManaged(n))rep=1;util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
+  else if(n.failed||(zx&&zx.down)){util=Infinity;served=0;pass=0}
+  else if(n.type==='db'){dbx=dbLoad(n,i);util=dbx.util/zf;served=util<=1?i:i/util;pass=served}
+  else if(n.type==='queue'){qx=queueLoad(n,i);util=qx.util/zf;served=Math.min(i,qx.brokerCap);pass=Math.min(served,qx.consCap);lag=served-pass}
+  else{const c=(isManaged(n)?quotaOf(n):capOf(n)*rep*scaleOf(n))*zf;if(isManaged(n))rep=1;util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
   const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
   lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95));
-  F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,desired,lat:lat[id],db:dbx,q:qx,noRoute};
-  pass*=(t.pass??1);const hasCache=outs.some(e=>S.nodes[e.to].type==='cache');
+  F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,desired,lat:lat[id],db:dbx,q:qx,noRoute,zx};
+  pass*=(t.pass??1);const hasCache=outs.some(e=>S.nodes[e.to].type==='cache'&&!isDownNow(S.nodes[e.to]));
   outs.forEach(e=>{let f=t.route?pass/outs.length:pass;const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-rwOf(tn)*wl().hit;EF.set(e,f);inn[e.to]+=f});
  }
  ns.forEach(n=>{if(kids(n.id).length)flowScope(n.id,F[n.id].served)});
@@ -866,11 +894,11 @@ function flowScope(pid,entryIn){
 function simulate(){
  F={};EF=new Map();flowScope('root',null);
  const root=kids('root'),users=root.filter(n=>n.type==='user');
- const offered=users.reduce((a,n)=>a+(n.rps||0)*S.mult,0);
+ const offered=users.reduce((a,n)=>a+(n.rps||0)*S.mult,0),offNet=users.filter(n=>n.origin!=='corp').reduce((a,n)=>a+(n.rps||0)*S.mult,0);
  let worst=null,err=0,lat=0,thr=0,lag=0,noRoute=0;
  root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(!worst||f.util>F[worst.id].util)worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
  if(offered)err=Math.max(err,noRoute/offered);
- KPI={offered,err:Math.min(1,err),lat:lat+(offered?xferMs():0),worst,thr:offered?thr/offered:0,lag,noRoute,mbps:mbpsOf(offered)};
+ KPI={offered,err:Math.min(1,err),lat:lat+(offered?xferMs():0),worst,thr:offered?thr/offered:0,lag,noRoute,mbps:mbpsOf(offered),offNet};
 }
 
 /* ---------- platform dependency expert ---------- */
@@ -920,7 +948,10 @@ function analyze(log=true){
   const a=N[e.from],b=N[e.to];if(!a||!b||!isFlow(e))return;
   const za=zoneOf(a),zb=zoneOf(b),f=EF.get(e)||0,ek=e.from+'>'+e.to;
   const cc=canConnect(a,b);if(!cc.ok)add('crit','compat:'+ek,b.id,`${a.id} → ${b.id} is not technically possible`,cc.why,['Technical constraint','EA-P5'],cc.alt?{k:'between',from:e.from,to:e.to}:{k:'unlink',from:e.from,to:e.to});
-  if(a.type==='user'&&!['waf','cdn'].includes(b.type)&&!['db','cache','obj'].includes(b.type))add('crit','direct:'+ek,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(f)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['GT3','EA-P1','ATT&CK T1190'],{k:'waf',from:e.from,to:e.to});
+  if(a.type==='user'&&a.origin==='corp'){
+   if(e.via==='internet')add('warn','corpnet:'+ek,b.id,`Internal users reach ${b.id} over the public internet`,`Route ${a.name} over ${pk().vpn} or ${pk().dedicated}, or treat them as internet users behind the WAF.`,['EA-P5','GT5'],{k:'via',from:e.from,to:e.to,via:'vpn'});
+   else if(!['lb','gw','waf','idp','cdn'].includes(b.type))add('crit','corpentry:'+ek,b.id,`Internal users reach ${b.id} without an internal entry point`,`Even on the company network, requests enter through an internal load balancer or API gateway that authenticates every call (zero trust). ${b.id} is a ${T[b.type].label.toLowerCase()}.`,['EA-P1','EA-P5'],{k:'unlink',from:e.from,to:e.to})}
+  if(a.type==='user'&&!(a.origin==='corp'&&e.via!=='internet')&&!['waf','cdn'].includes(b.type)&&!['db','cache','obj'].includes(b.type))add('crit','direct:'+ek,b.id,`Untrusted traffic reaches ${b.id} without a WAF`,`${fmt(f)} rps from ${a.id} land on ${T[b.type].label.toLowerCase()} ${b.id} with no inspection.`,['GT3','EA-P1','ATT&CK T1190'],{k:'waf',from:e.from,to:e.to});
   if(EXTERNAL.includes(a.type)&&['db','obj','cache'].includes(b.type))add('crit','expose:'+ek,b.id,`Data store ${b.id} is reachable from outside`,`Direct path ${a.id} → ${b.id} bypasses every perimeter.`,['GT2','EA-P5','ATT&CK T1530'],{k:'unlink',from:e.from,to:e.to});
   const egress=EXTERNAL.includes(b.type)&&!EXTERNAL.includes(a.type);
   if(egress){
@@ -936,6 +967,8 @@ function analyze(log=true){
   const f=F[n.id];if(!f)return;
   if(n.type==='user'){if(f.noRoute)add('crit','noroute:'+n.id,n.id,`${n.id} "${n.name}" has no route into the system`,`${fmt(f.in)} rps from ${n.name} fail: every request errors until a path through the perimeter exists.`,['EA-P2','GT3'],null);return}
   if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return;
+  {const zx=f.zx;if(zx&&zx.down){add('crit','zout:'+n.id,n.id,`${n.id} is down in the zone ${S.outage} outage`,`${n.name} ${zx.why}. ${fmt(f.in)} rps arrive and fail. ${n.type==='db'?'Add a standby in another zone.':isManaged(n)?'Deploy one per zone.':'Run 2+ instances spread across zones, and do not pin it to one zone.'}`,['EA-P2'],n.type==='db'?{k:'standby',n:n.id}:isManaged(n)?{k:'perAz',n:n.id}:{k:'scale',n:n.id,to:2});return}
+   if(zx&&zx.failover)add('warn','zfo:'+n.id,n.id,`${n.id} fails over in the zone ${S.outage} outage`,`${n.name}: ${zx.why}. Writes pause during the failover; clients must reconnect.`,['EA-P2'],null)}
   if(n.failed){add('crit','fail:'+n.id,n.id,`${n.id} is down (what-if)`,`${fmt(f.in)} rps arrive and fail. ${n.standby?'The standby would take over in production.':'There is no standby to fail over to.'}`,['EA-P2'],{k:'restore',n:n.id});return}
   if(n.parent==='root'&&!S.edges.some(e=>e.to===n.id&&isFlow(e))&&f.in===0)add('warn','orphan:'+n.id,n.id,`${n.id} is unreachable`,`No flow reaches ${n.id}, so it serves nothing. Connect it or remove it.`,['EA-P2'],null);
   if(f.thr>0)add('warn','thr:'+n.id,n.id,`${n.id} throttles ${fmt(f.thr)} rps`,`Rate limit ${fmt(n.rateLimit)} rps rejects ${pct(f.thr/(f.in||1))} of requests with 429. Downstream is protected; those users are not served.`,['EA-P7','EA-P4'],{k:'decide',n:n.id});
@@ -973,6 +1006,7 @@ function analyze(log=true){
  out.forEach((f,i)=>f.id='F'+(i+1));
  S.edges.forEach(e=>{const a=N[e.from],b=N[e.to];if(a&&b&&isFlow(e)&&!extViaOk(a,b,e.via))add('crit','extnet:'+e.from+'>'+e.to,b.id,`${a.id} → ${b.id}: no direct network path to an external system`,extViaWhy(b),['Technical constraint','GT5'],{k:'via',from:e.from,to:e.to,via:b.pl?'privatelink':'internet'})});
  netGroupFindings(add);
+ if(kids('root').some(n=>n.type==='user'&&n.origin==='corp')&&!kids('root').some(n=>n.type==='idp'&&(n.idpMode==='corp'||n.audience==='workforce')))add('warn','corpidp',kids('root').find(n=>n.origin==='corp').id,'Internal users have no workforce sign-in',`Being on the company network is not proof of identity (zero trust). Add an identity provider federated to the corporate directory (${pk().idp.corp}), with MFA.`,['EA-P1'],{k:'idp'});
  {const w=wl();PAYLOAD_LIMIT.forEach(([pv,t,kb,why])=>{if(prov()!==pv)return;kids('root').filter(n=>n.type===t&&(t!=='svc'||true)).forEach(n=>{if(w.reqKB>kb)add('crit','payload:'+n.id,n.id,`Requests of ${fmt(w.reqKB)} KB are too large for ${n.id}`,`${why}. Upload large bodies straight to object storage with a pre-signed URL and pass a reference instead.`,['Technical constraint'],null)})})}
  {const open=kids('root').map(n=>[n,bpItems(n).filter(x=>x.c&&!x.on)]).filter(([,a])=>a.length);
   if(open.length)add('info','bp',open[0][0].id,`${open.length} component${open.length>1?'s have':' has'} critical settings not confirmed`,open.slice(0,6).map(([n,a])=>`${n.id}: ${a.map(x=>x.l.charAt(0).toLowerCase()+x.l.slice(1)).join(', ')}`).join('. ')+'. Confirm them under Critical configuration in the Inspector.',[...new Set(open.flatMap(([,a])=>a.map(x=>'WAF-'+x.p)))],null)}
@@ -1118,7 +1152,7 @@ function insertServiceBetween(a,b){const A=S.nodes[a],B=S.nodes[b];removeEdge(a,
 function removeNode(id){const all=[id];for(let i=0;i<all.length;i++)kids(all[i]).forEach(k=>all.push(k.id));all.forEach(x=>delete S.nodes[x]);S.edges=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to])}
 const findEdge=(a,b)=>S.edges.find(e=>e.from===a&&e.to===b&&isFlow(e));
 function removeEdge(a,b){S.edges=S.edges.filter(e=>!(e.from===a&&e.to===b))}
-function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(via&&!extViaOk(A,B,via))throw new Error(extViaWhy(B));if(!PLATFORM.includes(B.type)){const cc=canConnect(A,B);if(!cc.ok){const er=new Error(`${a} → ${b} is not technically possible. ${cc.why}`);er.alt=cc.alt?{from:a,to:b}:null;throw er}}if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||defVia(A.type,B.type)});return true}
+function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(via&&!extViaOk(A,B,via))throw new Error(extViaWhy(B));if(!PLATFORM.includes(B.type)){const cc=canConnect(A,B);if(!cc.ok){const er=new Error(`${a} → ${b} is not technically possible. ${cc.why}`);er.alt=cc.alt?{from:a,to:b}:null;throw er}}if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||(A.type==='user'&&A.origin==='corp'?'vpn':defVia(A.type,B.type))});return true}
 const TEMPLATES={
  svc:n=>[['api','GET /health'],['api','POST /'+n.name.split(' ')[0].toLowerCase()],['adp','Data adapter']],
  vm:()=>[['part','App runtime'],['part','Agent / sidecar']],
@@ -1358,7 +1392,7 @@ $('#ndOk').onclick=saveNetDlg;$('#ndCancel').onclick=closeNetDlg;$('#ndDel').onc
 $('#netDlg').addEventListener('keydown',e=>{if(e.key==='Escape')closeNetDlg();if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='checkbox')saveNetDlg()});
 function netInspHTML(n){if(['user','ext','saas','part'].includes(n.type)||n.parent!=='root')return '';
  const gs=(S.groups||[]).filter(g=>g.members.includes(n.id));
- return `<h4>Network placement</h4><label>Subnet <select id="iNet"><option value="">Default · ${esc(pk().zone[zoneOf(n)]||zoneOf(n))}</option>${(S.nets||[]).map(x=>`<option value="${x.id}" ${n.net===x.id?'selected':''}>${esc(x.name)} · ${esc(pk().zone[x.tier]||x.tier)}${x.cidr?' · '+esc(x.cidr):''}</option>`).join('')}<option value="__new">New subnet…</option></select></label>
+ return `<h4>Network placement</h4><div class="why">Zones: ${esc(placementText(n))}${F[n.id]&&F[n.id].zx?` · <b class="${F[n.id].zx.down?'crit':'warn'}">zone ${S.outage} outage: ${esc(F[n.id].zx.why)}</b>`:''}</div><label>Subnet <select id="iNet"><option value="">Default · ${esc(pk().zone[zoneOf(n)]||zoneOf(n))}</option>${(S.nets||[]).map(x=>`<option value="${x.id}" ${n.net===x.id?'selected':''}>${esc(x.name)} · ${esc(pk().zone[x.tier]||x.tier)}${x.cidr?' · '+esc(x.cidr):''}</option>`).join('')}<option value="__new">New subnet…</option></select></label>
  <div class="grpchips">${gs.map(g=>`<button type="button" class="gchip ${g.kind}" data-grp="${g.id}" title="Edit">${g.kind==='sg'?'SG':'APP'} · ${esc(g.name)}</button>`).join('')}<button type="button" class="btn" data-newgrp="sg">+ Security group</button><button type="button" class="btn" data-newgrp="ag">+ App group</button></div>`}
 function bindNetInsp(n){const s=document.getElementById('iNet');if(s)s.onchange=e=>{const v=e.target.value;if(v==='__new'){V.sel=n.id;openNetDlg('subnet');e.target.value=n.net||'';return}
   act(`Move ${n.id} to ${v?netById(v).name:'its default tier'}`,()=>{S.nodes[n.id].net=v||null})};
@@ -1723,7 +1757,7 @@ function nodeAt(sx,sy){
   if(V.mode==='iso'){if(Math.hypot(sx-p.x,sy-p.y)<44*V.k)return n}
   else if(Math.abs(sx-p.x)<NW/2*V.k&&Math.abs(sy-p.y)<NH/2*V.k)return n}
  return null}
-function zoneMembers(z){const ns=kids(V.scope);return z==='__outer'?ns.filter(n=>!['internet','third'].includes(drawZone(n))):ns.filter(n=>drawZone(n)===z)}
+function zoneMembers(z){const ns=kids(V.scope);return z==='__outer'?ns.filter(n=>!['internet','third','corp'].includes(drawZone(n))):ns.filter(n=>drawZone(n)===z)}
 function zoneAt(sx,sy){const tol=6;for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i];
   if(sx>=b.x0&&sx<=b.x0+b.lw&&sy>=b.y0-2&&sy<=b.y0+18*V.k)return b.z;}
  for(let i=zoneHits.length-1;i>=0;i--){const b=zoneHits[i],inX=sx>=b.x0-tol&&sx<=b.x1+tol,inY=sy>=b.y0-tol&&sy<=b.y1+tol;
@@ -1823,8 +1857,8 @@ function drawIsoZones(ns){
  const plate=(q,col,alpha,dash,lw)=>{ctx.beginPath();q.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.globalAlpha=alpha*.13;ctx.fillStyle=col;ctx.fill();ctx.setLineDash(dash);ctx.globalAlpha=alpha;ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1};
  const label=(q,txt,col)=>{const a=q[0],b=q[1];ctx.save();ctx.translate(a.x,a.y);ctx.rotate(Math.atan2(b.y-a.y,b.x-a.x));ctx.globalAlpha=.85;ctx.fillStyle=col;ctx.fillText(txt,10*V.k,-6*V.k);ctx.restore();ctx.globalAlpha=1};
  const Wb={};Object.entries(byZ).forEach(([z,a])=>{Wb[z]={x0:Math.min(...a.map(n=>n.x))-95,x1:Math.max(...a.map(n=>n.x))+95,y0:Math.min(...a.map(n=>n.y))-60,y1:Math.max(...a.map(n=>n.y))+60}});
- const inner=Object.entries(Wb).filter(([z])=>z!=='internet'&&z!=='third').map(([,b])=>b);
- if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-40,x1:Math.max(...inner.map(b=>b.x1))+40,y0:Math.min(...inner.map(b=>b.y0))-40,y1:Math.max(...inner.map(b=>b.y1))+40},q=quad(o);plate(q,colors.accent,.55,[],1.3);label(q,pk().outer,colors.accent)}
+ const inner=Object.entries(Wb).filter(([z])=>!['internet','third','corp'].includes(z)).map(([,b])=>b);
+ if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-40,x1:Math.max(...inner.map(b=>b.x1))+40,y0:Math.min(...inner.map(b=>b.y0))-40,y1:Math.max(...inner.map(b=>b.y1))+40},q=quad(o);plate(q,colors.accent,.55,[],1.3);label(q,outerLabel(),colors.accent)}
  Object.entries(Wb).forEach(([z,b])=>{const col=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted,q=quad(b);plate(q,col,z==='third'?.4:.6,[5,4],1);label(q,zoneLabel(z),col)});
 }
 function frame(now){
@@ -1838,12 +1872,12 @@ function frame(now){
  ctx.font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;
  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
  const boxes={};if(V.mode!=='iso')Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
- const inner=Object.entries(boxes).filter(([z])=>z!=='internet'&&z!=='third').map(([,b])=>b);
+ const inner=Object.entries(boxes).filter(([z])=>!['internet','third','corp'].includes(z)).map(([,b])=>b);
  if(inner.length&&V.scope==='root'){const o={x0:Math.min(...inner.map(b=>b.x0))-14*V.k,x1:Math.max(...inner.map(b=>b.x1))+14*V.k,y0:Math.min(...inner.map(b=>b.y0))-24*V.k,y1:Math.max(...inner.map(b=>b.y1))+12*V.k};
-  const hz=V.hoverZ==='__outer'||V.selZone==='__outer';ctx.strokeStyle=colors.accent;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(pk().outer,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
-  zoneHits.push({z:'__outer',...o,lw:ctx.measureText(pk().outer).width+20*V.k})}
+  const hz=V.hoverZ==='__outer'||V.selZone==='__outer';ctx.strokeStyle=colors.accent;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.globalAlpha=.85;ctx.fillStyle=colors.accent;ctx.fillText(outerLabel(),o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
+  zoneHits.push({z:'__outer',...o,lw:ctx.measureText(outerLabel()).width+20*V.k})}
  Object.entries(boxes).forEach(([z,b])=>{
-  const hz=V.hoverZ===z||V.selZone===z;ctx.setLineDash(hz?[]:[4,4]);ctx.strokeStyle=hz?colors.accent:z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.globalAlpha=hz?.9:z==='third'?.4:.55;ctx.lineWidth=hz?2.2:1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);if(hz){ctx.fillStyle=hexA(colors.accent,.05);ctx.fill()}
+  const hz=V.hoverZ===z||V.selZone===z;ctx.setLineDash(hz?[]:[4,4]);ctx.strokeStyle=hz?colors.accent:z==='internet'?colors.crit:z==='platform'||z==='corp'?colors.accent:colors.muted;ctx.globalAlpha=hz?.9:z==='third'?.4:.55;ctx.lineWidth=hz?2.2:1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);if(hz){ctx.fillStyle=hexA(colors.accent,.05);ctx.fill()}
   zoneHits.push({z,...b,lw:ctx.measureText(zoneLabel(z)).width+20*V.k});
   ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.fillText(zoneLabel(z),b.x0+8*V.k,b.y0+13*V.k);ctx.globalAlpha=1;
  });
@@ -2083,8 +2117,8 @@ function tidyAll(){
 }
 
 /* ---------- palette & crumb ---------- */
-const NETITEMS={__subnet:{p:'NET',l:'Subnet',s:'segment by tier, CIDR and zone'},__sg:{p:'SG',l:'Security group',s:'default-deny inbound rules'},__ag:{p:'APP',l:'Application group',s:'components of one business app'}};
-const PAL_GROUPS=[['Network',['__subnet','__sg','__ag']],['People and outside',['user','saas','ext']],['Edge and access',['cdn','waf','lb','egw','gw','idp']],['Compute',['svc','vm','fn','api','adp']],['Data and messaging',['queue','cache','db','obj']],['Shared platform',['reg','art','kms','sec','mon']]];
+const NETITEMS={__corp:{p:'U',l:'Internal users',s:'company network · VPN / dedicated'},__subnet:{p:'NET',l:'Subnet',s:'segment by tier, CIDR and zone'},__sg:{p:'SG',l:'Security group',s:'default-deny inbound rules'},__ag:{p:'APP',l:'Application group',s:'components of one business app'}};
+const PAL_GROUPS=[['Network',['__subnet','__sg','__ag']],['People and outside',['user','__corp','saas','ext']],['Edge and access',['cdn','waf','lb','egw','gw','idp']],['Compute',['svc','vm','fn','api','adp']],['Data and messaging',['queue','cache','db','obj']],['Shared platform',['reg','art','kms','sec','mon']]];
 function renderPalette(){const q=($('#palQ')&&$('#palQ').value||'').toLowerCase();
  const info=t=>T[t]?{p:T[t].p,l:T[t].label,s:pk().svc[t]||''}:NETITEMS[t];
  const body=PAL_GROUPS.map(([g,ts])=>{const items=ts.filter(t=>!q||info(t).l.toLowerCase().includes(q)||info(t).s.toLowerCase().includes(q)||t.includes(q));
@@ -2096,7 +2130,8 @@ $('#addBtn').onclick=e=>{e.stopPropagation();openPal($('#palette').hidden)};
 $('#palQ').addEventListener('input',renderPalette);
 $('#palQ').addEventListener('keydown',e=>{if(e.key==='Escape'){openPal(false);$('#addBtn').focus()}if(e.key==='Enter'){const b=$('#palList button');if(b)b.click()}});
 document.addEventListener('pointerdown',e=>{if(!$('#palette').hidden&&!e.target.closest('.addmenu'))openPal(false)});
-$('#palette').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;openPal(false);const t=b.dataset.t;if(t.startsWith('__')){if(who().role==='reviewer'){say('Reviewers cannot change the design.','g');return}openNetDlg({__subnet:'subnet',__sg:'sg',__ag:'ag'}[t]);return}const id=nextId(t);
+$('#palette').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;openPal(false);const t=b.dataset.t;if(t==='__corp'){const id=nextId('user');act(`Add ${id} (Internal users)`,()=>{const n=addNode('user','Employees');n.origin='corp';n.audience='workforce';n.rps=200},{after:()=>{V.sel=id;say(`Added ${id}, internal users on the company network. Connect it to an internal load balancer or API gateway; new flows use ${pk().vpn} by default.`,'s')}});return}
+ if(t.startsWith('__')){if(who().role==='reviewer'){say('Reviewers cannot change the design.','g');return}openNetDlg({__subnet:'subnet',__sg:'sg',__ag:'ag'}[t]);return}const id=nextId(t);
  act(`Add ${id} (${T[t].label})`,()=>addNode(t),{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}. Use ▾ → Connect to wire it.`,'s')}})});
 function renderCrumb(){
  const path=[];let c=S.nodes[V.scope];while(c){path.unshift(c);c=S.nodes[c.parent]}
@@ -2181,7 +2216,7 @@ function renderNodeInspector(body,n){
   <div class="just"><b>Justification</b><br>${just}</div>
   <label>Name <input id="iName" value="${esc(n.name)}"></label>
   <label>Connect to <select id="iConn"><option value="">Choose a component…</option>${others.map(m=>`<option value="${m.id}">${m.id} · ${esc(m.name)}</option>`).join('')}</select></label>`;
- if(n.type==='user')h+=`<label>Peak load (rps) <input id="iRps" type="number" min="0" step="100" value="${n.rps}"></label>`;
+ if(n.type==='user')h+=`<label>Comes from <select id="iOrigin"><option value="internet" ${n.origin!=='corp'?'selected':''}>Internet</option><option value="corp" ${n.origin==='corp'?'selected':''}>Company network (VPN / dedicated)</option></select></label><label>Peak load (rps) <input id="iRps" type="number" min="0" step="100" value="${n.rps}"></label>`;
  else if(ext)h+=`<label>Private connectivity <select id="iPl"><option value="1" ${n.pl?'selected':''}>Offered (${esc(pk().pl)})</option><option value="0" ${!n.pl?'selected':''}>Not offered</option></select></label>`;
  else if(n.type==='db'){
   h+=`<label>Instance size <select id="iTier">${TIER_ORDER.map(t=>`<option value="${t}" ${t===n.tier?'selected':''}>${TIERS[t].l} · ${pk().dbClass[t]}</option>`).join('')}</select></label>
@@ -2226,6 +2261,7 @@ function renderNodeInspector(body,n){
  h+=`<div class="just" style="font-family:var(--f-mono);font-size:10.5px"><b style="font-family:var(--f-body)">SLM enrichment</b><br>${Object.entries(n.enrich||{}).map(([k,v])=>`${esc(k)}: ${esc(v)}`).join('<br>')}</div>
   <div class="act">${ext||plat||part?'':`<button class="btn" id="iOpen">Open sub-design${kids(n.id).length?' ('+kids(n.id).length+')':''}</button><button class="btn" id="iInst">${n.expanded?'Hide':'Show'} instances</button>`}<button class="btn danger" id="iDel">Remove</button></div></div>`;
  body.innerHTML=h;bindBP(n);bindNetInsp(n);
+ {const o=document.getElementById('iOrigin');if(o)o.onchange=e=>{const v=e.target.value,id=n.id;act(`${id}: comes from ${v==='corp'?'the company network':'the internet'}`,()=>{const m=S.nodes[id];m.origin=v==='corp'?'corp':undefined;if(v==='corp'){m.audience='workforce';S.edges.filter(x=>x.from===id&&x.via==='internet').forEach(x=>x.via='vpn')}else S.edges.filter(x=>x.from===id&&['vpn','dedicated'].includes(x.via)).forEach(x=>x.via='internet')})}}
  const id=n.id,set=(desc,k,v)=>act(`${id}: ${desc}`,()=>{S.nodes[id][k]=v}),direct=(desc,fn)=>{pushUndo(`${id}: ${desc}`);fn();changed()};
  g('iName',v=>direct('rename',()=>{S.nodes[id].name=v}));g('iRps',v=>direct(`peak load ${v}`,()=>{S.nodes[id].rps=+v}));
  g('iConn',v=>{if(v)guardedConnect(id,v)});
@@ -2428,6 +2464,9 @@ function run(raw,opt={}){
  if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
  if(/^workload\b/i.test(c)){wlCmd(c);return}
+ if(m=l.match(/^(?:fail|lose|kill|take down|what if|simulate)\s+(?:an?\s+)?(?:availability\s+)?zone\s+([abc])\b|^zone\s+([abc])\s+(?:fails|outage|down)/)){const z=m[1]||m[2];if(!zoneList().includes(z)){say(`This design has ${zoneCount()} zone${zoneCount()>1?'s':''} (${zoneList().join(', ')}). Set more with "zones 3".`,'s');return}setOutage(z);return}
+ if(/^(restore|recover|end)\s+(the\s+)?zone|^zone\s+outage\s+off/.test(l)){setOutage(null);return}
+ if(m=l.match(/^zones?\s+([123])$/)){setZones(+m[1]);say(`The region now has ${zoneCount()} zones (${zoneList().join(', ')}).`,'s');return}
  if(/^((create|new|add)\s+(subnet|security group|sg|app(lication)? group)\b|move\s+[a-z]{1,4}\d+\s+(to|into)\b|allow\s+\S+\s+from\b)/i.test(c)&&netCmd(c,ids))return;
  if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nConversation: the model remembers the last turns · new conversation · revise PL-03: <what to change>\nPatterns: patterns · apply cqrs to SVC1 · apply zero-trust · apply event-driven\nQuality: eval console (scores your model on a fixed set of requests)\nRedesign: redesign · redesign: <goal> · fix the weak points · apply the second opinion\nModels: escalate (re-run the last request on the escalation model) · escalate: <request> · 2nd opinion (review the whole design) · 2nd opinion: <focus>\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
  if(/^(new conversation|forget|clear context|reset context)\b/.test(l)){CONV.length=0;PENDING_Q=false;remember('user','');CONV.length=0;$('#ctxTag').textContent='no context';say('Started a new conversation. The model still sees the current design.','s');return}
@@ -2460,7 +2499,7 @@ function run(raw,opt={}){
   let x=null;if(m=l.match(/(\d+(?:\.\d+)?)\s*(x|×|times)/))x=+m[1];else if(/double/.test(l))x=2;else if(/triple/.test(l))x=3;else if(/half|halve/.test(l))x=.5;else if(m=l.match(/(\d[\d,]*)\s*rps/)){const r=+m[1].replace(/,/g,''),base=kids('root').filter(n=>n.type==='user').reduce((a,n)=>a+n.rps,0)||1;x=r/base}
   if(x){setMult(x);say(`Load set to ${fmtMult(S.mult)} (${fmt(KPI.offered)} rps). Autoscaled to ${fmt(totalInst())} instances, ≈$${fmt(totalCost())}/month. Bottleneck: ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}.`,'s');return}
  }
- if(/^reset/.test(l)){Object.values(S.nodes).forEach(n=>n.failed=false);setMult(1);say('What-if cleared.','s');return}
+ if(/^reset/.test(l)){Object.values(S.nodes).forEach(n=>n.failed=false);S.outage=null;setMult(1);say('What-if cleared.','s');return}
  if(/^(fail|kill|take down)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=true);changed();say(`${ids.join(', ')} failed.`,'s');return}
  if(m=l.match(/^restore\s+v(\d+)/)){const v=S.versions[+m[1]-1];if(!v){say('No such version.','s');return}pushUndo(`Restore v${m[1]}`);const keep={versions:S.versions,log:S.log};S={...JSON.parse(v.data),...keep};migrate();V.scope='root';fit();changed();say(`Restored v${m[1]} (${v.note}).`,'s');return}
  if(/^(restore|recover|heal)\b/.test(l)&&ids.length){ids.forEach(id=>S.nodes[id].failed=false);changed();say(`${ids.join(', ')} restored.`,'s');return}
@@ -3062,7 +3101,9 @@ $('#modelsBtn').addEventListener('click',renderDcStack);
 
 
 /* ---------- workload controls ---------- */
-function renderWL(){const w={...WL_DEF,...(S.workload||{})};[['wReq','reqKB'],['wResp','respKB'],['wRead','read'],['wHit','hit']].forEach(([id,k])=>{const e=$('#'+id);if(e&&document.activeElement!==e)e.value=w[k]})}
+function renderZ(){const c=$('#zCount'),o=$('#zOut');if(!c||!o)return;c.value=String(zoneCount());o.innerHTML='<option value="">None</option>'+zoneList().map(z=>`<option value="${z}" ${S.outage===z?'selected':''}>Zone ${z} fails</option>`).join('');
+ const s=$('#zSum');if(s)s.innerHTML=S.outage?outageLine():''}
+function renderWL(){renderZ();const w={...WL_DEF,...(S.workload||{})};[['wReq','reqKB'],['wResp','respKB'],['wRead','read'],['wHit','hit']].forEach(([id,k])=>{const e=$('#'+id);if(e&&document.activeElement!==e)e.value=w[k]})}
 function setWL(k,v,label){const w={...WL_DEF,...(S.workload||{})};if(+w[k]===+v)return;pushUndo(`Workload: ${label} ${w[k]} → ${v}`);S.workload={...w,[k]:+v};
  logAI('Simulation',`Workload ${label} set to ${v}`,`Request ${S.workload.reqKB} KB, response ${S.workload.respKB} KB, reads ${S.workload.read}%, cache hit ${S.workload.hit}%`,1);changed();renderDem()}
 [['wReq','reqKB','request size (KB)'],['wResp','respKB','response size (KB)'],['wRead','read','read share (%)'],['wHit','hit','cache hit ratio (%)']].forEach(([id,k,l])=>{const e=$('#'+id);if(e)e.onchange=()=>{const v=Math.max(0,+e.value||0);setWL(k,k==='read'||k==='hit'?Math.min(100,v):v,l)}});
@@ -3075,6 +3116,17 @@ function wlCmd(c){const w={...WL_DEF,...(S.workload||{})},n={...w};let m;
  if(JSON.stringify(n)===JSON.stringify(w)){say(`Workload: request ${w.reqKB} KB, response ${w.respKB} KB, reads ${w.read}%, cache hit ${w.hit}%. Change it with: workload request 4kb response 64kb reads 70% cache hit 90%`,'s');return}
  pushUndo(`Workload: request ${n.reqKB} KB, response ${n.respKB} KB, reads ${n.read}%, cache hit ${n.hit}%`);S.workload=n;changed();renderDem();
  say(`Workload set: request ${n.reqKB} KB, response ${n.respKB} KB, reads ${n.read}%, cache hit ${n.hit}%. Throughput ${fmt(KPI.mbps)} Mbps, latency ≈${fmt(KPI.lat)} ms, bottleneck ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}, cost ≈$${fmt(totalCost())}/month.`,'s')}
+
+
+function outageReport(){const ns=kids('root').filter(n=>F[n.id]&&F[n.id].zx);const down=ns.filter(n=>F[n.id].zx.down),fo=ns.filter(n=>F[n.id].zx.failover),deg=ns.filter(n=>F[n.id].zx.frac);
+ return {down,fo,deg,ok:KPI.err<.005&&!down.length}}
+function outageLine(){const r=outageReport();return `<b class="${r.ok?'ok':'crit'}">${r.ok?'Survives':'Does not survive'}</b> · errors ${(KPI.err*100).toFixed(1)}%${r.down.length?` · down: ${r.down.map(n=>n.id).join(', ')}`:''}${r.fo.length?` · fails over: ${r.fo.map(n=>n.id).join(', ')}`:''}${r.deg.length?` · reduced: ${r.deg.map(n=>n.id).join(', ')}`:''}`}
+function setOutage(z){const was=S.outage||null;z=z||null;if(was===z)return;S.outage=z;changed();renderDem();
+ logAI('Simulation',z?`Zone ${z} outage simulated`:'Zone outage cleared',z?outageLine().replace(/<[^>]+>/g,''):'',1);
+ if(!z){say('Zone outage cleared.','s');return}const r=outageReport();
+ say(`Zone ${z} outage (${zoneCount()} zones): ${r.ok?'the design survives':'the design does NOT survive'}. Errors ${(KPI.err*100).toFixed(1)}%, bottleneck ${KPI.worst?KPI.worst.id+(isFinite(F[KPI.worst.id].util)?' at '+pct(F[KPI.worst.id].util):' (down)'):'none'}.${r.down.length?`\nDown: ${r.down.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}${r.fo.length?`\nFails over: ${r.fo.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}${r.deg.length?`\nReduced capacity: ${r.deg.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}\nThe Design Advisor lists a fix for each. Type "restore zone" to end the outage.`,'s')}
+function setZones(nz){nz=Math.min(3,Math.max(1,+nz||2));if(nz===zoneCount())return;pushUndo(`Zones in the region: ${zoneCount()} → ${nz}`);S.settings.zones=nz;if(S.outage&&!zoneList().includes(S.outage))S.outage=null;changed();renderDem()}
+$('#zOut')&&($('#zOut').onchange=e=>setOutage(e.target.value));$('#zCount')&&($('#zCount').onchange=e=>setZones(e.target.value));
 
 /* ---------- windows: every dialog moves by its title; the side panel resizes ---------- */
 document.querySelectorAll('.scrim>.modal:not(.gmodal)').forEach(m=>{const h=m.querySelector('h2');if(!h)return;let d=null;
