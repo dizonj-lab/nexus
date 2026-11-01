@@ -1,6 +1,6 @@
 {
   "name": "nexus-frontend",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "private": true,
   "scripts": {
     "sync-workbench": "node scripts/sync-workbench.mjs",

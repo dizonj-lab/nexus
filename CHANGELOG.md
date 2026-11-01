@@ -5,6 +5,15 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.12] — 2026-11-01
+
+### Added
+- **Active-active database** in Add component → Data and messaging (Aurora
+  DSQL on AWS, the provider's equivalent elsewhere), so it can be found by
+  searching "dsql". Adding it shows its trade-offs in the Action Guard and
+  records a decision for approval. It is the same as Database → Inspector →
+  Multi-region → active-active.
+
 ## [0.2.11] — 2026-11-01
 
 ### Added
