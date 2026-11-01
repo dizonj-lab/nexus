@@ -5,6 +5,29 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.8] — 2026-11-01
+
+### Added
+- **Resilience patterns** (Load panel → Resilience → Resilience patterns…, or
+  `pattern dc-ap`): data centre active/passive; data centre active/active
+  (metro); active/active metro plus a remote DR data centre; hybrid (cloud
+  workload with Direct Connect to the data centre, single zone); hybrid,
+  zone-resilient; hybrid, zone plus regional pair resilient. Each card shows
+  a schematic, what it survives, RPO, RTO, cost, constraints and when to
+  choose it. Applying one sets zones or sites, regions or data centres
+  (active-active or active-passive), DNS or GSLB steering, database
+  replication, two or more instances per tier, and Direct Connect for
+  on-prem systems and internal users; it goes through the Action Guard and
+  records an architecture decision.
+- Regions can be **active-passive** as well as active-active; a failover DNS
+  policy sends all users to the primary.
+- Data centre labels show sites (metro, synchronous) and the standby or
+  remote data centre.
+
+### Fixed
+- DNS/GSLB and the CDN are global: a zone or site outage no longer takes them
+  down.
+
 ## [0.2.7] — 2026-11-01
 
 ### Added

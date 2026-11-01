@@ -1,6 +1,6 @@
 [project]
 name = "nexus-backend"
-version = "0.2.7"
+version = "0.2.8"
 description = "NEXUS API: sign-in, role-based access, projects, design store and the agent harness"
 requires-python = ">=3.11"
 dependencies = [

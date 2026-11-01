@@ -206,3 +206,13 @@ fails over with a small data loss, and an active-active database (Aurora
 DSQL) keeps serving. Organisation standards for these paths are ground truth
 rules (GT6, GT7), so they are policy as code and can be edited or removed.
 
+## D36 — Resilience patterns are templates over the same model
+The six resilience patterns are not separate features: each sets the same
+model inputs (zones or sites, regions or data centres, DNS or GSLB policy,
+database replication, instance counts, Direct Connect) and is then tested
+with the same zone and region outage simulation. A data centre's metro
+sites are modelled as zones (synchronous); a remote data centre as a second
+region (asynchronous). "Hybrid" means a cloud workload connected to
+systems and users in the data centre over Direct Connect. Applying a pattern
+is an architecture decision.
+
