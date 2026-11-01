@@ -277,6 +277,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .dbopts{border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:4px 0}.dbopts summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent)}.mrcard{border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-top:6px;display:grid;gap:4px;font-size:12px}.mrcard.on{border-color:var(--accent)}.mrcard dl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:0}.mrcard dt{color:var(--muted)}.mrcard dd{margin:0}
 .rpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}.rpcard{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:6px;align-content:start;font-size:12px}.rpcard.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}.rph{display:flex;justify-content:space-between;gap:6px;align-items:center}.rpcard dl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:0}.rpcard dt{color:var(--muted)}.rpcard dd{margin:0}.rpcard h4{margin:0 0 2px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.rpcard ul{margin:0;padding-left:16px}
 .rsk{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:8px;background:var(--surface-2);border-radius:6px;min-height:52px}.rb{display:grid;justify-items:center;border:1.5px solid var(--line);border-radius:6px;padding:4px 7px;font:600 11px var(--f-mono);background:var(--surface)}.rb small{font:400 9.5px var(--f-body);color:var(--muted)}.rb.act{border-color:var(--ok)}.rb.stb{border-color:var(--warn);border-style:dashed}.rb.dc{border-color:var(--muted)}.rb.cl{border-color:var(--accent)}.rl{font:500 10px var(--f-mono);color:var(--muted)}.rl.sy{color:var(--ok)}.rl.dx{color:var(--accent)}
+.simban{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:10px;align-items:center;max-width:calc(100% - 40px);background:var(--crit);color:#fff;border-radius:8px;padding:6px 8px 6px 12px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.18)}.simban .btn{background:#fff;color:var(--crit);border-color:#fff;padding:2px 9px;font-size:12px;white-space:nowrap}
 .scrim{pointer-events:none}.scrim>.modal{pointer-events:auto}
 .scrim{position:fixed;inset:0;background:rgba(10,15,25,.18);z-index:50;display:grid;place-items:center;padding:16px}
 .modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(520px,100%);max-height:90%;overflow:auto;padding:16px;display:grid;gap:12px}
@@ -343,7 +344,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.8">NEXUS<small>Architecture Workbench · v0.2.8</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.9">NEXUS<small>Architecture Workbench · v0.2.9</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -364,6 +365,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
   <div class="stage" id="stage">
     <canvas id="cv" aria-label="System design canvas"></canvas>
     <div class="nmenu" id="nmenu" hidden></div>
+    <div class="simban" id="simBan" hidden role="status"><span id="simTxt"></span><button class="btn" id="simEnd" type="button">End simulation</button></div>
     <div class="hint" id="hint">Click ▾ (or right-click) for actions · Drag a group by its label or border · Ctrl/⌘-click or Shift-drag to select several · Scroll to zoom</div>
 
     <section class="panel" id="pAdv" data-k="adv">
@@ -2303,7 +2305,7 @@ function renderNodeInspector(body,n){
   <label class="chkrow"><input type="checkbox" id="nHc" ${n.health?'checked':''}> Health checks on each region's endpoint</label>
   <label class="chkrow"><input type="checkbox" id="nDef" ${n.defaultRec?'checked':''}> Default record (catches unmapped locations and failover)</label>
   <label>TTL (seconds) <input id="nTtl" type="number" min="5" max="86400" step="5" value="${n.ttl||60}"></label>
-  <div class="why">${esc(pk().svc.dns)} answers each user with region A (${esc(regNames().a)}) or B (${esc(regNames().b)}). ${mr()?esc(dnsFailover().ok?'Failover: '+dnsFailover().why+'.':'No failover: '+dnsFailover().why+'.'):'Turn on two regions in the Load panel (Resilience) to use it across regions.'}</div>`;
+  <div class="why">${mr()&&S.routage?`<b class="crit">Region ${S.routage.toUpperCase()} is down (simulated): ${esc(dnsFailover().ok?'its health checks fail, so its share goes to the other region. End the simulation to see the normal split.':dnsFailover().why+'.')}</b> `:''}${esc(pk().svc.dns)} answers each user with region A (${esc(regNames().a)}) or B (${esc(regNames().b)}). ${mr()?esc(dnsFailover().ok?'Failover: '+dnsFailover().why+'.':'No failover: '+dnsFailover().why+'.'):'Turn on two regions in the Load panel (Resilience) to use it across regions.'}</div>`;
  }else if(isManaged(n)){
   const res=(MQ[n.type]||{}).res;
   h+=`<div class="just"><b>Managed by ${esc(pk().name)}</b> · the provider scales it, so there are no instances to size. You change its configuration.<br>Now: <b>${esc(cfgText(n))}</b>${n.rateLimit?` · client rate limit ${fmt(n.rateLimit)} rps`:''}<br>Resiliency: <b>${res==='global'?'global (no regional failure to plan for)':res==='zonal'?'zonal: run one per zone':'regional: multi-zone by the provider; plan cross-region DR'}</b>${DR[n.type]?'<br><span style="color:var(--muted)">'+esc(DR[n.type])+'</span>':''}</div>
@@ -3142,7 +3144,7 @@ function changed(){
  flushLedger();
  renderLegendCtl();simulate();analyze();if(document.body.classList.contains('focus'))renderRail();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
  $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=Math.log10(S.mult);
-  renderWL();
+  renderWL();renderSimBan();
  persist();
 }
 
@@ -3191,6 +3193,11 @@ function wlCmd(c){const w={...WL_DEF,...(S.workload||{})},n={...w};let m;
  say(`Workload set: request ${n.reqKB} KB, response ${n.respKB} KB, reads ${n.read}%, cache hit ${n.hit}%. Throughput ${fmt(KPI.mbps)} Mbps, latency ≈${fmt(KPI.lat)} ms, bottleneck ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}, cost ≈$${fmt(totalCost())}/month.`,'s')}
 
 
+function renderSimBan(){const b=$('#simBan');if(!b)return;const on=!!(S.outage||(mr()&&S.routage));b.hidden=!on;if(!on)return;
+ const parts=[];if(mr()&&S.routage){const r=S.routage,fo=dnsFailover(),other=r==='a'?'B':'A';parts.push(`Simulating: ${prov()==='vmware'?'data centre':'region'} ${r.toUpperCase()} (${regNames()[r]}) is down. ${fo.ok?`${dnsNode()?dnsNode().id:'DNS'} health checks fail for it, so all users go to ${other}.`:`${fo.why}.`}`)}
+ if(S.outage)parts.push(`Simulating: ${prov()==='vmware'?'site':'zone'} ${S.outage} is down.`);
+ $('#simTxt').textContent=parts.join(' ')+` Errors ${(KPI.err*100).toFixed(1)}%.`}
+document.addEventListener('click',e=>{if(e.target.id==='simEnd'){if(S.routage)setRegionOutage(null);if(S.outage)setOutage(null)}});
 function outageReport(){const ns=kids('root').filter(n=>F[n.id]&&F[n.id].zx);const down=ns.filter(n=>F[n.id].zx.down),fo=ns.filter(n=>F[n.id].zx.failover),deg=ns.filter(n=>F[n.id].zx.frac);
  return {down,fo,deg,ok:KPI.err<.005&&!down.length}}
 function outageLine(){const r=outageReport();return `<b class="${r.ok?'ok':'crit'}">${r.ok?'Survives':'Does not survive'}</b> · errors ${(KPI.err*100).toFixed(1)}%${r.down.length?` · down: ${r.down.map(n=>n.id).join(', ')}`:''}${r.fo.length?` · fails over: ${r.fo.map(n=>n.id).join(', ')}`:''}${r.deg.length?` · reduced: ${r.deg.map(n=>n.id).join(', ')}`:''}`}

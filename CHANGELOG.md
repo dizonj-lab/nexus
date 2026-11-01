@@ -5,6 +5,15 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.9] — 2026-11-01
+
+### Fixed
+- A simulated zone or region outage was easy to miss (only "DOWN" at the end
+  of a label) and stays saved with the design, so DNS sending 0 rps to the
+  failed region looked like a routing bug. The canvas now shows a banner
+  while an outage is simulated, with what DNS is doing and an "End
+  simulation" button, and the DNS Inspector explains a region's zero share.
+
 ## [0.2.8] — 2026-11-01
 
 ### Added
