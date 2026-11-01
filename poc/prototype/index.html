@@ -272,6 +272,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .whyp{font-size:12px;border-left:3px solid var(--accent);padding:4px 10px;background:var(--surface-2);border-radius:0 6px 6px 0;display:grid;gap:6px}.whyp p,.whyp ul,.whyp ol{margin:0}.whyp ul,.whyp ol{padding-left:18px;display:grid;gap:3px}.whyp .cite{color:var(--muted);font-family:var(--f-mono);font-size:10.5px}.whyp a{color:var(--accent)}
 .confs{display:flex;gap:4px}.conf{font:600 10px/1.6 var(--f-mono);padding:0 6px;border-radius:999px;border:1px solid}.conf.high{color:var(--ok)}.conf.medium{color:var(--warn)}.conf.low{color:var(--crit)}
 .gwait{display:grid;gap:6px}.gauge{height:6px;background:var(--line);border-radius:3px;overflow:hidden;position:relative}.gauge i{position:absolute;top:0;bottom:0;width:35%;background:var(--accent);border-radius:3px;animation:gmove 1.15s ease-in-out infinite}@keyframes gmove{0%{left:-35%}100%{left:100%}}
+.wlbar{flex-wrap:wrap;gap:4px 10px;font-size:11px}.wlbar b{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.wlbar label{display:flex!important;gap:3px;align-items:center;white-space:nowrap}.wlbar input{width:58px!important;flex:none;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:1px 4px;font-family:var(--f-mono);font-size:11px}
 .scrim{pointer-events:none}.scrim>.modal{pointer-events:auto}
 .scrim{position:fixed;inset:0;background:rgba(10,15,25,.18);z-index:50;display:grid;place-items:center;padding:16px}
 .modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(520px,100%);max-height:90%;overflow:auto;padding:16px;display:grid;gap:12px}
@@ -338,7 +339,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.3">NEXUS<small>Architecture Workbench · v0.2.3</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.4">NEXUS<small>Architecture Workbench · v0.2.4</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -416,6 +417,11 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <div class="bar"><select id="dProf" aria-label="Demand profile" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="ramp">Ramp up, hold, ramp down</option><option value="daily">Daily cycle (24 h)</option><option value="spike">Flash spike</option><option value="steady">Steady at peak</option></select>
         Peak <input id="dPeak" type="number" min="1" max="1000" step="1" value="20" aria-label="Peak multiplier" style="width:62px;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:1px 4px;font-family:var(--f-mono);font-size:11px">×
         <button class="btn primary" id="dPlay" style="padding:2px 9px;font-size:11px">▶ Run</button><button class="btn" id="dReset" style="padding:2px 9px;font-size:11px">Reset</button></div>
+      <div class="bar wlbar" title="Workload profile: used by the Load slider and the load test"><b>Workload</b>
+        <label>Request <input id="wReq" type="number" min="0" max="1048576" step="1"> KB</label>
+        <label>Response <input id="wResp" type="number" min="0" max="1048576" step="1"> KB</label>
+        <label>Reads <input id="wRead" type="number" min="0" max="100" step="5"> %</label>
+        <label>Cache hit <input id="wHit" type="number" min="0" max="100" step="5"> %</label></div>
       <div class="pbody" style="max-height:330px"><div class="demstats" id="demStats"></div><div id="demCharts"></div></div>
     </section>
 
@@ -790,9 +796,29 @@ const SIM={on:false,i:0,t:0,cur:{},pend:{},hist:[],events:[],timer:null,profile:
 const repOf=n=>(F[n.id]&&F[n.id].rep)||n.rep||1;
 function scaleOf(n){let m=1,p=S.nodes[n.parent];while(p){m*=p.type==='db'?(1+(p.readReplicas||0))*(p.shards||1):repOf(p);p=S.nodes[p.parent]}return m}
 const instCount=n=>isManaged(n)?1:n.type==='db'?(1+(n.readReplicas||0))*(n.shards||1)+(n.standby?1:0):n.type==='queue'?(n.flavor==='native'?1:n.brokers||1):(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')?1:repOf(n);
+/* ---------- workload profile: payload size, read/write mix, cache hit ratio ---------- */
+// Design-level assumptions used by the Load slider and the load test. Capacities in the catalog assume about 20 KB per round trip.
+const WL_DEF={reqKB:2,respKB:8,read:80,hit:80};
+const wl=()=>{const w={...WL_DEF,...(S.workload||{})};return {reqKB:Math.max(0,+w.reqKB||0),respKB:Math.max(0,+w.respKB||0),read:Math.min(100,Math.max(0,+w.read))/100,hit:Math.min(100,Math.max(0,+w.hit))/100}};
+const rwOf=n=>n.rw??wl().read;
+const PAYLOAD_T=['svc','vm','fn','gw','lb','waf','api','adp','egw'];
+// Larger payloads cost CPU, memory and network per request: capacity halves at about 120 KB per round trip.
+const payloadF=t=>{if(!PAYLOAD_T.includes(t))return 1;const kb=wl().reqKB+wl().respKB;return 1/(1+Math.max(0,kb-20)/100)};
+const capOf=n=>n.cap*payloadF(n.type);
+// Internet transfer time per request at about 50 Mbps per client, and throughput across the edge.
+const xferMs=()=>(wl().reqKB+wl().respKB)*8/50;
+const mbpsOf=rps=>rps*(wl().reqKB+wl().respKB)*8/1000;
+// Data transfer out to the internet, list price for the first tier (USD per GB).
+const EGRESS_GB={aws:.09,azure:.087,gcp:.12,vmware:0};
+// Tiered like the providers' list prices: the first 10 TB at the base rate, cheaper per GB beyond 10, 50 and 150 TB.
+const EGRESS_TIERS=[[10240,1],[40960,.944],[102400,.778],[Infinity,.556]];
+function egressCost(){if(!KPI||!KPI.offered)return 0;const base=EGRESS_GB[prov()]??0;let gb=KPI.offered*(1-(KPI.err||0))*wl().respKB*2.63e6/1048576,c=0;
+ for(const [size,f] of EGRESS_TIERS){const x=Math.min(gb,size);c+=x*base*f;gb-=x;if(gb<=0)break}return c}
+// Provider request-size limits (documented maximums) that the payload must fit.
+const PAYLOAD_LIMIT=[['aws','gw',10240,'Amazon API Gateway accepts payloads up to 10 MB'],['aws','fn',6144,'AWS Lambda accepts synchronous payloads up to 6 MB'],['gcp','svc',32768,'Cloud Run accepts HTTP/1 requests up to 32 MiB']];
 // Single-primary database: writes land on each shard's primary; reads spread over primary + read replicas.
 function dbLoad(n,i,o={}){
- const rw=o.rw??n.rw??.8,k=1+(o.rr??n.readReplicas??0),sh=o.shards??n.shards??1,c=(o.cap??n.cap)*scaleOf(n);
+ const rw=o.rw??rwOf(n),k=1+(o.rr??n.readReplicas??0),sh=o.shards??n.shards??1,c=(o.cap??n.cap)*scaleOf(n);
  const r=i*rw,w=i*(1-rw),readPer=r/sh/k,writePer=w/sh;
  const prim=writePer/(c*.6)+readPer/c,repl=k>1?readPer/c:0;
  return {util:Math.max(prim,repl),prim,repl,r,w,bound:(writePer/(c*.6))>=(readPer/c)?'writes':'reads'};
@@ -807,7 +833,7 @@ function queueLoad(n,i){
  return {util:Math.max(ub,uc),ub,uc,consCap,brokerCap,idle:kafka?Math.max(0,c-p):0,active};
 }
 function innerWorst(id){let w=null;const go=pid=>kids(pid).forEach(c=>{if(!EXTERNAL.includes(c.type)&&!PLATFORM.includes(c.type)&&c.type!=='part'&&F[c.id]&&(!w||F[c.id].util>w.util))w={id:c.id,util:F[c.id].util};go(c.id)});go(id);return w}
-const capEff=n=>{if(isManaged(n))return quotaOf(n);if(n.type==='db')return 1/Math.max(1e-9,dbLoad(n,1).util);if(n.type==='queue'){const q=queueLoad(n,1);return Math.min(q.brokerCap,q.consCap)}return T[n.type].cap===Infinity?Infinity:n.cap*repOf(n)*scaleOf(n)};
+const capEff=n=>{if(isManaged(n))return quotaOf(n);if(n.type==='db')return 1/Math.max(1e-9,dbLoad(n,1).util);if(n.type==='queue'){const q=queueLoad(n,1);return Math.min(q.brokerCap,q.consCap)}return T[n.type].cap===Infinity?Infinity:capOf(n)*repOf(n)*scaleOf(n)};
 const st=u=>!isFinite(u)?'crit':u>=.85?'crit':u>=.6?'warn':'ok';
 function flowScope(pid,entryIn){
  const ns=kids(pid),es=flowsIn(pid),inn={},deg={};
@@ -821,19 +847,19 @@ function flowScope(pid,entryIn){
  for(const id of order){
   const n=S.nodes[id],t=T[n.type],i0=inn[id],outs=es.filter(e=>e.from===id);
   let rep=n.rep||1,desired=null;const au=isFinite(t.cap)?autoOf(n):null;
-  if(au){const lim=n.rateLimit?Math.min(i0,n.rateLimit):i0;desired=Math.min(au.max,Math.max(au.min,Math.ceil(lim/(n.cap*scaleOf(n)*tgtUtil()))||au.min));rep=SIM.on?(SIM.cur[id]??au.min):desired}
+  if(au){const lim=n.rateLimit?Math.min(i0,n.rateLimit):i0;desired=Math.min(au.max,Math.max(au.min,Math.ceil(lim/(capOf(n)*scaleOf(n)*tgtUtil()))||au.min));rep=SIM.on?(SIM.cur[id]??au.min):desired}
   const thr=n.rateLimit?Math.max(0,i0-n.rateLimit):0,i=i0-thr;
   let util,served,pass,lag=0,dbx=null,qx=null,noRoute=false;
   if(n.type==='user'){util=0;served=i;noRoute=i>0&&!outs.length;pass=served}
   else if(n.failed){util=Infinity;served=0;pass=0}
   else if(n.type==='db'){dbx=dbLoad(n,i);util=dbx.util;served=util<=1?i:i/util;pass=served}
   else if(n.type==='queue'){qx=queueLoad(n,i);util=qx.util;served=Math.min(i,qx.brokerCap);pass=Math.min(served,qx.consCap);lag=served-pass}
-  else{const c=isManaged(n)?quotaOf(n):n.cap*rep*scaleOf(n);if(isManaged(n))rep=1;util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
+  else{const c=isManaged(n)?quotaOf(n):capOf(n)*rep*scaleOf(n);if(isManaged(n))rep=1;util=c>0?i/c:Infinity;served=util<=1?i:i/util;pass=served}
   const preds=es.filter(e=>e.to===id).map(e=>lat[e.from]||0);
   lat[id]=(preds.length?Math.max(...preds):0)+(t.lat||0)/(1-Math.min(isFinite(util)?util:.95,.95));
   F[id]={in:i0,served,util,drop:noRoute?i:Math.max(0,i-served),thr,lag,rep,desired,lat:lat[id],db:dbx,q:qx,noRoute};
   pass*=(t.pass??1);const hasCache=outs.some(e=>S.nodes[e.to].type==='cache');
-  outs.forEach(e=>{let f=t.route?pass/outs.length:pass;const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-(tn.rw??.8)*.8;EF.set(e,f);inn[e.to]+=f});
+  outs.forEach(e=>{let f=t.route?pass/outs.length:pass;const tn=S.nodes[e.to];if(tn.type==='db'&&hasCache)f*=1-rwOf(tn)*wl().hit;EF.set(e,f);inn[e.to]+=f});
  }
  ns.forEach(n=>{if(kids(n.id).length)flowScope(n.id,F[n.id].served)});
 }
@@ -844,7 +870,7 @@ function simulate(){
  let worst=null,err=0,lat=0,thr=0,lag=0,noRoute=0;
  root.forEach(n=>{const f=F[n.id];if(n.type==='user'){noRoute+=f.drop;return}if(EXTERNAL.includes(n.type)||PLATFORM.includes(n.type))return;thr+=f.thr;lag+=f.lag;if(!worst||f.util>F[worst.id].util)worst=n;if(offered)err=Math.max(err,f.drop/offered);lat=Math.max(lat,f.lat)});
  if(offered)err=Math.max(err,noRoute/offered);
- KPI={offered,err:Math.min(1,err),lat,worst,thr:offered?thr/offered:0,lag,noRoute};
+ KPI={offered,err:Math.min(1,err),lat:lat+(offered?xferMs():0),worst,thr:offered?thr/offered:0,lag,noRoute,mbps:mbpsOf(offered)};
 }
 
 /* ---------- platform dependency expert ---------- */
@@ -947,6 +973,7 @@ function analyze(log=true){
  out.forEach((f,i)=>f.id='F'+(i+1));
  S.edges.forEach(e=>{const a=N[e.from],b=N[e.to];if(a&&b&&isFlow(e)&&!extViaOk(a,b,e.via))add('crit','extnet:'+e.from+'>'+e.to,b.id,`${a.id} → ${b.id}: no direct network path to an external system`,extViaWhy(b),['Technical constraint','GT5'],{k:'via',from:e.from,to:e.to,via:b.pl?'privatelink':'internet'})});
  netGroupFindings(add);
+ {const w=wl();PAYLOAD_LIMIT.forEach(([pv,t,kb,why])=>{if(prov()!==pv)return;kids('root').filter(n=>n.type===t&&(t!=='svc'||true)).forEach(n=>{if(w.reqKB>kb)add('crit','payload:'+n.id,n.id,`Requests of ${fmt(w.reqKB)} KB are too large for ${n.id}`,`${why}. Upload large bodies straight to object storage with a pre-signed URL and pass a reference instead.`,['Technical constraint'],null)})})}
  {const open=kids('root').map(n=>[n,bpItems(n).filter(x=>x.c&&!x.on)]).filter(([,a])=>a.length);
   if(open.length)add('info','bp',open[0][0].id,`${open.length} component${open.length>1?'s have':' has'} critical settings not confirmed`,open.slice(0,6).map(([n,a])=>`${n.id}: ${a.map(x=>x.l.charAt(0).toLowerCase()+x.l.slice(1)).join(', ')}`).join('. ')+'. Confirm them under Critical configuration in the Inspector.',[...new Set(open.flatMap(([,a])=>a.map(x=>'WAF-'+x.p)))],null)}
  if(log){out.forEach(f=>{const k=f.key.split(':')[0];if(!seenF.has(f.key)){seenF.add(f.key);logAI(k==='deps'?'Platform expert':'Advisor',`${f.sev.toUpperCase()} ${f.title}`,`Rule ${k} fired on ${f.target||'design'} · basis ${f.basis.join(', ')}`,f.sev==='crit'?.96:.82)}});
@@ -959,8 +986,8 @@ function dbOptions(n){
  const f=F[n.id]||{in:0},i=f.in,cur=dbLoad(n,i),opts=[],P=pk();
  const callers=S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>S.nodes[e.from]).filter(Boolean);
  const cached=callers.length&&callers.every(c=>S.edges.some(e=>e.from===c.id&&S.nodes[e.to]&&S.nodes[e.to].type==='cache'));
- const writeBound=cur.bound==='writes',readHeavy=(n.rw??.8)>=.7;
- if(!cached){const u=dbLoad(n,i*(1-(n.rw??.8)*.8)).util;opts.push({key:'cache',name:'Cache hot reads',fixes:'reads',effect:u,detail:'Redis in front, ~80% hit rate',pro:'Cheapest big win for read-heavy loads; sub-ms reads',con:'Stale reads; invalidation logic; another store to secure'})}
+ const writeBound=cur.bound==='writes',readHeavy=rwOf(n)>=.7;
+ if(!cached){const u=dbLoad(n,i*(1-rwOf(n)*wl().hit)).util;opts.push({key:'cache',name:'Cache hot reads',fixes:'reads',effect:u,detail:'Redis in front, ~80% hit rate',pro:'Cheapest big win for read-heavy loads; sub-ms reads',con:'Stale reads; invalidation logic; another store to secure'})}
  let t=null;for(const k of TIER_ORDER.slice(TIER_ORDER.indexOf(n.tier||'m')+1)){if(dbLoad(n,i,{cap:TIERS[k].cap}).util<=.6){t=k;break}}
  const top=TIER_ORDER[TIER_ORDER.length-1];
  opts.push({key:'up',name:t?`Scale up to ${TIERS[t].l}`:`Scale up to ${TIERS[top].l} (max)`,tier:t||top,fixes:'reads + writes',effect:dbLoad(n,i,{cap:TIERS[t||top].cap}).util,detail:P.dbClass[t||top],pro:'No code change; helps reads and writes',con:'Hard ceiling; ~2× cost per step; failover or restart during resize'});
@@ -1779,7 +1806,7 @@ function details(n){
   case 'waf':L.push(`Rules: ${P_.waf}`,`Rate limit: ${n.rateLimit?fmt(n.rateLimit)+' rps':'2,000 req / 5 min per IP'} · block mode`,`Logs → ${P_.svc.mon}`);break;
   case 'gw':L.push(`Auth: JWT validated against ${kids(n.parent).find(m=>m.type==='idp')?.id||'an IdP'}`,`Rate limit: ${n.rateLimit?fmt(n.rateLimit)+' rps':'none set'}`,'TLS 1.2+ · schema validation');break;
   case 'idp':L.push(`Audience: ${n.audience} · source: ${{native:'own user directory',corp:'federated to '+(n.fedIdp||'corporate IdP')+' (SAML/OIDC)',social:'social logins (OIDC)'}[n.idpMode||'native']}`,'MFA on · access 15 min / refresh 8 h');break;
-  case 'db':L.push(`${n.readReplicas||0} read replica(s) · ${n.shards||1} shard(s) · ${n.standby?'standby':'no standby'}`,`Reads ${pct(n.rw??.8)} · ${fmt(n.sizeGB)} GB · CMK ${n.enrich.encryptRest!==false?'on':'off'}`);break;
+  case 'db':L.push(`${n.readReplicas||0} read replica(s) · ${n.shards||1} shard(s) · ${n.standby?'standby':'no standby'}`,`Reads ${pct(rwOf(n))}${n.rw==null?' (workload)':''} · ${fmt(n.sizeGB)} GB · CMK ${n.enrich.encryptRest!==false?'on':'off'}`);break;
   case 'queue':L.push(`${n.flavor==='kafka'?`${n.partitions} partitions · ${n.brokers} brokers`:n.flavor==='mq'?`${n.brokers} brokers`:'managed, serverless'} · ${n.consumers} consumers`,`Lag ${fmt(f.lag||0)} msg/s${n.flavor==='kafka'?` · key ${n.pkey||'not set'}`:''}`);break;
   case 'svc':case 'vm':case 'fn':case 'api':case 'adp':L.push(`${autoOf(n)?`Autoscale ${autoOf(n).min}–${autoOf(n).max}${autoOf(n).policy?' (policy)':''}, now ×${repOf(n)}`:`×${n.rep} fixed`} · ${fmt(n.cap)} rps each`);if(n.enrich.runtime||n.enrich.os)L.push(n.enrich.runtime||n.enrich.os);break;
   case 'lb':case 'cdn':case 'egw':if(isManaged(n)){L.push(`Managed · ${cfgText(n)}${n.rateLimit?' · client limit '+fmt(n.rateLimit)+' rps':''}`);break}L.push(`×${repOf(n)} · ${fmt(n.cap)} rps each${n.rateLimit?' · limit '+fmt(n.rateLimit)+' rps':''}`);break;
@@ -2158,7 +2185,7 @@ function renderNodeInspector(body,n){
  else if(ext)h+=`<label>Private connectivity <select id="iPl"><option value="1" ${n.pl?'selected':''}>Offered (${esc(pk().pl)})</option><option value="0" ${!n.pl?'selected':''}>Not offered</option></select></label>`;
  else if(n.type==='db'){
   h+=`<label>Instance size <select id="iTier">${TIER_ORDER.map(t=>`<option value="${t}" ${t===n.tier?'selected':''}>${TIERS[t].l} · ${pk().dbClass[t]}</option>`).join('')}</select></label>
-  <label>Read share % <input id="iRw" type="number" min="0" max="100" step="5" value="${Math.round((n.rw??.8)*100)}"></label>
+  <label>Read share % <input id="iRw" type="number" min="0" max="100" step="5" value="${Math.round(rwOf(n)*100)}" title="${n.rw==null?'From the workload profile; set a value to override for this database':'Overrides the workload profile'}"></label>
   <label>Read replicas <input id="iRr" type="number" min="0" max="${pk().rrMax}" value="${n.readReplicas||0}"></label>
   <label>Shards <input id="iSh" type="number" min="1" max="64" value="${n.shards||1}"></label>
   <label>Data size (GB) <input id="iGb" type="number" min="1" step="50" value="${n.sizeGB||0}"></label>
@@ -2400,6 +2427,7 @@ function run(raw,opt={}){
  const l=c.toLowerCase();let ids=(c.match(/\b[A-Za-z]{1,4}\d+\b/g)||[]).map(x=>x.toUpperCase()).filter(x=>S.nodes[x]);
  if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
+ if(/^workload\b/i.test(c)){wlCmd(c);return}
  if(/^((create|new|add)\s+(subnet|security group|sg|app(lication)? group)\b|move\s+[a-z]{1,4}\d+\s+(to|into)\b|allow\s+\S+\s+from\b)/i.test(c)&&netCmd(c,ids))return;
  if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nConversation: the model remembers the last turns · new conversation · revise PL-03: <what to change>\nPatterns: patterns · apply cqrs to SVC1 · apply zero-trust · apply event-driven\nQuality: eval console (scores your model on a fixed set of requests)\nRedesign: redesign · redesign: <goal> · fix the weak points · apply the second opinion\nModels: escalate (re-run the last request on the escalation model) · escalate: <request> · 2nd opinion (review the whole design) · 2nd opinion: <focus>\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
  if(/^(new conversation|forget|clear context|reset context)\b/.test(l)){CONV.length=0;PENDING_Q=false;remember('user','');CONV.length=0;$('#ctxTag').textContent='no context';say('Started a new conversation. The model still sees the current design.','s');return}
@@ -2516,7 +2544,7 @@ function costOf(n){
  else inst=instCount(n)*p.inst;
  return inst+p.perM*(f.served||0)*SEC_MONTH/1e6;
 }
-const totalCost=()=>Object.values(S.nodes).reduce((a,n)=>a+costOf(n),0);
+const totalCost=()=>Object.values(S.nodes).reduce((a,n)=>a+costOf(n),0)+egressCost();
 const totalInst=()=>Object.values(S.nodes).filter(n=>n.parent==='root'&&!EXTERNAL.includes(n.type)).reduce((a,n)=>a+instCount(n),0);
 let SAFE=null;
 // Highest load multiplier at which every component stays under 85% with autoscaling free to reach its maximum.
@@ -2577,7 +2605,7 @@ function renderDem(){
  const last=h[h.length-1];
  const stat=(l,v,c='')=>`<span><b>${l}</b><span class="${c}">${v}</span></span>`;
  if(!h.length){
-  $('#demStats').innerHTML=stat('Demand now',`${fmt(KPI.offered)} rps`)+stat('Instances',`${fmt(totalInst())}`)+stat('Cost est.',`$${fmt(totalCost())}/mo`)+stat('Safe up to',SAFE?(SAFE.m===Infinity?'≥2,000×':fmtMult(SAFE.m)):'—');
+  $('#demStats').innerHTML=stat('Demand now',`${fmt(KPI.offered)} rps`)+stat('Throughput',`${fmt(KPI.mbps||0)} Mbps`)+stat('Data out',`$${fmt(egressCost())}/mo`)+stat('Instances',`${fmt(totalInst())}`)+stat('Cost est.',`$${fmt(totalCost())}/mo`)+stat('Safe up to',SAFE?(SAFE.m===Infinity?'≥2,000×':fmtMult(SAFE.m)):'—');
   if(!(KPI.offered>0)){box.innerHTML=`<p class="warn" style="margin:4px 0 0">${esc(noLoadWhy())}</p>`;return}
   box.innerHTML=`<p class="why" style="margin:4px 0 0">Pick a profile and a peak (up to 1,000×), then Run. Components start at the policy minimum (${a.min}), scale out ${a.outDelay} min after demand passes ${a.target}% utilization, and scale back in to the minimum after ${a.inCool} min of low demand. Change the policy in Settings.</p>`;return}
  const P=PROFILES[SIM.profile],N=P.steps,i0=demHover??h.length-1,pt=h[Math.min(i0,h.length-1)];
@@ -3002,6 +3030,7 @@ function changed(){
  flushLedger();
  renderLegendCtl();simulate();analyze();if(document.body.classList.contains('focus'))renderRail();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
  $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=Math.log10(S.mult);
+  renderWL();
  persist();
 }
 
@@ -3030,6 +3059,22 @@ $('#dcStack')&&$('#dcStack').addEventListener('change',e=>{const i=e.target.clos
 $('#dcReset')&&($('#dcReset').onclick=()=>{if(S.dcStack){pushUndo('Data centre stack reset to industry defaults');delete S.dcStack;changed()}renderDcStack()});
 $('#modelsBtn').addEventListener('click',renderDcStack);
 
+
+
+/* ---------- workload controls ---------- */
+function renderWL(){const w={...WL_DEF,...(S.workload||{})};[['wReq','reqKB'],['wResp','respKB'],['wRead','read'],['wHit','hit']].forEach(([id,k])=>{const e=$('#'+id);if(e&&document.activeElement!==e)e.value=w[k]})}
+function setWL(k,v,label){const w={...WL_DEF,...(S.workload||{})};if(+w[k]===+v)return;pushUndo(`Workload: ${label} ${w[k]} → ${v}`);S.workload={...w,[k]:+v};
+ logAI('Simulation',`Workload ${label} set to ${v}`,`Request ${S.workload.reqKB} KB, response ${S.workload.respKB} KB, reads ${S.workload.read}%, cache hit ${S.workload.hit}%`,1);changed();renderDem()}
+[['wReq','reqKB','request size (KB)'],['wResp','respKB','response size (KB)'],['wRead','read','read share (%)'],['wHit','hit','cache hit ratio (%)']].forEach(([id,k,l])=>{const e=$('#'+id);if(e)e.onchange=()=>{const v=Math.max(0,+e.value||0);setWL(k,k==='read'||k==='hit'?Math.min(100,v):v,l)}});
+// Console: workload request 4kb response 64kb reads 70% cache hit 90%
+function wlCmd(c){const w={...WL_DEF,...(S.workload||{})},n={...w};let m;
+ if(m=c.match(/request\s*(?:size)?\s*(\d+(?:\.\d+)?)\s*(kb|mb)?/i))n.reqKB=+m[1]*(/mb/i.test(m[2]||'')?1024:1);
+ if(m=c.match(/response\s*(?:size)?\s*(\d+(?:\.\d+)?)\s*(kb|mb)?/i))n.respKB=+m[1]*(/mb/i.test(m[2]||'')?1024:1);
+ if(m=c.match(/reads?\s*(\d+)\s*%?/i))n.read=Math.min(100,+m[1]);
+ if(m=c.match(/(?:cache\s*)?hit\s*(?:ratio|rate)?\s*(\d+)\s*%?/i))n.hit=Math.min(100,+m[1]);
+ if(JSON.stringify(n)===JSON.stringify(w)){say(`Workload: request ${w.reqKB} KB, response ${w.respKB} KB, reads ${w.read}%, cache hit ${w.hit}%. Change it with: workload request 4kb response 64kb reads 70% cache hit 90%`,'s');return}
+ pushUndo(`Workload: request ${n.reqKB} KB, response ${n.respKB} KB, reads ${n.read}%, cache hit ${n.hit}%`);S.workload=n;changed();renderDem();
+ say(`Workload set: request ${n.reqKB} KB, response ${n.respKB} KB, reads ${n.read}%, cache hit ${n.hit}%. Throughput ${fmt(KPI.mbps)} Mbps, latency ≈${fmt(KPI.lat)} ms, bottleneck ${KPI.worst?KPI.worst.id+' at '+pct(F[KPI.worst.id].util):'none'}, cost ≈$${fmt(totalCost())}/month.`,'s')}
 
 /* ---------- windows: every dialog moves by its title; the side panel resizes ---------- */
 document.querySelectorAll('.scrim>.modal:not(.gmodal)').forEach(m=>{const h=m.querySelector('h2');if(!h)return;let d=null;

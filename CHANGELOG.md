@@ -5,6 +5,24 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.4] — 2026-11-01
+
+### Added
+- **Workload profile** for the Load slider and the load test, in the Load
+  panel or with `workload request 4kb response 64kb reads 70% cache hit 90%`:
+  - **Request and response size (KB)**: payload-heavy components (services,
+    VMs, functions, gateways, load balancers, WAF, egress) lose capacity as
+    payloads grow (half at about 120 KB per round trip); latency adds
+    internet transfer time; the panel shows throughput in Mbps.
+  - **Data transfer out** is priced per provider at tiered list prices and
+    included in the cost estimate.
+  - **Reads %** is the default read share for every database without its own
+    value (set one in the Inspector to override it).
+  - **Cache hit %** sets how many reads a cache in front of a database absorbs
+    (was fixed at 80%).
+  - Provider request-size limits become findings: Amazon API Gateway 10 MB,
+    AWS Lambda 6 MB synchronous, Cloud Run 32 MiB.
+
 ## [0.2.3] — 2026-11-01
 
 ### Fixed
