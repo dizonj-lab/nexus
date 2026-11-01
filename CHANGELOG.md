@@ -5,6 +5,17 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.11] — 2026-11-01
+
+### Added
+- **Move a component between regions** (when region B is drawn separately):
+  Inspector → Network placement → Region, drag it into the other region's
+  box, or `move SVC5 to region b`. Its sub-design moves with it, and its
+  flows are re-labelled: cross-region when they reach the other region
+  (with the latency warning), in-network when they stay inside one.
+- New components land in region B when region B's box is selected (click its
+  label) before adding them; otherwise in region A.
+
 ## [0.2.10] — 2026-11-01
 
 ### Fixed

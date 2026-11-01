@@ -344,7 +344,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.10">NEXUS<small>Architecture Workbench · v0.2.10</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.11">NEXUS<small>Architecture Workbench · v0.2.11</small></span>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -1196,6 +1196,7 @@ function addNode(type,name,parent,pos={}){
   y=plat.length?plat[0].y:(others.length?Math.max(...others.map(m=>m.y))+230:600);x=270+plat.length*200}
  else{const z=type==='part'?zoneOf(S.nodes[parent]):t.zone;const col=kids(parent).filter(n=>Math.abs(n.x-ZX[z])<70&&zoneOf(n)!=='platform');x=ZX[z];y=col.length?Math.max(...col.map(n=>n.y))+150:250}
  const n=mkNode(id,type,name||t.label,pos.x??x,pos.y??y,{parent});
+ if(typeof expanded==='function'&&expanded()&&parent==='root'&&!GLOBAL_T.includes(type)){n.region=V.selZone==='__outerB'?'B':'A';if(n.region==='B'&&pos.y==null)n.y+=regionOffset()}
  S.nodes[id]=n;
  logAI('SLM enrichment',`Enriched ${id} (${t.label})`,'Filled '+Object.keys(n.enrich).join(', ')+' from catalog defaults and zone policy',.88);
  return n;
@@ -1447,9 +1448,9 @@ $('#ndOk').onclick=saveNetDlg;$('#ndCancel').onclick=closeNetDlg;$('#ndDel').onc
 $('#netDlg').addEventListener('keydown',e=>{if(e.key==='Escape')closeNetDlg();if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='checkbox')saveNetDlg()});
 function netInspHTML(n){if(['user','ext','saas','part'].includes(n.type)||n.parent!=='root')return '';
  const gs=(S.groups||[]).filter(g=>g.members.includes(n.id));
- return `<h4>Network placement</h4><div class="why">Zones: ${esc(placementText(n))}${F[n.id]&&F[n.id].zx?` · <b class="${F[n.id].zx.down?'crit':'warn'}">${S.routage?'region '+S.routage.toUpperCase():'zone '+S.outage} outage: ${esc(F[n.id].zx.why)}</b>`:''}</div><label>Subnet <select id="iNet"><option value="">Default · ${esc(pk().zone[zoneOf(n)]||zoneOf(n))}</option>${(S.nets||[]).map(x=>`<option value="${x.id}" ${n.net===x.id?'selected':''}>${esc(x.name)} · ${esc(pk().zone[x.tier]||x.tier)}${x.cidr?' · '+esc(x.cidr):''}</option>`).join('')}<option value="__new">New subnet…</option></select></label>
+ return `<h4>Network placement</h4>${expanded()&&!GLOBAL_T.includes(n.type)?`<label>Region <select id="iReg"><option value="A" ${regionOf(n)==='A'?'selected':''}>A · ${esc(regNames().a)}</option><option value="B" ${regionOf(n)==='B'?'selected':''}>B · ${esc(regNames().b)}</option></select></label>`:''}<div class="why">Zones: ${esc(placementText(n))}${F[n.id]&&F[n.id].zx?` · <b class="${F[n.id].zx.down?'crit':'warn'}">${S.routage?'region '+S.routage.toUpperCase():'zone '+S.outage} outage: ${esc(F[n.id].zx.why)}</b>`:''}</div><label>Subnet <select id="iNet"><option value="">Default · ${esc(pk().zone[zoneOf(n)]||zoneOf(n))}</option>${(S.nets||[]).map(x=>`<option value="${x.id}" ${n.net===x.id?'selected':''}>${esc(x.name)} · ${esc(pk().zone[x.tier]||x.tier)}${x.cidr?' · '+esc(x.cidr):''}</option>`).join('')}<option value="__new">New subnet…</option></select></label>
  <div class="grpchips">${gs.map(g=>`<button type="button" class="gchip ${g.kind}" data-grp="${g.id}" title="Edit">${g.kind==='sg'?'SG':'APP'} · ${esc(g.name)}</button>`).join('')}<button type="button" class="btn" data-newgrp="sg">+ Security group</button><button type="button" class="btn" data-newgrp="ag">+ App group</button></div>`}
-function bindNetInsp(n){const s=document.getElementById('iNet');if(s)s.onchange=e=>{const v=e.target.value;if(v==='__new'){V.sel=n.id;openNetDlg('subnet');e.target.value=n.net||'';return}
+function bindNetInsp(n){{const r=document.getElementById('iReg');if(r)r.onchange=e=>{const v=e.target.value;e.target.value=regionOf(n);moveRegion(n.id,v)}}const s=document.getElementById('iNet');if(s)s.onchange=e=>{const v=e.target.value;if(v==='__new'){V.sel=n.id;openNetDlg('subnet');e.target.value=n.net||'';return}
   act(`Move ${n.id} to ${v?netById(v).name:'its default tier'}`,()=>{S.nodes[n.id].net=v||null})};
  document.querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{const g=grpById(b.dataset.grp);if(g)openNetDlg(g.kind,g.id)});
  document.querySelectorAll('[data-newgrp]').forEach(b=>b.onclick=()=>{V.sel=n.id;V.multi.clear();openNetDlg(b.dataset.newgrp)})}
@@ -2128,7 +2129,8 @@ cv.addEventListener('pointerup',ev=>{
   kids(V.scope).forEach(n=>{const c=P(n.x,n.y);if(c.x>=x0&&c.x<=x1&&c.y>=y0&&c.y<=y1)V.multi.add(n.id)});setMode(V.multi.size?`${V.multi.size} selected: drag any of them to move together · Esc to clear`:'');renderTree();return}
  if(drag&&!drag.pan&&drag.moved){pushUndo(drag.label,drag.before);if(drag.zone){ENG='layout';say(`${drag.label} (${drag.group.length} components). Ctrl+Z puts them back.`,'s');ENG=null}changed()}
  if(drag&&drag.zone&&!drag.moved){V.hoverZ=null;V.selZone=drag.zone;setMode(`Selected: ${groupLabel(drag.zone)} · press Tidy to arrange it · Esc to clear`)}
- if(drag&&drag.n&&drag.moved&&drag.group.length===1&&V.mode!=='iso'&&drag.n.parent==='root'&&!['user','ext','saas'].includes(drag.n.type)){const n=drag.n,tgt=zoneHits.filter(b=>b.z.startsWith('net:')&&sx>b.x0&&sx<b.x1&&sy>b.y0&&sy<b.y1).pop();if(tgt&&n.net!==tgt.z.slice(4)){const nid=tgt.z.slice(4);setTimeout(()=>act(`Move ${n.id} to ${netById(nid).name}`,()=>{S.nodes[n.id].net=nid}),0)}}
+ let movedRegion=false;if(drag&&drag.n&&drag.moved&&drag.group.length===1&&V.mode!=='iso'&&drag.n.parent==='root'&&expanded()&&!GLOBAL_T.includes(drag.n.type)){const n=drag.n,inB=zoneHits.some(b=>b.z==='__outerB'&&sx>b.x0&&sx<b.x1&&sy>b.y0&&sy<b.y1),inA=zoneHits.some(b=>b.z==='__outer'&&sx>b.x0&&sx<b.x1&&sy>b.y0&&sy<b.y1),R=inB?'B':inA?'A':null;if(R&&regionOf(n)!==R){movedRegion=true;setTimeout(()=>moveRegion(n.id,R,true),0)}}
+ if(!movedRegion&&drag&&drag.n&&drag.moved&&drag.group.length===1&&V.mode!=='iso'&&drag.n.parent==='root'&&!['user','ext','saas'].includes(drag.n.type)){const n=drag.n,tgt=zoneHits.filter(b=>b.z.startsWith('net:')&&sx>b.x0&&sx<b.x1&&sy>b.y0&&sy<b.y1).pop();if(tgt&&n.net!==tgt.z.slice(4)){const nid=tgt.z.slice(4);setTimeout(()=>act(`Move ${n.id} to ${netById(nid).name}`,()=>{S.nodes[n.id].net=nid}),0)}}
  if(drag&&drag.pan&&Math.abs(sx-drag.sx)<3&&Math.abs(sy-drag.sy)<3){if(V.selZone){V.selZone=null;setMode('')}V.sel=null;V.selE=null;V.selInst=null;if(V.multi.size){V.multi.clear();setMode('')}renderAdvisor();renderTree()}
  drag=null;
 });
@@ -2539,6 +2541,7 @@ function run(raw,opt={}){
  if(!ids.length){const stop=new Set(['api','service','the','for','and','db','web','app','system']);ids=Object.values(S.nodes).filter(n=>n.parent===V.scope||n.parent==='root').filter(n=>n.name.toLowerCase().split(/\W+/).some(w=>w.length>3&&!stop.has(w)&&new RegExp('\\b'+w+'\\b').test(l))).map(n=>n.id)}
  let m;
  if(/^workload\b/i.test(c)){wlCmd(c);return}
+ if(m=l.match(/^move\s+([a-z]{1,4}\d+)\s+(?:to|into)\s+region\s+([ab])\b/)){if(!expanded()){say('Draw region B separately first: "draw regions separately".','s');return}moveRegion(m[1].toUpperCase(),m[2].toUpperCase());return}
  if(regionCmd(c,l))return;
  if(m=l.match(/^(?:fail|lose|kill|take down|what if|simulate)\s+(?:an?\s+)?(?:availability\s+)?zone\s+([abc])\b|^zone\s+([abc])\s+(?:fails|outage|down)/)){const z=m[1]||m[2];if(!zoneList().includes(z)){say(`This design has ${zoneCount()} zone${zoneCount()>1?'s':''} (${zoneList().join(', ')}). Set more with "zones 3".`,'s');return}setOutage(z);return}
  if(/^(restore|recover|end)\s+(the\s+)?zone|^zone\s+outage\s+off/.test(l)){setOutage(null);return}
@@ -3415,6 +3418,20 @@ function applyRP(k){const P=RPAT[k];if(!P)return;if(expanded())collapseRegions()
   adr:{title:`Resilience pattern: ${P.name}`,context:`Survives: ${P.protects.join('; ')}. RPO: ${P.rpo}. RTO: ${P.rto}. Cost: ${P.cost}.`,decision:`Adopt the ${P.name} pattern for ${S.project}.`,tradeoffs:`Constraints: ${P.cons.join('; ')}\nChoose when: ${P.when}`,basis:['EA-P2','WAF-reliability']},
   after:()=>{fit();renderDem();say(`Applied ${P.name}. Test it: ${['dc-ap','dc-aa-dr','hybrid-az-region'].includes(k)?'"fail region a" for the '+(S.deploy==='vmware'?'data centre':'region')+', ':''}${zoneCount()>1?'"fail zone a" for a '+(S.deploy==='vmware'?'site':'zone')+', ':''}then "restore zone" / "restore region". The Design Advisor lists what still needs doing.`,'s')}})}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-rp]');if(b)applyRP(b.dataset.rp);if(e.target.id==='rpBtn')openRP();if(e.target.id==='rpClose')$('#rpDlg').hidden=true});
+
+
+/* ---------- moving components between regions ---------- */
+const descendants=id=>{const out=[];const go=p=>kids(p).forEach(k=>{out.push(k);go(k.id)});go(id);return out};
+// Vertical gap between the two region boxes: from copied twins, else below region A.
+function regionOffset(){const tw=Object.values(S.nodes).filter(n=>n.region==='B'&&n.parent==='root'&&n.twin&&S.nodes[n.twin]);if(tw.length)return tw.reduce((a,n)=>a+n.y-S.nodes[n.twin].y,0)/tw.length;
+ const a=kids('root').filter(n=>n.region==='A');return a.length?Math.max(...a.map(n=>n.y))-Math.min(...a.map(n=>n.y))+340:400}
+// Re-label flows: across regions they are cross-region; inside one region they are in-network.
+function relinkRegion(id){S.edges.forEach(e=>{if(e.from!==id&&e.to!==id)return;const a=S.nodes[e.from],b=S.nodes[e.to];if(!a||!b||GLOBAL_T.includes(a.type)||GLOBAL_T.includes(b.type))return;
+ if(regionOf(a)!==regionOf(b))e.via='xregion';else if(e.via==='xregion')e.via='net'})}
+function moveRegion(id,R,keepPos){const n=S.nodes[id];if(!n||!expanded())return;if(GLOBAL_T.includes(n.type)){say(`${id} is global (${T[n.type].label}); it serves both regions.`,'s');return}
+ if(regionOf(n)===R){say(`${id} is already in region ${R}.`,'s');return}
+ act(`Move ${id} to region ${R} (${regNames()[R.toLowerCase()]})`,()=>{const m=S.nodes[id],off=regionOffset();[m,...descendants(id)].forEach(x=>{x.region=R});delete m.net;if(!keepPos)m.y+=R==='B'?off:-off;relinkRegion(id)},
+  {after:()=>{const x=S.edges.filter(e=>(e.from===id||e.to===id)&&e.via==='xregion').length;say(`${id} is now in region ${R}.${x?` ${x===1?'One of its flows now crosses':x+' of its flows now cross'} regions (about ${xrtt()} ms per call). If that is not intended, connect it to region ${R}’s components instead.`:''}`,'s')}})}
 
 /* ---------- windows: every dialog moves by its title; the side panel resizes ---------- */
 document.querySelectorAll('.scrim>.modal:not(.gmodal)').forEach(m=>{const h=m.querySelector('h2');if(!h)return;let d=null;
