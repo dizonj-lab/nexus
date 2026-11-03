@@ -7,9 +7,11 @@ __pycache__/
 *.pyc
 site/
 deploy/.env
+deploy/lab.env
 .venv/
 *.db
 .pytest_cache/
 .sandbox-ca.crt
 .c4test/
 *.egg-info/
+deploy/landing.env

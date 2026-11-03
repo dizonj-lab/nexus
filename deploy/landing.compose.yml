@@ -1,0 +1,19 @@
+# NEXUS public landing page (static, "Coming soon"): ./deploy/landing.sh
+#   → http://<buddy>:8090/   Put a Cloudflare tunnel or reverse proxy in front to publish it,
+#     and set NEXUS_SITE_BIND=127.0.0.1 in deploy/landing.env so only the tunnel reaches it.
+# The app itself (sign-in, projects) is a separate stack: deploy/compose.yml.
+name: nexus-landing
+services:
+  site:
+    image: nginxinc/nginx-unprivileged:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ../landing:/usr/share/nginx/html:ro
+      - ./landing.nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "${NEXUS_SITE_BIND:-0.0.0.0}:${NEXUS_SITE_PORT:-8090}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3

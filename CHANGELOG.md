@@ -5,6 +5,37 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.13] — 2026-11-03
+
+### Added
+- **Public landing page** (`landing/`, served by `deploy/landing.sh` on port
+  8090): the problem, the business imperative, how it works, chaos
+  engineering on the drawing board, multi-cloud, data centre and hybrid,
+  Terraform and OpenTofu, LikeC4, and human-in-the-loop decisions. Sign-up
+  is **Coming soon**. Screens are marked as subject to change.
+- **Design, break, correct walkthrough** on the landing page, replacing the
+  old hero picture. It shows users, then DNS, a CDN with the WAF at the edge, a load balancer
+  across two zones, services in each zone, and a database primary with a
+  synchronous standby. Zone A fails, zone B is overloaded and the database
+  fails over. A correction is proposed by an agent (Auto) or made by the
+  architect (Manual). The architect approves, and the zone fails again,
+  this time without errors. The steps can be clicked, paused and played.
+- **Lab instance**: `./deploy/buddy.sh --lab` runs a second, separate NEXUS
+  for ideation, development and testing. It has no landing page (`/` goes
+  straight to the projects), its own database, settings in `deploy/lab.env`
+  and port 8089. Images are tagged `lab`, so it never replaces the main
+  instance's images.
+- **5-minute product demo** (`landing/media/nexus-demo.mp4`, captions in
+  `nexus-demo.vtt`), with intro and outro pages.
+- LikeC4 export now includes a **containers view** of the system, as well as
+  the system context.
+
+### Changed
+- The IaC panel says **Terraform · OpenTofu**. The generated HCL runs with
+  either tool.
+- `deploy/compose.yml`: image tags follow `NEXUS_IMAGE_TAG` (default
+  `latest`), and the web edge reads `NEXUS_LANDING` (default `on`).
+
 ## [0.2.12] — 2026-11-01
 
 ### Added

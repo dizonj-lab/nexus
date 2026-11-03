@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NEXUS · Architecture Workbench</title>
+  <meta name="description" content="Design inside your guardrails. Break it before production does. NEXUS is an architecture workbench, coming soon.">
+  <link rel="icon" href="nexus.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+  <header class="top">
+    <div class="inner top-row">
+      <a href="#" class="brand"><img src="nexus.svg" alt="" width="26" height="26">NEXUS<span class="brand-sub">Architecture Workbench</span></a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#problem">Problem</a><a href="#how">How it works</a><a href="#chaos">Break it</a><a href="#platforms">Platforms</a><a href="#decisions">Decisions</a><a href="#demo">Demo</a>
+      </nav>
+      <span class="btn primary soon" role="button" aria-disabled="true" title="Sign-ups open soon">Coming soon</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Architecture workbench · coming soon</p>
+        <h1>Design inside your guardrails. Break it before production does.</h1>
+        <p class="lede">Describe the system you need. NEXUS drafts it within your firm's approved technology,
+          principles and security policy, then breaks it on purpose: load spikes, zone and region outages.
+          It shows exactly what fails, and corrects it automatically or with you at the wheel.
+          Every key decision stays with an architect.</p>
+        <div class="row">
+          <span class="btn primary big soon" role="button" aria-disabled="true" title="Sign-ups open soon">Coming soon</span>
+          <a href="#demo" class="btn big">Watch the 5-minute demo</a>
+        </div>
+        <p class="fine">Multi-cloud, data centre and hybrid · Terraform and OpenTofu generated from the design · diagrams rendered with LikeC4 · self-hosted on local language models</p>
+      </div>
+
+      <figure class="story" id="story" data-phase="design" data-mode="auto" aria-label="Animated walkthrough: design within guardrails, break it with a zone outage, see the impact, correct it, approve and test again">
+        <div class="story-bar">
+          <ol class="steps" role="list">
+            <li><button type="button" data-go="design"><span>1</span>Design</button></li>
+            <li><button type="button" data-go="break"><span>2</span>Break</button></li>
+            <li><button type="button" data-go="impact"><span>3</span>Impact</button></li>
+            <li><button type="button" data-go="correct"><span>4</span>Correct</button></li>
+            <li><button type="button" data-go="retest"><span>5</span>Approve</button></li>
+          </ol>
+          <div class="ctl">
+            <div class="mode" role="group" aria-label="How the correction is made">
+              <button type="button" data-mode="auto" aria-pressed="true">Auto</button>
+              <button type="button" data-mode="manual" aria-pressed="false">Manual</button>
+            </div>
+            <button type="button" class="play" aria-label="Pause the walkthrough" title="Pause / play">
+              <svg viewBox="0 0 16 16" class="i-pause" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg>
+              <svg viewBox="0 0 16 16" class="i-play" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="story-scroll">
+        <svg viewBox="0 0 640 400" role="img" aria-labelledby="storyTitle">
+          <title id="storyTitle">Users reach a CDN with a web application firewall, then a load balancer that spreads traffic over services in two availability zones; the database has a primary in zone A and a synchronous standby in zone B.</title>
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10z" class="ah"/></marker>
+            <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" class="hatch-bg"/><line x1="0" y1="0" x2="0" y2="8" class="hatch-ln"/></pattern>
+          </defs>
+
+          <!-- region and zones -->
+          <rect class="region" x="196" y="14" width="436" height="378" rx="10"/>
+          <text class="frame-lbl" x="208" y="32">REGION · eu-west-1</text>
+          <g class="az az-a"><rect x="300" y="44" width="322" height="158" rx="8"/><text class="frame-lbl" x="312" y="194">AVAILABILITY ZONE A</text><text class="az-x" x="610" y="62">✕ ZONE DOWN</text></g>
+          <g class="az az-b"><rect x="300" y="222" width="322" height="158" rx="8"/><text class="frame-lbl" x="312" y="372">AVAILABILITY ZONE B</text></g>
+
+          <!-- flows -->
+          <path class="res" d="M58 182 V92 H92"/>
+          <text class="flow-lbl" x="63" y="150">resolve</text>
+          <path class="flow f-main" d="M84 204 H110" marker-end="url(#ah)"/>
+          <path class="flow f-main" d="M178 204 H214" marker-end="url(#ah)"/>
+          <path class="flow fa" d="M268 196 C290 196 290 104 330 104" marker-end="url(#ah)"/>
+          <path class="flow fb" d="M268 212 C290 212 290 282 330 282" marker-end="url(#ah)"/>
+          <path class="flow fa add" d="M268 200 C292 200 292 152 330 152" marker-end="url(#ah)"/>
+          <path class="flow fb add" d="M268 208 C292 208 292 330 330 330" marker-end="url(#ah)"/>
+          <path class="flow fa" d="M410 104 H486" marker-end="url(#ah)"/>
+          <path class="flow fa add" d="M410 152 C450 152 450 112 486 112" marker-end="url(#ah)"/>
+          <path class="flow fx" d="M410 282 C452 282 452 120 486 120" marker-end="url(#ah)"/>
+          <path class="flow fx add" d="M410 330 C462 330 462 128 486 128" marker-end="url(#ah)"/>
+          <path class="flow fy" d="M410 282 H486" marker-end="url(#ah)"/>
+          <path class="flow fy add" d="M410 330 C450 330 450 298 486 298" marker-end="url(#ah)"/>
+          <path class="repl" d="M548 134 V270"/>
+          <text class="flow-lbl" x="556" y="206">sync</text>
+
+          <!-- nodes -->
+          <g class="n n-user"><rect x="16" y="182" width="68" height="44" rx="7"/><text x="50" y="203">Users</text><text class="sub" x="50" y="217">internet</text></g>
+          <g class="n n-dns"><rect x="92" y="74" width="70" height="36" rx="7"/><text x="127" y="96">DNS</text></g>
+          <g class="n n-cdn"><rect x="110" y="182" width="68" height="44" rx="7"/><text x="144" y="203">CDN</text><text class="sub" x="144" y="217">TLS 1.2+</text>
+            <g class="waf"><rect x="132" y="168" width="40" height="18" rx="9"/><text x="152" y="181">WAF</text></g></g>
+          <g class="n n-alb"><rect x="214" y="180" width="54" height="48" rx="7"/><text x="241" y="201">ALB</text><text class="sub" x="241" y="215">2 AZs</text></g>
+
+          <g class="n svc svc-a1"><rect x="330" y="82" width="80" height="44" rx="7"/><text x="370" y="101">svc · a1</text><text class="sub util" x="370" y="116" data-u="a">60%</text></g>
+          <g class="n svc svc-a2 add"><rect x="330" y="130" width="80" height="44" rx="7"/><text x="370" y="149">svc · a2</text><text class="sub util" x="370" y="164" data-u="a2">30%</text></g>
+          <g class="n svc svc-b1"><rect x="330" y="260" width="80" height="44" rx="7"/><text x="370" y="279">svc · b1</text><text class="sub util" x="370" y="294" data-u="b">60%</text></g>
+          <g class="n svc svc-b2 add"><rect x="330" y="308" width="80" height="44" rx="7"/><text x="370" y="327">svc · b2</text><text class="sub util" x="370" y="342" data-u="b2">30%</text></g>
+
+          <g class="n db db-p"><rect x="486" y="90" width="124" height="44" rx="7"/><text x="548" y="109">Database</text><text class="sub" x="548" y="124" data-db="p">primary</text></g>
+          <g class="n db db-s"><rect x="486" y="270" width="124" height="44" rx="7"/><text x="548" y="289">Database</text><text class="sub" x="548" y="304" data-db="s">standby</text></g>
+          <g class="proxy add"><rect x="452" y="186" width="78" height="22" rx="11"/><text x="491" y="201">DB proxy</text></g>
+
+          <!-- guardrails -->
+          <g class="rails">
+            <text class="frame-lbl" x="16" y="268">FIRM GUARDRAILS</text>
+            <g class="rail r1"><circle cx="24" cy="286" r="6"/><text x="36" y="290">WAF on the internet edge</text></g>
+            <g class="rail r2"><circle cx="24" cy="306" r="6"/><text x="36" y="310">TLS 1.2+ on every flow</text></g>
+            <g class="rail r3"><circle cx="24" cy="326" r="6"/><text x="36" y="330">Approved technology</text></g>
+            <g class="rail r4"><circle cx="24" cy="346" r="6"/><text x="36" y="350">Data in two zones</text></g>
+            <g class="rail r5"><circle cx="24" cy="366" r="6"/><text x="36" y="370">Survives a zone loss</text></g>
+          </g>
+
+          <!-- chaos tag -->
+          <g class="chaos"><rect x="404" y="2" width="196" height="24" rx="12"/><text x="502" y="18">CHAOS · zone A fails</text></g>
+        </svg>
+        </div>
+
+        <figcaption class="story-cap">
+          <div class="cap-head"><b id="capTitle">Design within the firm's guardrails</b><span class="who" id="capWho">AI-assisted</span></div>
+          <p id="capText">NEXUS drafts the design from a plain-language brief, using only approved technology. Every guardrail is checked as it is drawn.</p>
+          <ul class="kpis" id="capKpis"></ul>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="problem" class="band">
+      <div class="inner">
+        <p class="eyebrow">The problem</p>
+        <h2>Architecture is reviewed on paper, and tested in production.</h2>
+        <div class="cards4">
+          <article><h3>Standards live in documents</h3><p>Approved technology, principles and security policy sit in PDFs and wikis. Violations surface late, in the review board, or not at all.</p></article>
+          <article><h3>Failure is guessed</h3><p>Capacity and outage behaviour are estimated in spreadsheets. The real bottleneck, and what a zone loss does, is found by customers.</p></article>
+          <article><h3>Decisions lose their reasons</h3><p>Diagrams, cost models and decisions live in different tools. Months later, nobody can say which version was approved, or why.</p></article>
+          <article><h3>Experience is the queue</h3><p>Resilient hybrid and active-active designs need senior architects. Junior architects lack the context, so everything waits for the few who have it.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="why" class="inner sec">
+      <p class="eyebrow">The business imperative</p>
+      <h2>Resilience is a board-level question now.</h2>
+      <div class="why">
+        <ul class="ticks">
+          <li><b>Downtime is lost revenue and lost trust.</b> Customers expect services to stay up through a data-centre or cloud-zone failure.</li>
+          <li><b>Regulators expect resilience to be demonstrated,</b> with tested recovery objectives and traceable decisions, not assurances.</li>
+          <li><b>Hybrid and multi-cloud multiply the failure modes</b> that one architect has to keep in their head.</li>
+          <li><b>Change has to be faster and safer at the same time.</b> The review board cannot be the bottleneck.</li>
+        </ul>
+        <div class="goal">
+          <h3>What NEXUS is built to deliver</h3>
+          <ol>
+            <li>Designs that comply with your standards from the first draft</li>
+            <li>Bottlenecks and single points of failure found before build</li>
+            <li>Shorter review cycles, with the evidence attached</li>
+            <li>Junior architects designing safely inside the guardrails</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="band">
+      <div class="inner">
+        <p class="eyebrow">How it works</p>
+        <h2>Design, break, correct, decide. In minutes, not quarters.</h2>
+        <ol class="flow6">
+          <li class="k-human"><b>Describe</b><span>A rough brief in plain language. NEXUS asks only what it needs to know.</span></li>
+          <li class="k-agent"><b>Draft</b><span>A local language model proposes a design. Rules fill the blanks from your ground truth.</span></li>
+          <li class="k-tool"><b>Check</b><span>Policy as code: approved stack, EA principles, security, Well-Architected pillars.</span></li>
+          <li class="k-tool"><b>Break</b><span>Load to 1,000×, zone and region outages, failover. The simulator names what fails first.</span></li>
+          <li class="k-agent"><b>Correct</b><span>Agents propose fixes, or you make them. Every option is dry-run with the same rules.</span></li>
+          <li class="k-human"><b>Decide</b><span>An architect approves. The decision, its numbers and its reasons are recorded.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="chaos" class="inner sec">
+      <p class="eyebrow">Break it fast</p>
+      <h2>Chaos engineering on the drawing board.</h2>
+      <p class="lede narrow">Run the experiments a game day would, before anything is built. Change the workload, take out a zone or a region,
+        swap the database, and see the bottleneck, the error rate, the recovery and the cost change as you go.</p>
+      <div class="exp">
+        <article><span class="tag">Load</span><h3>Push to 1,000×</h3><p>Requests per second, payload size, read/write ratio and cache hit rate. Autoscaling, rate limits and the first component to break.</p></article>
+        <article><span class="tag">Zone</span><h3>Lose an availability zone</h3><p>See whether the survivors have the capacity to carry the load, and how long the database takes to fail over.</p></article>
+        <article><span class="tag">Region</span><h3>Lose a region</h3><p>Active-active or active-passive, DNS failover and health checks, cross-region latency and the data you could lose.</p></article>
+        <article><span class="tag">Pattern</span><h3>Compare resilience patterns</h3><p>Data centre active-passive and active-active, hybrid, zone-resilient and region-pair designs, side by side.</p></article>
+        <article><span class="tag">Data</span><h3>Choose the database with eyes open</h3><p>Replicas, global databases and distributed SQL, with their constraints and trade-offs before the decision.</p></article>
+        <article><span class="tag">Hybrid</span><h3>Break the link to the data centre</h3><p>Data centre and cloud together: Direct Connect or ExpressRoute, internal users on the company network, and what still works when one side is gone.</p></article>
+      </div>
+      <p class="fine">Figures in the walkthrough above are simulated. The simulator uses deterministic capacity and queueing models: fast, repeatable estimates for comparing options. It complements real load tests and game days; it does not replace them.</p>
+    </section>
+
+    <section id="platforms" class="band">
+      <div class="inner">
+        <p class="eyebrow">One model, every platform</p>
+        <h2>Design once. Deploy to any cloud, your data centre, or both.</h2>
+        <div class="plat">
+          <article><h3>Multi-cloud, data centre and hybrid</h3><p>AWS, Azure and Google Cloud, a VMware data centre with the products you name, and hybrid designs that span them. Switch the target and components, zones and products follow.</p>
+            <ul class="chips"><li>AWS</li><li>Azure</li><li>Google Cloud</li><li>Data centre</li><li>Hybrid</li></ul></article>
+          <article><h3>Infrastructure as code, generated</h3><p>Every change on the canvas regenerates HCL for the target platform: network segments, default-deny rules and resources. It runs with Terraform or OpenTofu, and is never edited by hand.</p>
+            <ul class="chips"><li>Terraform</li><li>OpenTofu</li><li>HCL</li></ul></article>
+          <article><h3>Diagrams rendered with LikeC4</h3><p>The same model produces a LikeC4 (C4 model) architecture: context, containers and components, with health tags from the simulator, so diagrams never drift from the design.</p>
+            <ul class="chips"><li>LikeC4</li><li>C4 model</li></ul></article>
+        </div>
+        <p class="fine">The design model is the single source of truth. Terraform, OpenTofu and LikeC4 are generated from it.</p>
+      </div>
+    </section>
+
+    <section id="decisions" class="sec">
+      <div class="inner">
+        <p class="eyebrow">Human in the loop</p>
+        <h2>AI assists. Architects decide.</h2>
+        <div class="dec">
+          <article><h3>Rules decide, models explain</h3><p>Risk, cost, capacity and compliance come from policy as code and the simulator. Language models explain them and propose options; they never set the numbers.</p></article>
+          <article><h3>Two opinions on every risky change</h3><p>The Action Guard shows the change as asked, and an independent second opinion, each with before-and-after diagrams, scores and Well-Architected citations.</p></article>
+          <article><h3>Agents propose, people apply</h3><p>Agents work inside a harness: only the tools your role allows, a budget, and a trace of every step. They can propose a changeset; only an architect can apply it.</p></article>
+          <article><h3>Every key decision is recorded</h3><p>Architecture decision records, a versioned change ledger and an audit trail: who decided what, when, why, and with which numbers.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo" class="band"><div class="inner">
+      <p class="eyebrow">Product demo · 5 minutes</p>
+      <h2>See it design, break and correct a system.</h2>
+      <div class="video" id="video">
+        <video controls playsinline preload="metadata" poster="media/nexus-demo-poster.jpg">
+          <source src="media/nexus-demo.mp4" type="video/mp4">
+          <track kind="captions" src="media/nexus-demo.vtt" srclang="en" label="English">
+        </video>
+        <p class="video-missing">The demo video will appear here soon.</p>
+      </div>
+      <p class="fine">Pre-release: screens are subject to change. Model responses in the demo are simulated where the video says so.</p>
+    </div></section>
+
+    <section class="cta">
+      <div class="inner cta-row">
+        <div><h2>NEXUS is under development.</h2><p>Sign-ups open soon.</p></div>
+        <span class="btn primary big soon" role="button" aria-disabled="true" title="Sign-ups open soon">Coming soon</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot inner">
+    <span class="brand"><img src="nexus.svg" alt="" width="20" height="20">NEXUS</span>
+    <span class="fine">Architecture Workbench · under development · screens are subject to change · independent R&amp;D by Joel Dizon</span>
+  </footer>
+  <script src="story.js"></script>
+</body>
+</html>

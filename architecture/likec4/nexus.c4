@@ -60,6 +60,9 @@ model {
   reviewer = actor 'Reviewer / Stakeholder' {
     description 'Views shared designs and comments by component ID'
   }
+  visitor = actor 'Visitor' {
+    description 'Anyone on the internet, before sign-ups open'
+  }
   extAgent = external 'External AI clients' {
     description 'Claude Desktop / Claude Code, IDE agents'
   }
@@ -73,9 +76,13 @@ model {
   nexus = system 'NEXUS' {
     description 'Interactive, agentic architecture workbench'
 
+    landing = webapp 'Public landing page' {
+      technology 'Static HTML, CSS, JavaScript on nginx'
+      description 'Product story, the design-break-correct walkthrough and the demo video; sign-up is Coming soon. Separate from the app (deploy/landing.sh)'
+    }
     edge = container 'Edge' {
       technology 'nginx'
-      description 'One origin: app, API, model server and LikeC4 site; sign-in required for the model server and diagrams'
+      description 'One origin: app, API, model server and LikeC4 site; sign-in required for the model server and diagrams. Runs twice: main (landing page) and lab (no landing page, own database) for ideation, development and testing'
     }
     web = webapp 'Workbench UI' {
       technology 'Next.js 16, React 19, Canvas'
@@ -194,6 +201,8 @@ model {
   lead -> nexus.web 'approves decisions'
   extAgent -[mcp]-> nexus.gateway 'calls NEXUS tools'
 
+  visitor -> nexus.landing 'reads, watches the demo'
+
   // core
   nexus.web -> nexus.api 'REST + WebSocket'
   nexus.api -> nexus.db 'reads / appends events'
@@ -252,13 +261,13 @@ model {
 views {
   view index {
     title 'NEXUS · System context'
-    include architect, reviewer, extAgent, llm, thirdParty, nexus
+    include architect, reviewer, visitor, extAgent, llm, thirdParty, nexus
   }
 
   view containers of nexus {
     title 'NEXUS · Containers'
     include *
-    include architect, extAgent, llm, thirdParty
+    include architect, visitor, extAgent, llm, thirdParty
   }
 
   view mcp {

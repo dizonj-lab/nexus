@@ -216,3 +216,18 @@ region (asynchronous). "Hybrid" means a cloud workload connected to
 systems and users in the data centre over Direct Connect. Applying a pattern
 is an architecture decision.
 
+## D37 — The public landing page is separate from the app
+The landing page is a static site with no sign-in, API or model behind it,
+so it can be published without exposing the app. Sign-up says Coming soon
+until accounts can be self-served. Its walkthrough is topologically
+correct: the WAF sits on the CDN or load balancer at the edge, not as a hop
+before the services. The load balancer spans zones, and the database's
+primary and standby are in different zones. Every figure in it is labelled
+as simulated.
+
+## D38 — A lab instance for ideation, development and testing
+The lab is the same app with the landing page switched off
+(`NEXUS_LANDING=off`), its own Compose project, database, settings file,
+port and image tag. Changes can be tried there, on any branch, without
+touching the main instance's data or images.
+

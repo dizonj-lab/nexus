@@ -1,6 +1,7 @@
 # NEXUS on Buddy: web app, API, PostgreSQL and the nginx edge.
 #   ./deploy/buddy.sh           first run creates deploy/.env with secrets and the first administrator
 #   → http://<buddy>:8088/      landing page and sign-in
+#   ./deploy/buddy.sh --lab     a second, separate instance with no landing page (own database, port 8089)
 # Settings live in deploy/.env (never committed). See deploy/env.example.
 name: nexus
 services:
@@ -21,7 +22,7 @@ services:
 
   backend:
     build: { context: .., dockerfile: backend/Dockerfile }
-    image: nexus-backend:latest
+    image: nexus-backend:${NEXUS_IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on: { db: { condition: service_healthy } }
     environment:
@@ -40,13 +41,13 @@ services:
 
   frontend:
     build: { context: .., dockerfile: frontend/Dockerfile }
-    image: nexus-frontend:latest
+    image: nexus-frontend:${NEXUS_IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on: [backend]
 
   web:
     build: { context: .., dockerfile: deploy/web.Dockerfile }
-    image: nexus-web:latest
+    image: nexus-web:${NEXUS_IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on: [backend, frontend]
     ports:
@@ -54,6 +55,8 @@ services:
       - "${NEXUS_BIND:-0.0.0.0}:${NEXUS_PORT:-8088}:8080"
     environment:
       NEXUS_LLM_UPSTREAM: ${NEXUS_LLM_UPSTREAM:-http://host.docker.internal:11434}
+      # off = no landing page: / goes straight to the projects (the lab instance, see buddy.sh --lab)
+      NEXUS_LANDING: ${NEXUS_LANDING:-on}
     extra_hosts: ["host.docker.internal:host-gateway"]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]

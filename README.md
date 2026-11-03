@@ -17,7 +17,8 @@ and LikeC4 are generated from the same design model.
 | `schema/` | Design-model JSON schema and the sample design |
 | `poc/prototype/index.html` | The canvas (single file), embedded by the app; also runs on its own |
 | `architecture/likec4/nexus.c4` | Target architecture as a LikeC4 model |
-| `deploy/` | Docker Compose for Buddy: PostgreSQL, API, app, nginx edge |
+| `landing/` | Public landing page (static): product story, design-break-correct walkthrough, demo video; sign-up is Coming soon |
+| `deploy/` | Docker Compose for Buddy: PostgreSQL, API, app, nginx edge; the lab instance; the landing page |
 | `docs/` | Architecture, decisions, roadmap, current state |
 
 ## Run locally
@@ -44,6 +45,26 @@ cd ~/nexus && git pull && ./deploy/buddy.sh
 The first run asks for the administrator's email and name, creates
 `deploy/.env` with random secrets and prints the first password. Then open
 `http://<buddy>:8088/`.
+
+**Lab instance** for ideation, development and testing: no landing page (`/`
+goes straight to the projects), its own database and settings
+(`deploy/lab.env`), port 8089. To try a branch before main, run it from a
+second checkout:
+
+```bash
+git clone https://github.com/dizonj-lab/nexus.git ~/nexus-lab
+```
+
+```bash
+cd ~/nexus-lab && git checkout <branch> && ./deploy/buddy.sh --lab
+```
+
+**Public landing page** (static, port 8090; put a tunnel in front to publish
+it):
+
+```bash
+cd ~/nexus && git pull && ./deploy/landing.sh
+```
 
 Agent evals against the real model:
 

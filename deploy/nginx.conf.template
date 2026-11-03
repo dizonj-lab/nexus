@@ -53,6 +53,13 @@ server {
     try_files $uri $uri/ /c4/index.html;
   }
 
+  # The lab instance has no landing page: / goes straight to the projects (sign-in first if needed).
+  location = / {
+    set $landing "${NEXUS_LANDING}";
+    if ($landing = "off") { return 302 /projects; }
+    proxy_pass http://frontend:3000;
+  }
+
   # Everything else is the web app (landing page, sign-in, projects, embedded canvas).
   location / {
     proxy_pass http://frontend:3000;

@@ -1,4 +1,9 @@
-# NEXUS — Current state (v0.2.3)
+# NEXUS — Current state (v0.2.13)
+
+- **Public landing page** (`landing/`): static, Coming soon, with the
+  design-break-correct walkthrough and the 5-minute product demo.
+- **Instances**: main (port 8088, landing page) and lab (port 8089, no landing
+  page, own database) from the same Compose file.
 
 - **App** (`frontend/`): Next.js 16 with landing page, About, sign-in, projects,
   members, changesets, agent runs with traces, administration (users, audit
