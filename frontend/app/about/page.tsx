@@ -42,7 +42,7 @@ export default function About() {
         <dl className="facts">
           <div><dt>Version</dt><dd className="mono">v{pkg.version}</dd></div>
           <div><dt>Status</dt><dd>Development in progress</dd></div>
-          <div><dt>Hosting</dt><dd>Self-hosted</dd></div>
+          <div><dt>AI</dt><dd>Local SLM; LLM for second opinions</dd></div>
         </dl>
 
         <section>

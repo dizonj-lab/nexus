@@ -72,16 +72,16 @@ in plain language: an online banking portal for three hundred thousand customers
 00:01:57.777 --> 00:01:59.695
 must survive a zone failure.
 
-00:02:00.395 --> 00:02:04.780
+00:02:00.394 --> 00:02:04.779
 The local model doesn't guess. It asks for what it needs: the platform,
 
-00:02:04.780 --> 00:02:08.608
+00:02:04.779 --> 00:02:08.607
 the peak load, and whether the data is sensitive. I'll answer.
 
-00:02:09.307 --> 00:02:13.795
+00:02:09.306 --> 00:02:13.794
 It returns a plan, not a change. The Action Guard checks the plan
 
-00:02:13.795 --> 00:02:19.803
+00:02:13.794 --> 00:02:19.802
 against the firm's ground truth, principles and approved technology, before I apply it.
 
 00:02:20.503 --> 00:02:26.692
@@ -111,10 +111,10 @@ runs that option with the same rules, so its numbers are computed, not
 00:03:03.071 --> 00:03:03.674
 claimed.
 
-00:03:04.374 --> 00:03:08.743
+00:03:04.373 --> 00:03:08.742
 This is a key decision, so a person makes it. I'll choose opinion
 
-00:03:08.743 --> 00:03:13.718
+00:03:08.742 --> 00:03:13.717
 two. It's recorded as an architecture decision, with both sets of numbers.
 
 00:03:14.417 --> 00:03:19.667
@@ -126,65 +126,65 @@ traffic. Services autoscale, the cost follows, and NEXUS names the component tha
 00:03:25.996 --> 00:03:26.428
 first.
 
-00:03:27.128 --> 00:03:33.468
+00:03:27.127 --> 00:03:33.467
 Next, chaos engineering. I'll fail availability zone A. Thirty percent of requests fail:
 
-00:03:33.468 --> 00:03:37.935
+00:03:33.467 --> 00:03:37.934
 the cache and the event bus each ran a single instance, in the
 
-00:03:37.935 --> 00:03:39.736
+00:03:37.934 --> 00:03:39.735
 zone that just went down.
 
-00:03:40.437 --> 00:03:45.983
+00:03:40.435 --> 00:03:45.981
 The Design Advisor proposes a fix for each. I'll apply them: two instances,
 
-00:03:45.983 --> 00:03:51.011
+00:03:45.981 --> 00:03:51.009
 spread across zones. With zone A still down, the error rate drops to
 
-00:03:51.011 --> 00:03:51.381
+00:03:51.009 --> 00:03:51.379
 zero.
 
-00:03:52.080 --> 00:03:57.636
+00:03:52.079 --> 00:03:57.635
 Now a bigger blast radius. Two regions, active active, and region A fails.
 
-00:03:57.636 --> 00:04:02.966
+00:03:57.635 --> 00:04:02.965
 Half the users fail: there's no DNS steering, and the databases live in
 
-00:04:02.966 --> 00:04:03.792
+00:04:02.965 --> 00:04:03.791
 one region.
 
-00:04:04.495 --> 00:04:09.523
+00:04:04.490 --> 00:04:09.518
 Choosing the multi region database is a decision with real trade offs, so
 
-00:04:09.523 --> 00:04:15.034
+00:04:09.518 --> 00:04:15.029
 NEXUS compares the options, with their constraints, before an architect decides.
 
-00:04:15.734 --> 00:04:21.041
+00:04:15.729 --> 00:04:21.418
 The same design runs on any platform. AWS, Azure, Google Cloud, or your
 
-00:04:21.041 --> 00:04:24.929
+00:04:21.418 --> 00:04:25.585
 own data centre, and hybrid patterns that span both.
 
-00:04:25.628 --> 00:04:33.135
+00:04:26.285 --> 00:04:33.792
 Every change regenerates infrastructure as code. The Terraform runs with Terraform or OpenTofu,
 
-00:04:33.135 --> 00:04:35.505
+00:04:33.792 --> 00:04:36.162
 and it's never edited by hand.
 
-00:04:36.206 --> 00:04:40.515
+00:04:36.862 --> 00:04:41.171
 And the same model generates the architecture in LikeC4.
 
-00:04:43.014 --> 00:04:49.152
+00:04:43.670 --> 00:04:49.808
 LikeC4 renders it as interactive C 4 diagrams, from context down to components,
 
-00:04:49.152 --> 00:04:52.571
+00:04:49.808 --> 00:04:53.227
 so the diagrams never drift from the design.
 
-00:04:55.072 --> 00:05:00.755
+00:04:55.728 --> 00:05:01.411
 That's NEXUS. Design inside your guardrails, break it before production does, and keep
 
-00:05:00.755 --> 00:05:03.200
+00:05:01.411 --> 00:05:03.856
 every key decision with an architect.
 
-00:05:03.900 --> 00:05:08.956
+00:05:04.556 --> 00:05:09.612
 NEXUS is coming soon. Please contact me to know more. Thanks for watching.
