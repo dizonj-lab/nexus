@@ -26,7 +26,10 @@ Semantic Versioning.
   and port 8089. Images are tagged `lab`, so it never replaces the main
   instance's images.
 - **5-minute product demo** (`landing/media/nexus-demo.mp4`, captions in
-  `nexus-demo.vtt`), with intro and outro pages.
+  `nexus-demo.vtt`), with intro and outro pages, narrated in the am_michael
+  voice. It closes with: NEXUS is coming soon; please contact me to know more.
+- The landing page's closing band says NEXUS is coming soon and links to
+  Contact me.
 - LikeC4 export now includes a **containers view** of the system, as well as
   the system context.
 
