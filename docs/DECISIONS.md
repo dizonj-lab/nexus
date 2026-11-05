@@ -248,3 +248,13 @@ served on their own (`deploy/canvas.sh`), with no landing page, sign-in, API
 or database. Work stays in each browser. The full app (projects, roles,
 versions, decisions) remains the system of record.
 
+## D41 — Strategy starts in plain words, for a business leader
+A strategy usually starts with an executive's idea, not an architecture
+artefact. So "New strategy" asks for the idea in plain words, and the local
+model drafts a plan in plain language, level by level (business, people,
+process, technology, data and AI, money), as requirements and dependencies.
+The architect keeps, drops, edits or deepens every item. Only then is it
+translated into the technical workflow and artefacts for the technology
+team. The model drafts; the architect decides. Nothing it writes is applied
+without being shown and editable, and assumptions are marked.
+

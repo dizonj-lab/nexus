@@ -1,4 +1,9 @@
-# NEXUS — Current state (v0.2.14)
+# NEXUS — Current state (v0.2.15)
+
+- **New strategy in plain words**: idea → overview → Business, People, Process,
+  Technology, Data & AI, Money (requires, depends on, Deeper) → decide → create,
+  drafted by the local model and decided by the architect; several strategies
+  per browser.
 
 - **NEXUS Strategy** (`poc/strategy/`, app page /strategy): the Chief
   Technology Architect's nine-stage workflow with four lenses, RACI, 52

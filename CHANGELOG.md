@@ -5,6 +5,30 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.15] — 2026-11-05
+
+### Added
+- **New strategy, in plain words** (NEXUS Strategy → + New strategy), made
+  for a business leader:
+  - **Idea:** you describe the idea the way you would to the board.
+  - **Overview:** the local model drafts the plan in plain language (summary,
+    vision, measurable goals, simple rules) and asks what it needs to know.
+  - **One step per level:** Business, People, Process, Technology, Data & AI
+    and Money. Each shows what it means, **what it requires** and **what it
+    depends on** (named by level). Every item can be kept or dropped, edited,
+    added, or broken down with **Deeper**, and **Ask AI** revises a step.
+  - **Decide:** the architect confirms the decisions for the leadership, the
+    risks and the first 12 months.
+  - **Create:** the plan is translated for the technology team. It fills
+    Strategy on a page and the business case, adds "For your organisation"
+    notes in the nine-stage Workflow and drafts the key artefacts (charter,
+    vision, target state, dependency map, operating model, talent plan,
+    business case, roadmap), and gets the guardrails and approved technology
+    ready to hand off to NEXUS.
+  - **Without a model:** the steps work by hand.
+- **Several strategies per browser:** a switcher, + New strategy and Delete.
+  Import adds the file as a new strategy.
+
 ## [0.2.14] — 2026-11-05
 
 ### Added

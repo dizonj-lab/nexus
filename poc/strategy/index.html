@@ -20,12 +20,12 @@
       <a class="on" href="#" aria-current="page">Strategy</a>
       <a id="toDesign" href="../prototype/index.html">Design workbench</a>
     </nav>
-    <div class="org"><label>Organisation <input id="orgName" maxlength="80"></label></div>
+    <div class="org"><select id="stratSel" aria-label="Your strategies" title="Switch strategy"></select><button class="btn mod" id="newBtn" title="Describe an idea; AI drafts it, you go Next through the stages">+ New strategy</button><input id="orgName" maxlength="80" placeholder="Organisation" aria-label="Organisation"></div>
     <div class="prog" title="Exit-gate items checked across all stages"><span id="progTxt">0%</span><span class="bar"><i id="progBar"></i></span></div>
     <div class="tools">
       <button class="btn" id="exportBtn" title="Download everything as JSON">Export</button>
       <label class="btn" title="Load a JSON export">Import<input type="file" id="importIn" accept="application/json" hidden></label>
-      <button class="btn ghost" id="resetBtn" title="Start again from the example">Reset</button>
+      <button class="btn ghost" id="resetBtn" title="Delete this strategy from this browser">Delete</button>
     </div>
   </header>
 
