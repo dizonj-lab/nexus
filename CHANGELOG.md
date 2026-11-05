@@ -5,6 +5,47 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-11-05
+
+### Changed
+- **New design reads the targets from your words.** Next (or "Read it
+  for me") takes availability (99.99%, "four nines"), RTO, RPO ("RTO of 4
+  hours", "no data loss") and region loss from the requirement, as well as
+  the facts. Each value filled in this way is marked "from your words" or
+  "AI", with a confidence, and the mark disappears when you change it.
+- **RTO and RPO are in hours** (0.25 = 15 minutes; any size), each with its
+  plain reading underneath.
+- **Layered view lines** are elbowed with rounded corners, run in the gaps
+  between layers instead of over components, and hop where they cross.
+
+### Added
+- **Users are drawn as people:** a group for customers, two people for
+  staff, on the canvas and in the layered view.
+- **Regions on the canvas** (Layers panel, or `regions overlay`, `regions
+  stacked`, `regions side by side`, `regions only a`, `regions only b`):
+  one stack with region B as a stamp, region B below or beside region A, or
+  one region only.
+- **Data replication shown:**
+  - on the canvas: database badges for the standby in another zone
+    (synchronous) and for cross-region replication (synchronous or
+    asynchronous), and labelled replication links when region B is drawn
+    separately;
+  - in the layered view: a Replication overlay with a Region B box of
+    replicas;
+  - in the Layers panel: a replication table with RPOs.
+- **Availability zones as a layer:**
+  - each component shows how its instances spread over zones a, b and c (a
+    zone that is down turns red), on the canvas ("Show zones on the canvas")
+    and in the layered view (Zones overlay);
+  - the application, integration and data layers name their zones.
+- **Console:** the input is multi-line (Enter sends, Shift+Enter adds a
+  line). Your prompts and the system's replies have different colours.
+- **Properties** (first item under ▾ on every component, or
+  `properties DB1`): every attribute, the configuration and the simulation
+  results of the component. Each value shows its source: you, AI (model and
+  confidence), the rules, the requirement, or a default. Sources are
+  recorded on every change from now on.
+
 ## [0.3.1] — 2026-11-05
 
 ### Added

@@ -1,4 +1,8 @@
-# NEXUS — Current state (v0.3.1)
+# NEXUS — Current state (v0.3.2)
+
+- Properties dialog with the source of every value (you, AI with confidence,
+  rules, requirement, default); region layouts; zone and replication overlays;
+  multi-line console; targets read from the requirement; RTO/RPO in hours.
 
 - **New design** wizard (requirement, availability with downtime, RTO, RPO,
   resilience pattern, layers, platform options with trade-offs and cost) and

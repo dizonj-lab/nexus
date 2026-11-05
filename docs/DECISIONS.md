@@ -272,3 +272,10 @@ component by its type into the recommended layer, and draws overlays from the
 design's own flows and platform links. The design model stays the single
 source of truth; the layers are another view of it, like LikeC4 and Terraform.
 
+## D44 — Every value carries its source
+When a change is committed, NEXUS records, per component attribute, who set
+it: the architect, the AI (with its model and confidence), the rules, or the
+requirement text, along with the change that set it. Values nobody set are
+shown as defaults. The Properties dialog shows this, so a reviewer can tell
+an assumption made by a model from a decision made by a person.
+

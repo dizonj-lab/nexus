@@ -230,7 +230,7 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .row .sub{color:var(--muted);font-size:11px}
 .row .x{margin-left:auto;border:0;background:none;color:var(--muted);padding:0 2px}
 .adder{display:flex;gap:6px;padding:6px 10px;border-top:1px solid var(--line)}
-.adder input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:4px 7px;font-size:12px}
+.adder input,.adder textarea{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface-2);color:inherit;border-radius:5px;padding:4px 7px;font-size:12px}
 #conOut{flex:1;overflow:auto;padding:6px 10px;font-family:var(--f-mono);font-size:11.5px;line-height:1.5;min-height:0;white-space:pre-wrap}
 #conOut .u{color:var(--accent)}
 #conOut .s{color:var(--muted)}
@@ -342,7 +342,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 #demTip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-family:var(--f-mono);font-size:10.5px;line-height:1.45;box-shadow:0 4px 14px rgba(10,20,40,.12);white-space:nowrap}
 #conOut .eng{font-size:10px;color:var(--accent);border:1px solid var(--accent-soft);border-radius:3px;padding:0 4px;margin-right:4px}
 @media (max-width:700px){.modal .row5{grid-template-columns:1fr 1fr}.modal .row2{grid-template-columns:1fr}.demstats{grid-template-columns:1fr 1fr}#pDem{width:calc(100% - 20px)}}
-/* v0.3.1: new design wizard and layered view */
+/* v0.3.2: new design wizard and layered view */
 .modal.nd{width:min(980px,100%);max-height:92vh}.modal.lay{width:min(1320px,100%);max-height:94vh}
 .ndhead{display:flex;justify-content:space-between;align-items:center}.ndhead .ib{font-size:20px}
 .ndsteps{display:flex;gap:6px;flex-wrap:wrap}.ndst{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted)}
@@ -375,10 +375,31 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 .lsvg .seclab{font-size:10px;fill:#c03030;font-weight:600}.lsvg .seclab.eg{fill:#7a3fc4}
 .lsvg .il{fill:none;stroke:#0f7f78;stroke-width:1.8;stroke-opacity:.8}.lsvg .il.ev{stroke-dasharray:3 3;stroke-width:2.4}.lsvg .elab{font-size:9px;fill:#0f7f78;text-anchor:middle}
 .lsvg .pl{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 4;stroke-opacity:.7}
+/* v0.3.2: properties, sources, console colours, layered view extras */
+.srct{display:inline-block;margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:#f0e8fb;color:#7a3fc4;vertical-align:middle}
+.modal label small{font-size:11px;color:var(--muted)}
+.modal.props{width:min(860px,100%);max-height:90vh}
+.ptab{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:6px}.ptab th,.ptab td{border-bottom:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}.ptab th{font-size:11px;color:var(--muted);font-weight:500}
+.modal.props h3{margin:8px 0 2px;font-size:13px}
+.pv{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;white-space:nowrap}.pv.ai{background:#f0e8fb;color:#7a3fc4}.pv.u{background:var(--accent-soft);color:var(--accent)}.pv.r{background:#e0f3f1;color:#0f7f78}.pv.d,.pv.c{background:var(--surface-2);color:var(--muted)}
+#nmenu .mprops{font-weight:600;color:var(--accent)}
+.lzc{display:flex;gap:6px;align-items:center;font-size:12px;margin:8px 0 2px}
+.lsvg .ppl circle,.lsvg .ppl path{fill:var(--accent)}
+.lsvg .ln.ghost rect{stroke:#7a3fc4;stroke-dasharray:4 3}.lsvg .lb.regb rect{stroke:#7a3fc4;stroke-dasharray:6 4}
+.lsvg .azd text{font-size:9.5px;fill:var(--accent)}.lsvg .azd text.down{fill:var(--crit)}.lsvg .azl{font-size:10px;fill:var(--accent);font-weight:600}
+.lsvg .rp{fill:none;stroke:#7a3fc4;stroke-width:1.6;stroke-dasharray:2 3}.lsvg .rplab{font-size:9px;fill:#7a3fc4;text-anchor:middle}
+.lsvg .rpx{fill:none;stroke:#7a3fc4;stroke-width:2.2;stroke-dasharray:2 4}.lsvg .elab.rpx{fill:#7a3fc4;font-weight:600}
+.lsvg .ov-az{display:none}.lsvg.on-az .ov-az{display:inline}
+/* console: multi-line input, your prompts and system replies in different colours */
+#conIn{resize:none;min-height:34px;max-height:140px;line-height:1.4;font-family:var(--f-mono);font-size:12px;padding:7px 10px;overflow-y:auto}
+#conOut .u{color:var(--accent);font-weight:600;background:var(--accent-soft);border-left:3px solid var(--accent);padding:3px 8px;margin:8px 0 2px;border-radius:0 4px 4px 0}
+#conOut .s,#conOut>div:not(.u):not(.q):not(.g){color:#0f6e66}
+#conOut .q{color:#7a3fc4}
+@media (prefers-color-scheme:dark){#conOut .s,#conOut>div:not(.u):not(.q):not(.g){color:#5fd3c8}#conOut .q{color:#c8a2ff}.srct,.pv.ai{background:#281d3a;color:#c8a2ff}.pv.r{background:#112c2a;color:#5fd3c8}}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.1">NEXUS<small>Architecture Workbench · v0.3.1</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.2">NEXUS<small>Architecture Workbench · v0.3.2</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -492,7 +513,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
     <div class="pane on" id="pane-con">
       <header><span class="ttl">Systems Architect Console</span><span class="tag" id="verTag"></span><span class="tag" id="guardTag"></span><span class="tag" id="ctxTag" title="The model sees this many recent turns. Type &quot;new conversation&quot; to clear.">no context</span><span class="sp"></span><button class="btn" id="discBtn" style="padding:2px 8px;font-size:11px">Start discovery</button><button class="ib" id="conGrow" title="Taller console" aria-label="Taller console">⤢</button></header>
       <div id="conOut" aria-live="polite"></div>
-      <form class="adder" id="conForm"><input id="conIn" placeholder="e.g. use aws managed kafka for microservice to microservice communication · rate limit GW1 2000 · undo" autocomplete="off"><button class="btn primary">Run</button></form>
+      <form class="adder" id="conForm"><textarea id="conIn" rows="1" placeholder="Describe a change or ask a question. Enter sends · Shift+Enter for a new line. e.g. use aws managed kafka between services · rate limit GW1 2000 · undo" autocomplete="off" spellcheck="true"></textarea><button class="btn primary">Run</button></form>
     </div>
     <div class="pane" id="pane-cap">
       <header><span class="ttl">Technical Capabilities</span><span class="tag" id="capVer"></span></header>
@@ -526,6 +547,12 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
     <div class="bar"><span class="why">Toggle overlays in the Layers panel. Dashed boxes are recommended layers; filled boxes are components in your design.</span></div>
     <div id="layDiag"></div>
     <h3>Interfaces</h3><div id="layIfc"></div>
+  </div>
+</div>
+<div class="scrim" id="propDlg" hidden>
+  <div class="modal wide props" role="dialog" aria-modal="true" aria-labelledby="propTitle">
+    <div class="ndhead"><h2 id="propTitle">Properties</h2><button type="button" class="ib" id="propClose" aria-label="Close">×</button></div>
+    <div id="propBody"></div>
   </div>
 </div>
 <div class="scrim" id="modal" hidden>
@@ -1569,7 +1596,9 @@ function act(desc,fn,opts={}){
 }
 function commit(desc,fn,opts,r,just){
  pushUndo(desc);if(LEDGER_PENDING)LEDGER_PENDING.verdict=r?r.verdict:'guard off';
+ const _before=JSON.stringify(S.nodes);
  fn();
+ markProv(_before,opts.src||{by:'you'},desc);
  if(r)logAI('Guardian',`${r.verdict==='ok'?'Allowed':just?'Exception approved':'Applied after review'}: ${desc}`,r.verdict==='ok'?'All checks passed in dry-run':`Verdict ${r.verdict}; ${r.added.length} new finding(s)${r.added.length?': '+r.added.map(f=>f.key.split(':')[0]).join(', '):''}${just?' · justification: '+just:''}`,.93);
  const lead=who().role==='lead';
  if(opts.adr){const a=addADR({...opts.adr,status:lead?'Accepted':'Proposed · awaiting approval'});if(LEDGER_PENDING)LEDGER_PENDING.adr=a.id}
@@ -1978,7 +2007,7 @@ function frame(now){
  const dt=Math.min(.05,(now-last)/1000);last=now;miniHits=[];chipHits=[];zoneHits=[];
  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=colors.bg;ctx.fillRect(0,0,W,H);
  ctx.fillStyle=colors.grid;const g=40*V.k;if(g>12&&V.mode!=='iso'){for(let x=V.x%g;x<W;x+=g)for(let y=V.y%g;y<H;y+=g)ctx.fillRect(x-1,y-1,2,2)}
- const ns=kids(V.scope),es=edgesIn(V.scope),fls=es.filter(isFlow);
+ let ns=kids(V.scope),es=edgesIn(V.scope);if(V.scope==='root'&&V.regionOnly&&expanded()){ns=ns.filter(n=>!n.region||n.region===V.regionOnly);const keep=new Set(ns.map(n=>n.id));es=es.filter(e=>keep.has(e.from)&&keep.has(e.to))}const fls=es.filter(isFlow);
  const sig=V.scope+'|'+S.settings.view.lines+'|'+ns.map(n=>n.id+':'+Math.round(n.x)+','+Math.round(n.y)).join(';');if(sig!==RC.sig){RC.sig=sig;RC.m.clear()}
  const rel=V.mode==='rel'&&V.sel?new Set([V.sel,...es.filter(e=>e.from===V.sel||e.to===V.sel).flatMap(e=>[e.from,e.to])]):null;
  const byZ={};ns.forEach(n=>{const z=drawZone(n);(byZ[z]=byZ[z]||[]).push(P(n.x,n.y))});
@@ -2013,7 +2042,8 @@ function frame(now){
   e._g={sx:s0.x,sy:s0.y,ex:e0.x,ey:e0.y};
   const sel=V.selE&&V.selE.from===e.from&&V.selE.to===e.to&&isFlow(e),hovE=V.hoverE===e;
   const dim=rel&&!(rel.has(e.from)&&rel.has(e.to)&&(e.from===V.sel||e.to===V.sel));
-  if(dep){const sc=SHARED_COL[b.type]||colors.accent;ctx.globalAlpha=dim?.08:.7;ctx.strokeStyle=sc;ctx.lineWidth=1.6;ctx.lineCap='round';ctx.setLineDash([6,4]);tracePath(e,null);ctx.stroke();ctx.setLineDash([]);
+  if(dep){const sc=e.kind==='repl'?'#7a3fc4':SHARED_COL[b.type]||colors.accent;ctx.globalAlpha=dim?.08:e.kind==='repl'?.9:.7;ctx.strokeStyle=sc;ctx.lineWidth=e.kind==='repl'?2.4:1.6;ctx.lineCap='round';ctx.setLineDash(e.kind==='repl'?[2,4]:[6,4]);tracePath(e,null);ctx.stroke();ctx.setLineDash([]);
+   if(e.kind==='repl'&&V.k>.45){const m=pointAt(p,.5),t=`⇄ ${e.proto==='sync'?'synchronous':'asynchronous'} replication`;ctx.font=`600 ${10*Math.min(V.k,1.2)}px "IBM Plex Mono",monospace`;const tw=ctx.measureText(t).width+10;ctx.fillStyle=hexA(colors.surface,.92);rr(m.x-tw/2,m.y-9,tw,18,4);ctx.fill();ctx.fillStyle=sc;ctx.textAlign='center';ctx.fillText(t,m.x,m.y+4);ctx.textAlign='left'}
    const an=Math.atan2(e0.y-pe.y,e0.x-pe.x),ah=6*Math.min(1.2,V.k+.2);ctx.fillStyle=sc;ctx.beginPath();ctx.moveTo(e0.x,e0.y);ctx.lineTo(e0.x-ah*Math.cos(an-.5),e0.y-ah*Math.sin(an-.5));ctx.lineTo(e0.x-ah*Math.cos(an+.5),e0.y-ah*Math.sin(an+.5));ctx.closePath();ctx.fill();ctx.globalAlpha=1;return}
   const w=Math.max(1.3,Math.min(9,1+Math.log10(1+f)*1.5))*Math.min(1,V.k+.25);
   const a0=Math.max(.2,.58-(w-1.3)*.045);
@@ -2075,10 +2105,11 @@ function drawNode(n,now,rel){
  ctx.fillStyle=colors.surface;rr(x,y,w,h,7*k);ctx.fill();if(SHARED_COL[n.type]){ctx.fillStyle=hexA(SHARED_COL[n.type],.1);rr(x,y,w,h,7*k);ctx.fill()}
  ctx.lineWidth=sel?2.5:hov?2:1.5;ctx.strokeStyle=sel?colors.accent:c;if(n.failed||(EXTERNAL.includes(n.type)&&n.type!=='user')||PLATFORM.includes(n.type))ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
  if(!EXTERNAL.includes(n.type)&&isFinite(T[n.type].cap)){const u=Math.min(1,isFinite(f.util)?f.util:1);ctx.fillStyle=c;rr(x+8*k,y+h-7*k,(w-16*k)*u,3*k,1.5*k);ctx.fill()}
- ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+12*k,y+14*k,4*k,0,7);ctx.fill();
- ctx.fillStyle=colors.ink;ctx.font=`600 ${11.5*k}px "IBM Plex Mono",monospace`;ctx.fillText(n.id,x+21*k,y+18*k);
+ if(n.type==='user')drawPeople(x+6*k,y+6*k,k,c,n.origin==='corp'?2:3);else{ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+12*k,y+14*k,4*k,0,7);ctx.fill()}
+ const idx=n.type==='user'?(n.origin==='corp'?24:31):21;
+ ctx.fillStyle=colors.ink;ctx.font=`600 ${11.5*k}px "IBM Plex Mono",monospace`;ctx.fillText(n.id,x+idx*k,y+18*k);
  const idw=ctx.measureText(n.id).width;
- ctx.font=`${11*k}px "IBM Plex Sans",sans-serif`;let nm=n.name;const maxw=w-idw-48*k;while(ctx.measureText(nm).width>maxw&&nm.length>3)nm=nm.slice(0,-2)+'…';ctx.fillText(nm,x+27*k+idw,y+18*k);
+ ctx.font=`${11*k}px "IBM Plex Sans",sans-serif`;let nm=n.name;const maxw=w-idw-(idx+27)*k;while(ctx.measureText(nm).width>maxw&&nm.length>3)nm=nm.slice(0,-2)+'…';ctx.fillText(nm,x+(idx+6)*k+idw,y+18*k);
  // dropdown chip on every component
  const cs_=13*k,cx=x+w-cs_-5*k,cy=y+5*k;ctx.globalAlpha=baseA*(sel||hov?1:.5);ctx.fillStyle=sel?colors['accent-soft']:colors.surface;ctx.strokeStyle=sel||hov?colors.accent:colors.line;ctx.lineWidth=1;rr(cx,cy,cs_,cs_,3*k);ctx.fill();ctx.stroke();
  ctx.fillStyle=sel||hov?colors.accent:colors.muted;ctx.font=`${9*k}px sans-serif`;ctx.textAlign='center';ctx.fillText('▾',cx+cs_/2,cy+cs_*.75);ctx.textAlign='left';ctx.globalAlpha=baseA;
@@ -2095,6 +2126,7 @@ function drawNode(n,now,rel){
   ctx.fillText(l2,x+10*k,y+48*k);
  }
  let below=y+h;
+ if(k>.5&&V.mode!=='iso')below=nodeBadges(n,x,y,w,h,k,below);
  const fl=CFG_FLASH[n.id];if(fl&&fl.until>Date.now()&&k>.45){ctx.font=`600 ${9.5*Math.min(k,1.3)}px "IBM Plex Mono",monospace`;let t='⚙ '+fl.text;while(ctx.measureText(t).width>Math.max(w*1.6,220)&&t.length>4)t=t.slice(0,-2)+'…';const tw=ctx.measureText(t).width+12,th=16*Math.min(k,1.3),fx=p.x-tw/2,fy=y-th-6;const a=Math.min(1,(fl.until-Date.now())/2000);ctx.globalAlpha=baseA*Math.max(.25,a);ctx.fillStyle=colors.accent;rr(fx,fy,tw,th,4);ctx.fill();ctx.fillStyle=colors.surface;ctx.textAlign='center';ctx.fillText(t,p.x,fy+th*.72);ctx.textAlign='left';ctx.globalAlpha=baseA}
  if(inst){
   const list=instancesOf(n),show=list.slice(0,12),mw=78*k,mh=30*k,gap=6*k,tot=show.length*mw+(show.length-1)*gap,y0=y+h+18*k;let x0=p.x-tot/2;
@@ -2124,6 +2156,7 @@ function openMenu(id,sx,sy){
  const md=missingDeps(n),ic=instancesOf(n).length;
  menu.innerHTML=`<div class="mh"><b>${id}</b> ${esc(n.name)}<br><span style="color:var(--accent);font-size:11px">${esc(svcName(n))}</span></div>
  <label>Connect to<select id="mConn"><option value="">Choose a component…</option>${zones.map(z=>`<optgroup label="${esc(pk().zone[z]||z)}">${others.filter(m=>zoneOf(m)===z).map(m=>`<option value="${m.id}" ${has(m.id)?'disabled':''}>${m.id} · ${esc(m.name)}${has(m.id)?' ✓':''}</option>`).join('')}</optgroup>`).join('')}</select></label>
+ <button data-m="props" class="mprops">Properties</button>
  <button data-m="pick">Pick target on canvas</button>
  <button data-m="insp">Inspect and scaling options</button>
  ${EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part'?'':`<button data-m="open">Open sub-design${kids(id).length?` (${kids(id).length})`:''}</button><button data-m="inst">${n.expanded?'Hide':'Show'} instances (${ic})</button>`}
@@ -2135,7 +2168,7 @@ function openMenu(id,sx,sy){
  renderAdvisor();renderTree();
 }
 menu.addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b)return;const id=menu.dataset.id;closeMenu();
- ({pick:()=>startConnect(id),insp:()=>focusNode(id),open:()=>drill(id),inst:()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()},deps:()=>act(`${id}: add platform dependencies`,()=>addDeps([id]),{tradeoffs:['+ '+id+' can be built, deployed, keyed and observed','− Shared services become tier-0 for '+id]}),del:()=>{V.sel=id;deleteSelected()}})[b.dataset.m]()});
+ ({props:()=>openProps(id),pick:()=>startConnect(id),insp:()=>focusNode(id),open:()=>drill(id),inst:()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()},deps:()=>act(`${id}: add platform dependencies`,()=>addDeps([id]),{tradeoffs:['+ '+id+' can be built, deployed, keyed and observed','− Shared services become tier-0 for '+id]}),del:()=>{V.sel=id;deleteSelected()}})[b.dataset.m]()});
 document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target))closeMenu()},true);
 
 /* ---------- pointer ---------- */
@@ -2598,6 +2631,8 @@ function run(raw,opt={}){
  if(/^workload\b/i.test(c)){wlCmd(c);return}
  if(m=l.match(/^move\s+([a-z]{1,4}\d+)\s+(?:to|into)\s+region\s+([ab])\b/)){if(!expanded()){say('Draw region B separately first: "draw regions separately".','s');return}moveRegion(m[1].toUpperCase(),m[2].toUpperCase());return}
  if(/^import strategy$/.test(l)){importStrategy();return}
+{const pm=c.trim().match(/^(?:properties|props)\s+(\S+)$/i);if(pm){const id=pm[1].toUpperCase();if(S.nodes[id])openProps(id);else say(`No component ${id}.`,'s');return}}
+{const rv=l.match(/^regions?\s+(overlay|stacked|side by side|only a|only b)$/);if(rv){setRegionView({overlay:'overlay',stacked:'stacked','side by side':'side','only a':'A','only b':'B'}[rv[1]]);return}}
 if(regionCmd(c,l))return;
  if(m=l.match(/^(?:fail|lose|kill|take down|what if|simulate)\s+(?:an?\s+)?(?:availability\s+)?zone\s+([abc])\b|^zone\s+([abc])\s+(?:fails|outage|down)/)){const z=m[1]||m[2];if(!zoneList().includes(z)){say(`This design has ${zoneCount()} zone${zoneCount()>1?'s':''} (${zoneList().join(', ')}). Set more with "zones 3".`,'s');return}setOutage(z);return}
  if(/^(restore|recover|end)\s+(the\s+)?zone|^zone\s+outage\s+off/.test(l)){setOutage(null);return}
@@ -2936,7 +2971,7 @@ function applySelected(id){
  const replaces=design.some(a=>a.op==='baseline'),meta=P.meta,skipped=P.plan.actions.map((a,i)=>i).filter(i=>!P.sel.has(i));
  const finish=()=>{P.done=`applied steps ${[...P.sel].map(i=>i+1).join(', ')}`;renderPlan(id);remember('user',`[I applied ${id} steps ${[...P.sel].map(i=>i+1).join(', ')}${skipped.length?'; skipped '+skipped.map(i=>i+1).join(', '):''}]`)};
  if(!design.length){if(wi)setMult(+wi.mult);finish();return}
- act(`${replaces?'Replace the design with a baseline':'Apply '+id+' ('+design.length+' step'+(design.length>1?'s':'')+')'} · ${P.source}`,r.fn,{tradeoffs:[...(meta.notes||[]).map(n=>'Assumption · '+n),...(replaces?['Replaces the current design. Undo (Ctrl+Z) brings it back.']:[]),...skipped.map(i=>'Not applied · step '+(i+1)+': '+describeAction(P.plan.actions[i])),...design.filter(a=>a.op==='pattern').map(a=>{const k=patKey(a.pattern);return k?`Pattern ${k}: + ${PATTERNS[k].pro} · − ${PATTERNS[k].con}`:''}).filter(Boolean)],
+ act(`${replaces?'Replace the design with a baseline':'Apply '+id+' ('+design.length+' step'+(design.length>1?'s':'')+')'} · ${P.source}`,r.fn,{src:/model/.test(P.source)?{by:'ai',model:String(P.source).replace(/^model · /,'').split(' · ')[0],conf:.75}:{by:'rules',conf:1},tradeoffs:[...(meta.notes||[]).map(n=>'Assumption · '+n),...(replaces?['Replaces the current design. Undo (Ctrl+Z) brings it back.']:[]),...skipped.map(i=>'Not applied · step '+(i+1)+': '+describeAction(P.plan.actions[i])),...design.filter(a=>a.op==='pattern').map(a=>{const k=patKey(a.pattern);return k?`Pattern ${k}: + ${PATTERNS[k].pro} · − ${PATTERNS[k].con}`:''}).filter(Boolean)],
   adr:{title:`Console plan ${id}: ${String(meta.prompt||'').slice(0,60)}`,context:`Prompt: ${meta.prompt||''}\nEngine: ${P.source}`,decision:acts.map(a=>describeAction(a)).join('\n'),tradeoffs:(meta.notes||[]).join('\n')||'See Action Guard review.',basis:['Console']},
   after:()=>{finish();fit();if(wi)setMult(+wi.mult);if(REDESIGN){const b=REDESIGN.before;REDESIGN=null;setTimeout(()=>{const a=complianceReport();ENG='rules · compliance check';say(`Redesign applied. Compliance ${b.verdict} → ${a.verdict}\n  ground-truth violations ${b.gtFail} → ${a.gtFail} · principle gaps ${b.eaFail} → ${a.eaFail} · critical findings ${b.crit} → ${a.crit}\n  ATT&CK exposure ${Object.keys(b.tq).join(', ')||'none'} → ${Object.keys(a.tq).join(', ')||'none'}\nType "validate compliance" for the full report, "2nd opinion" for a review, or Ctrl+Z to undo the whole redesign.`,a.verdict==='COMPLIANT'?'s':'g');ENG=null},50)}}});
 }
@@ -3535,7 +3570,7 @@ fit();
 if(EMBED)parent.postMessage({type:'nexus:ready'},location.origin);else say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
 if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
 
-/* ---------- v0.3.1: New design (requirement, availability, RTO/RPO, resilience, layers, platform) and the Layers view ---------- */
+/* ---------- v0.3.2: New design (requirement, availability, RTO/RPO, resilience, layers, platform) and the Layers view ---------- */
 const NINES=[['99','99%','two nines'],['99.5','99.5%',''],['99.9','99.9%','three nines'],['99.95','99.95%',''],['99.99','99.99%','four nines'],['99.999','99.999%','five nines']];
 function downtime(a){const f=1-(+a)/100,m=f*365.25*24*60,fm=x=>x>=1440?`${(x/1440).toFixed(1)} days`:x>=60?`${(x/60).toFixed(1)} h`:x>=1?`${x.toFixed(1)} min`:`${Math.round(x*60)} s`;return {year:fm(m),month:fm(m/12),week:fm(m/52.18),day:fm(m/365.25)}}
 // Rule-of-thumb capability of each resilience pattern, for planning. The simulator tests the actual design.
@@ -3548,7 +3583,8 @@ const RESIL=[
   pros:['Survives a region outage','The standby region can be scaled down (warm standby)'],cons:['Failover must be automated and rehearsed','Recent writes can be lost on an unplanned failover','Standby capacity sits idle']},
  {k:'aa',name:'Multi-region active-active',avail:99.999,rto:1,rpo:0,cost:2.2,region:true,rtoT:'Near zero: the other region is already serving',rpoT:'Zero with an active-active database',
   pros:['No failover to run; users served from the nearest region','Survives a region outage with no data loss'],cons:['Highest cost and complexity','The database must support writes in both regions (constraints apply)','Each write waits for a cross-region round trip']}];
-const meets=(o,r)=>o.avail>=+r.avail&&o.rto<=+r.rto&&o.rpo<=+r.rpo&&(!r.regionLoss||o.region);
+const meets=(o,r)=>o.avail>=+r.avail&&o.rto<=+r.rto*60&&o.rpo<=+r.rpo*60&&(!r.regionLoss||o.region);
+const fh=h=>{h=+h||0;return h<1?`${Math.round(h*60)} min`:`${+h.toFixed(2)} h`};
 function platOpts(r){const rps=Math.max(1,+r.rps||1000),z=r.res==='single'?1:2,rg=['ap','aa'].includes(r.res)?(r.res==='aa'?2:1.4):1,svcs=Math.max(1,(r.services||[]).length||2),req=rps*.3*2.63e6;
  const P={compute:[
    {k:'svc',name:'Containers on Kubernetes',prod:{aws:'EKS',azure:'AKS',gcp:'GKE',vmware:'Tanzu / OpenShift'},cost:Math.round((Math.max(3,Math.ceil(rps/300))*z*140+73)*rg),pros:['Portable across clouds and the data centre','Fine control; suits many services'],cons:['Cluster operations need a platform team','Pay for nodes even when idle']},
@@ -3567,33 +3603,33 @@ const recPlat=r=>({compute:'svc',database:r.res==='aa'?'aa':r.res==='ap'?'global
 // Requirement → design facts: the console model when it is set up, else simple reading of the words.
 function readReq(t){const l=String(t||'').toLowerCase(),num=(l.match(/(\d[\d,.]*)\s*(k|m)?\s*(rps|requests? (?:per|a|\/) ?s|tps)/)||[]),mul={k:1e3,m:1e6}[num[2]]||1,
   rps=num[1]?Math.round(parseFloat(num[1].replace(/,/g,''))*mul):(l.match(/(\d[\d,.]*)\s*(k|m)?\s*(users|customers)/)?Math.max(200,Math.round(parseFloat(RegExp.$1.replace(/,/g,''))*({k:1e3,m:1e6}[RegExp.$2]||1)/500)):1000);
- const svc=(l.match(/services?:?\s*([a-z ,]+?)(?:\.|$)/)||[])[1];
- const nm=String(t||'').split(/[:.,;\n]/)[0].replace(/^\s*(an?|the|we (want|need)( to build)?)\s+/i,'').trim().split(/\s+/).slice(0,4).join(' ').replace(/\s+(for|with|on|to|of|and|in|that|which)$/i,'');
+ const svc=(l.match(/services?\s*(?::|are|include|such as)\s*([a-z ,]+?)(?:\.|$)/)||[])[1];
+ const nm=String(t||'').split(/[:.,;\n]/)[0].replace(/^\s*(an?|the|we (want|need)( to build)?)\s+/i,'').split(/\s+(?:for|with|on|to|of|that|which|in|serving|used by)\s+/i)[0].trim().split(/\s+/).slice(0,4).join(' ');
  const saas=['Stripe','Salesforce','Twilio','SendGrid','Okta','PayPal','Adyen','SAP','Workday','ServiceNow','Zendesk','HubSpot','Shopify'].filter(x=>new RegExp('\\b'+x+'\\b','i').test(t));
  return {name:nm?nm.replace(/^\w/,c=>c.toUpperCase()).slice(0,40):'',saas,rps,pii:/personal|pii|customer data|payment|card|health|patient|financial data/.test(l),events:/event|queue|async|stream|kafka|message/.test(l),files:/file|document|upload|image|media/.test(l),
   where:/azure/.test(l)?'azure':/gcp|google cloud/.test(l)?'gcp':/on.?prem|data cent(er|re)|vmware/.test(l)?'vmware':/aws|amazon/.test(l)?'aws':'',
   services:svc?svc.split(/,| and /).map(x=>x.trim()).filter(Boolean).slice(0,5):[],corp:/employee|staff|internal|workforce/.test(l)}}
 async function readReqModel(text){const L=S.settings.llmApi||{};if(!L.base)throw new Error('no model');
- const sys='Extract the facts of a system from the requirement. Reply with one JSON object only: {"name":"short system name","services":["2 to 5 business services, one or two words each"],"rps":1000,"pii":true,"events":false,"files":false,"saas":["named third-party services"],"who":"customers or staff","where":"aws|azure|gcp|vmware|"} Use only facts in the text; estimate rps from users if needed.';
+ const sys='Extract the facts of a system from the requirement. Reply with one JSON object only: {"name":"short system name","services":["2 to 5 business services, one or two words each"],"rps":1000,"pii":true,"events":false,"files":false,"saas":["named third-party services"],"who":"customers or staff","where":"aws|azure|gcp|vmware|","availability":"99.95 or null","rtoHours":null,"rpoHours":null,"regionLoss":false} Use only facts in the text; estimate rps from users if needed; use null for targets the text does not state.';
  const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),120000);
  try{const r=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},body:JSON.stringify({model:L.model,temperature:.1,response_format:{type:'json_object'},messages:[{role:'system',content:sys},{role:'user',content:String(text).slice(0,4000)}]})});
   if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json(),o=extractJSON(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content);if(!o)throw new Error('unreadable');return o}finally{clearTimeout(to)}}
 let NDW=null;
-function ndOpen(){NDW={step:0,text:'',name:'',where:S.deploy&&S.deploy!=='hybrid'?S.deploy:'aws',rps:1000,pii:true,events:true,files:false,corp:false,services:'',avail:'99.95',rto:60,rpo:5,regionLoss:false,res:'',plat:{},layers:{net:true,sec:true,int:true,plat:true},busy:false,note:''};$('#ndDlg').hidden=false;ndRender();setTimeout(()=>{const t=$('#ndText');if(t)t.focus()},30)}
+function ndOpen(){NDW={step:0,text:'',name:'',where:S.deploy&&S.deploy!=='hybrid'?S.deploy:'aws',rps:1000,pii:true,events:true,files:false,corp:false,services:'',avail:'99.95',rto:1,rpo:0.25,regionLoss:false,src:{},readDone:false,res:'',plat:{},layers:{net:true,sec:true,int:true,plat:true},busy:false,note:''};$('#ndDlg').hidden=false;ndRender();setTimeout(()=>{const t=$('#ndText');if(t)t.focus()},30)}
 function ndRec(){const o=RESIL.find(x=>meets(x,NDW));return o?o.k:'aa'}
 function ndRender(){const s=NDW,st=s.step,b=$('#ndBody');const steps=['Requirement','Resilience','Layers','Platform'];
  $('#ndSteps').innerHTML=steps.map((x,i)=>`<button type="button" class="ndst${i===st?' on':''}" data-nd="go" data-i="${i}" ${i>s.max?'disabled':''}>${i+1}. ${x}</button>`).join('');
  const dt=downtime(s.avail);
  if(st===0)b.innerHTML=`<label>Explain the requirement in your own words<textarea id="ndText" data-ndf="text" rows="5" placeholder="e.g. An online claims portal for 300,000 customers on AWS: submit claims with photos, track status, pay out via Stripe. Personal data. Must survive a zone failure; peak 1,500 requests per second.">${esc(s.text)}</textarea></label>
-  <div class="ndrow"><label>Name<input data-ndf="name" value="${esc(s.name)}" placeholder="from the requirement"></label><label>Platform<select data-ndf="where">${[['aws','AWS'],['azure','Azure'],['gcp','Google Cloud'],['vmware','Data centre']].map(([v,l])=>`<option value="${v}" ${s.where===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Peak requests / s<input type="number" data-ndf="rps" value="${s.rps}" min="1"></label></div>
-  <div class="ndrow"><label>Business services (comma separated)<input data-ndf="services" value="${esc(s.services)}" placeholder="e.g. claims, policies, payments"></label></div>
+  <div class="ndrow"><label>Name${srcTag('name')}<input data-ndf="name" value="${esc(s.name)}" placeholder="from the requirement"></label><label>Platform<select data-ndf="where">${[['aws','AWS'],['azure','Azure'],['gcp','Google Cloud'],['vmware','Data centre']].map(([v,l])=>`<option value="${v}" ${s.where===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Peak requests / s${srcTag('rps')}<input type="number" data-ndf="rps" value="${s.rps}" min="1"></label></div>
+  <div class="ndrow"><label>Business services (comma separated)${srcTag('services')}<input data-ndf="services" value="${esc(s.services)}" placeholder="e.g. claims, policies, payments"></label></div>
   <div class="ndchk"><label><input type="checkbox" data-ndf="pii" ${s.pii?'checked':''}> Personal or payment data</label><label><input type="checkbox" data-ndf="events" ${s.events?'checked':''}> Events / queues between services</label><label><input type="checkbox" data-ndf="files" ${s.files?'checked':''}> Files or documents</label><label><input type="checkbox" data-ndf="corp" ${s.corp?'checked':''}> Internal staff users</label></div>
   <p>${S.settings.llmApi&&S.settings.llmApi.base?'"Read it for me" asks the console model to fill these in from your words; you can change anything.':'Fill in the facts, or press "Read it for me" to pick them out of your words.'}</p>
   <div class="ndnav"><span class="ndnote">${esc(s.note)}</span><button type="button" class="btn" data-nd="read" ${s.busy?'disabled':''}>${s.busy?'Reading…':'Read it for me'}</button><button type="button" class="btn primary" data-nd="next">Next: resilience →</button></div>`;
  if(st===1){const rec=s.res||ndRec();
-  b.innerHTML=`<div class="ndrow"><label>Availability target<select data-ndf="avail">${NINES.map(([v,l,n])=>`<option value="${v}" ${s.avail===v?'selected':''}>${l}${n?' · '+n:''}</option>`).join('')}</select></label><label>RTO: back up within (minutes)<input type="number" min="0" data-ndf="rto" value="${s.rto}"></label><label>RPO: data loss at most (minutes)<input type="number" min="0" data-ndf="rpo" value="${s.rpo}"></label></div>
+  b.innerHTML=`<div class="ndrow"><label>Availability target${srcTag('avail')}<select data-ndf="avail">${NINES.map(([v,l,n])=>`<option value="${v}" ${s.avail===v?'selected':''}>${l}${n?' · '+n:''}</option>`).join('')}</select></label><label>RTO: back up within (hours)${srcTag('rto')}<input type="number" min="0" step="0.25" data-ndf="rto" value="${s.rto}"><small>${fh(s.rto)}</small></label><label>RPO: data loss at most (hours)${srcTag('rpo')}<input type="number" min="0" step="0.25" data-ndf="rpo" value="${s.rpo}"><small>${+s.rpo>0?fh(s.rpo):'no data loss'}</small></label></div>
   <div class="ndt"><b>${esc(NINES.find(n=>n[0]===s.avail)[1])} allows this much downtime</b><table><tr><th>per year</th><th>per month</th><th>per week</th><th>per day</th></tr><tr><td>${dt.year}</td><td>${dt.month}</td><td>${dt.week}</td><td>${dt.day}</td></tr></table></div>
-  <label class="ndinl"><input type="checkbox" data-ndf="regionLoss" ${s.regionLoss?'checked':''}> Must survive the loss of a whole region</label>
+  <label class="ndinl"><input type="checkbox" data-ndf="regionLoss" ${s.regionLoss?'checked':''}> Must survive the loss of a whole region${srcTag('regionLoss')}</label>
   <div class="ndcards">${RESIL.map(o=>{const ok=meets(o,s);return `<button type="button" class="ndcard${(s.res||rec)===o.k?' on':''}${ok?'':' no'}" data-nd="res" data-k="${o.k}"><b>${o.name}</b>${o.k===ndRec()?'<span class="pill ok">recommended</span>':''}${ok?'<span class="pill">meets target</span>':'<span class="pill crit">misses target</span>'}
    <span>Up to ≈${o.avail}% · RTO ${esc(o.rtoT)} · RPO ${esc(o.rpoT)}</span><span>Cost ≈ ×${o.cost} of single zone</span><ul>${o.pros.map(x=>`<li>+ ${esc(x)}</li>`).join('')}${o.cons.map(x=>`<li>− ${esc(x)}</li>`).join('')}</ul></button>`}).join('')}</div>
   <p>Ranges are rules of thumb for planning, from the zonal and regional designs in the Well-Architected reliability pillar. After you create the design, test it with "fail zone a" and "fail region a".</p>
@@ -3610,24 +3646,45 @@ function ndRender(){const s=NDW,st=s.step,b=$('#ndBody');const steps=['Requireme
   b.innerHTML=`<p>Options for ${esc(pk().name)} with their trade-offs and a list-price estimate at your peak load and resilience pattern, to compare, not to budget. Your choices are recorded as an architecture decision.</p>${cat('compute','Compute')}${cat('database','Database')}${s.events?cat('messaging','Messaging and events'):''}
   <div class="ndnav"><button type="button" class="btn" data-nd="back">← Back</button><span class="sp"></span><button type="button" class="btn primary" data-nd="create">Create design</button></div>`}
 }
-$('#ndBody')&&$('#ndBody').addEventListener('input',e=>{const t=e.target,k=t.dataset.ndf;if(!k)return;const v=t.type==='checkbox'?t.checked:t.value;if(k.startsWith('layers.'))NDW.layers[k.slice(7)]=v;else NDW[k]=v;if(['avail','rto','rpo','regionLoss'].includes(k)){NDW.res='';const sel=t.selectionStart;ndRender();const n=$(`[data-ndf="${k}"]`);if(n&&t.type!=='checkbox'&&t.tagName!=='SELECT'){n.focus();try{n.setSelectionRange(sel,sel)}catch(x){}}}});
+$('#ndBody')&&$('#ndBody').addEventListener('input',e=>{const t=e.target,k=t.dataset.ndf;if(!k)return;const v=t.type==='checkbox'?t.checked:t.value;if(k.startsWith('layers.'))NDW.layers[k.slice(7)]=v;else NDW[k]=v;if(NDW.src)delete NDW.src[k];if(['avail','rto','rpo','regionLoss'].includes(k)){NDW.res='';const sel=t.selectionStart;ndRender();const n=$(`[data-ndf="${k}"]`);if(n&&t.type!=='checkbox'&&t.tagName!=='SELECT'){n.focus();try{n.setSelectionRange(sel,sel)}catch(x){}}}});
 $('#ndDlg')&&$('#ndDlg').addEventListener('click',async e=>{const b=e.target.closest('[data-nd]');if(!b||!NDW)return;const a=b.dataset.nd;NDW.max=Math.max(NDW.max||0,NDW.step);
  if(a==='close'){$('#ndDlg').hidden=true;return}
  if(a==='go'){NDW.step=+b.dataset.i;ndRender();return}
  if(a==='back'){NDW.step=Math.max(0,NDW.step-1);ndRender();return}
- if(a==='next'){if(NDW.step===0&&!String(NDW.text).trim()&&!String(NDW.services).trim()){NDW.note='Explain the requirement first, or list its services.';ndRender();return}NDW.note='';NDW.step++;NDW.max=Math.max(NDW.max,NDW.step);ndRender();return}
+ if(a==='next'){if(NDW.step===0&&!String(NDW.text).trim()&&!String(NDW.services).trim()){NDW.note='Explain the requirement first, or list its services.';ndRender();return}if(NDW.step===0&&String(NDW.text).trim()&&!NDW.readDone){await ndRead();if(NDW.readDone){NDW.step=1;NDW.max=Math.max(NDW.max,1);ndRender()}return}NDW.note='';NDW.step++;NDW.max=Math.max(NDW.max,NDW.step);ndRender();return}
  if(a==='res'){NDW.res=b.dataset.k;NDW.plat.database=undefined;ndRender();return}
  if(a==='plat'){NDW.plat[b.dataset.c]=b.dataset.k;ndRender();return}
- if(a==='read'){const t=NDW.text;if(!String(t).trim()){NDW.note='Write the requirement first.';ndRender();return}NDW.busy=true;NDW.note='';ndRender();
-  let o=null;try{o=await readReqModel(t);NDW.note='Read by '+(S.settings.llmApi.model||'the model')+'. Check the facts.'}catch(x){o=readReq(t);NDW.note='Picked out of your words (no model). Check the facts.'}
-  const f=readReq(t);NDW.name=o.name||f.name||NDW.name;NDW.rps=+o.rps||f.rps||NDW.rps;NDW.pii=o.pii!==undefined?!!o.pii:f.pii;NDW.events=o.events!==undefined?!!o.events:f.events;NDW.files=o.files!==undefined?!!o.files:f.files;NDW.corp=f.corp||/staff|employee/.test(String(o.who||''));
-  const w=String(o.where||f.where||'').toLowerCase();if(['aws','azure','gcp','vmware'].includes(w))NDW.where=w;NDW.services=(Array.isArray(o.services)&&o.services.length?o.services:f.services).join(', ');NDW.saas=Array.isArray(o.saas)&&o.saas.length?o.saas:f.saas;
-  const m=String(t).toLowerCase();if(/region (failure|outage|loss)|survive a region|multi.?region/.test(m))NDW.regionLoss=true;if(/zone (failure|outage)|multi.?az/.test(m)&&+NDW.avail<99.95)NDW.avail='99.95';
-  NDW.busy=false;ndRender();return}
+ if(a==='read'){await ndRead();return}
  if(a==='create'){ndCreate();return}});
+// Read the requirement: facts and targets. The console model when one is set up, else the words themselves.
+function readTargets(t){const l=String(t||'').toLowerCase(),o={},num=x=>parseFloat(String(x).replace(/,/g,'')),hrs=(v,u)=>/^d/.test(u)?v*24:/^m/.test(u)?v/60:v;
+ const pc=l.match(/(99(?:\.\d{1,3})?)\s*%/);if(pc){const v=+pc[1];o.avail=NINES.map(n=>n[0]).reduce((a,b)=>Math.abs(+b-v)<Math.abs(+a-v)?b:a)}
+ const nw=l.match(/\b(two|three|four|five)\s+nines\b/);if(nw)o.avail={two:'99',three:'99.9',four:'99.99',five:'99.999'}[nw[1]];
+ const U='(hours?|hrs?|h|minutes?|mins?|m|days?|d)\\b';
+ const rto=l.match(new RegExp('\\brto\\b[^0-9]{0,25}(\\d+(?:\\.\\d+)?)\\s*'+U))||l.match(new RegExp('(?:back (?:up|online)|recover(?:ed)?|restored?)\\s+(?:with)?in\\s+(\\d+(?:\\.\\d+)?)\\s*'+U));if(rto)o.rto=+hrs(num(rto[1]),rto[2]).toFixed(2);
+ const rpo=l.match(new RegExp('\\brpo\\b[^0-9]{0,25}(\\d+(?:\\.\\d+)?)\\s*'+U))||l.match(new RegExp('(?:lose|loss of) (?:at most|no more than|up to)\\s+(\\d+(?:\\.\\d+)?)\\s*'+U));if(rpo)o.rpo=+hrs(num(rpo[1]),rpo[2]).toFixed(2);
+ if(/\b(no|zero) data loss\b|\brpo (of )?(0|zero)\b/.test(l))o.rpo=0;
+ if(/region(al)? (failure|outage|loss|disaster)|survive a region|multi.?region|second region|active.?active/.test(l))o.regionLoss=true;
+ if(!o.avail&&o.regionLoss)o.avail='99.99';else if(!o.avail&&/zone (failure|outage)|multi.?az|availability zones?/.test(l))o.avail='99.95';
+ return o}
+async function ndRead(){const t=NDW.text;if(!String(t).trim()){NDW.note='Write the requirement first.';ndRender();return}NDW.busy=true;NDW.note='';ndRender();
+ let o=null,by='text';try{o=await readReqModel(t);by='model'}catch(x){o={}}
+ const f=readReq(t),g=readTargets(t),TX={by:'text',conf:.5},set=(k,v,src)=>{if(v===undefined||v===null||v===''||(Array.isArray(v)&&!v.length))return;NDW[k]=v;NDW.src[k]=src};
+ const M=by==='model'?{by:'ai',model:(S.settings.llmApi||{}).model,conf:.7}:TX;
+ set('name',o.name||f.name,o.name?M:TX);set('rps',+o.rps||(f.rps!==1000?f.rps:undefined),o.rps?M:TX);
+ ['pii','events','files'].forEach(k=>{const v=o[k]!==undefined?!!o[k]:f[k];NDW[k]=v;NDW.src[k]=o[k]!==undefined?M:TX});
+ if(f.corp||/staff|employee/.test(String(o.who||''))){NDW.corp=true;NDW.src.corp=TX}
+ const w=String(o.where||f.where||'').toLowerCase();if(['aws','azure','gcp','vmware'].includes(w))set('where',w,o.where?M:{by:'text',conf:.6});
+ set('services',(Array.isArray(o.services)&&o.services.length?o.services:f.services).join(', '),o.services&&o.services.length?M:TX);
+ NDW.saas=Array.isArray(o.saas)&&o.saas.length?o.saas:f.saas;
+ const tm={avail:o.availability?String(o.availability):undefined,rto:o.rtoHours!=null?+o.rtoHours:undefined,rpo:o.rpoHours!=null?+o.rpoHours:undefined,regionLoss:o.regionLoss===true?true:undefined};
+ ['avail','rto','rpo','regionLoss'].forEach(k=>{if(g[k]!==undefined)set(k,g[k],{by:'text',conf:.8});else if(tm[k]!==undefined&&(k!=='avail'||NINES.some(n=>n[0]===tm[k])))set(k,tm[k],M)});
+ NDW.res='';NDW.readDone=true;NDW.readBy=by;NDW.busy=false;
+ const got=Object.keys(NDW.src).length;NDW.note=by==='model'?`Read by ${M.model||'the model'}: ${got} values filled in from your words (marked). Change anything.`:`Picked ${got} values out of your words (no model); they are marked. Check them.`;ndRender()}
+const srcTag=k=>{const x=NDW&&NDW.src&&NDW.src[k];return x?`<span class="srct" title="${x.by==='ai'?'Read by '+esc(x.model||'the model'):'Taken from your words'} · confidence ${Math.round((x.conf||.5)*100)}%">${x.by==='ai'?'AI':'from your words'} · ${Math.round((x.conf||.5)*100)}%</span>`:''};
 function ndCreate(){const s=NDW,res=s.res||ndRec(),R=RESIL.find(x=>x.k===res),rec=recPlat({res}),pl={compute:s.plat.compute!==undefined?s.plat.compute:rec.compute,database:s.plat.database!==undefined?s.plat.database:rec.database,messaging:s.plat.messaging!==undefined?s.plat.messaging:rec.messaging};
  const services=String(s.services).split(',').map(x=>x.trim()).filter(Boolean),name=(s.name||'New design').slice(0,40),P=platOpts({...s,services,res}),pick=(c)=>P[c].find(o=>o.k===pl[c]);
- const dec=[`Resilience: ${R.name} for ${s.avail}% availability, RTO ${s.rto} min, RPO ${s.rpo} min`,`Compute: ${pick('compute').name}`,`Database: ${pick('database').name}`].concat(s.events?[`Messaging: ${pick('messaging').name}`]:[]);
+ const dec=[`Resilience: ${R.name} for ${s.avail}% availability, RTO ${fh(s.rto)}, RPO ${fh(s.rpo)}`,`Compute: ${pick('compute').name}`,`Database: ${pick('database').name}`].concat(s.events?[`Messaging: ${pick('messaging').name}`]:[]);
  $('#ndDlg').hidden=true;
  act(`New design: ${name}`,()=>{
   S.deploy=s.where;buildBaselineCore({name,where:s.where,rps:+s.rps||1000,pii:s.pii,events:s.events,files:s.files,services:services.length?services:['Core'],saas:s.saas||[],who:'customers',cdn:+s.rps>3000});
@@ -3640,10 +3697,10 @@ function ndCreate(){const s=NDW,res=s.res||ndRec(),R=RESIL.find(x=>x.k===res),re
   if(s.corp){const c=addNode('user','Employees','root',{x:ZX.internet,y:520});c.origin='corp';c.audience='workforce';c.rps=Math.max(50,Math.round(s.rps/10));const gw=kids('root').find(n=>n.type==='gw');if(gw)connect(c.id,gw.id,'HTTPS',pk().dedicated?'dedicated':'vpn')}
   if(res!=='single')atLeastTwo();
   addDeps();
-  S.req={text:String(s.text).slice(0,4000),avail:s.avail,rto:+s.rto,rpo:+s.rpo,regionLoss:!!s.regionLoss,res,layers:{...s.layers},plat:pl,at:new Date().toISOString()};
+  S.req={text:String(s.text).slice(0,4000),avail:s.avail,rto:Math.round(+s.rto*60),rpo:Math.round(+s.rpo*60),rtoH:+s.rto,rpoH:+s.rpo,src:s.src,regionLoss:!!s.regionLoss,res,layers:{...s.layers},plat:pl,at:new Date().toISOString()};
   S.view=S.view||{};S.view.layers={...s.layers};
- },{tradeoffs:[...R.pros.map(x=>'+ '+x),...R.cons.map(x=>'− '+x),...['compute','database'].concat(s.events?['messaging']:[]).flatMap(c=>{const o=pick(c);return ['+ '+o.name+': '+o.pros[0],'− '+o.name+': '+o.cons[0]]})],
-  adr:{title:`${name}: resilience and platform`,context:`Requirement: ${String(s.text).slice(0,300)||'(not written)'}\nTargets: ${s.avail}% availability (downtime ${downtime(s.avail).year} a year), RTO ${s.rto} min, RPO ${s.rpo} min${s.regionLoss?', must survive a region loss':''}.`,
+ },{src:s.readBy==='model'?{by:'ai',model:(S.settings.llmApi||{}).model,conf:.7,note:'built from the requirement read by the model'}:{by:'you',note:'New design wizard'},tradeoffs:[...R.pros.map(x=>'+ '+x),...R.cons.map(x=>'− '+x),...['compute','database'].concat(s.events?['messaging']:[]).flatMap(c=>{const o=pick(c);return ['+ '+o.name+': '+o.pros[0],'− '+o.name+': '+o.cons[0]]})],
+  adr:{title:`${name}: resilience and platform`,context:`Requirement: ${String(s.text).slice(0,300)||'(not written)'}\nTargets: ${s.avail}% availability (downtime ${downtime(s.avail).year} a year), RTO ${fh(s.rto)}, RPO ${fh(s.rpo)}${s.regionLoss?', must survive a region loss':''}.`,
    decision:dec.join('. ')+'.',tradeoffs:`${R.name}: ${R.pros.join('; ')} / ${R.cons.join('; ')}. Estimated cost ≈ ×${R.cost} of a single zone.`,basis:['WAF-reliability','EA-P2']},
   after:()=>{fit();openSide('pLay',true);say(`Created ${name}: ${R.name} on ${pk().name}${R.region?` (regions ${regNames().a} and ${regNames().b})`:''}, ${pick('compute').name.toLowerCase()}, ${pick('database').name.toLowerCase()}. Downtime budget at ${s.avail}%: ${downtime(s.avail).year} a year. The Layers view shows the network, security, integration and platform overlays. Test it: "fail zone a"${R.region?' or "fail region a"':''}.`,'s')}});
 }
@@ -3655,25 +3712,56 @@ const NETP={aws:{net:'VPC',hub:'Transit Gateway',igw:'Internet gateway',nat:'NAT
 // Which layer each component belongs in.
 const LAYER_OF=n=>n.type==='user'?(n.origin==='corp'?'onp':'inet'):['dns','cdn'].includes(n.type)?'inet':n.type==='waf'?'edge':['lb','gw'].includes(n.type)?'ingress':['svc','vm','fn','api','adp','part'].includes(n.type)?'app':n.type==='queue'?'int':['db','cache','obj'].includes(n.type)?'data':n.type==='egw'?'egress':['saas','ext'].includes(n.type)?'ext':['reg','art','kms','sec','mon','idp'].includes(n.type)?'shared':'app';
 const LBOX={inet:[20,70,150,380,'Internet'],edge:[190,70,140,380,'Edge security'],ingress:[350,70,170,380,'Ingress · public subnets'],hub:[540,70,150,380,'Secured hub'],
- app:[710,70,330,150,'Application · private subnets'],int:[710,230,330,90,'Integration · events and queues'],data:[710,330,330,120,'Data · isolated subnets'],egress:[1060,70,150,380,'Egress'],ext:[1230,70,150,380,'External services'],
- shared:[350,480,860,130,'Shared services · platform'],onp:[20,480,310,130,'On-premises / corporate']};
-function layersSVG(){const N=NETP[prov()]||NETP.aws,ov=(S.view&&S.view.layers)||{net:true,sec:true,int:true,plat:true},top=kids('root'),pos={},cnt={};
- top.forEach(n=>{const L=LAYER_OF(n),bx=LBOX[L],k=cnt[L]=(cnt[L]||0)+1,wide=bx[2]>200,col=wide?((k-1)%3):0,row=wide?Math.floor((k-1)/3):k-1;pos[n.id]={x:bx[0]+14+col*(wide?105:0),y:bx[1]+30+row*44,w:wide?96:bx[2]-28,h:34}});
- const nbox=n=>{const p=pos[n.id];return `<g class="ln ${LAYER_OF(n)}"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="6"/><text x="${p.x+7}" y="${p.y+14}" class="lid">${esc(n.id)}</text><text x="${p.x+7}" y="${p.y+27}" class="lnm">${esc(String(n.name).slice(0,16))}</text></g>`};
- const c=(id)=>{const p=pos[id];return p?[p.x+p.w/2,p.y+p.h/2]:null};
- const line=(a,b,cls,lab)=>{const A=c(a),B=c(b);if(!A||!B)return '';const mx=(A[0]+B[0])/2;return `<path class="${cls}" d="M${A[0]} ${A[1]} C${mx} ${A[1]} ${mx} ${B[1]} ${B[0]} ${B[1]}"/>${lab?`<text class="elab" x="${mx}" y="${(A[1]+B[1])/2-4}">${esc(lab)}</text>`:''}`};
- const boxes=Object.entries(LBOX).map(([k,[x,y,w,h,t]])=>`<g class="lb ${k}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><text x="${x+10}" y="${y+18}">${esc(t)}</text></g>`).join('');
+ app:[710,70,330,150,'Application · private subnets'],int:[710,230,330,90,'Integration · events and queues'],data:[710,330,330,140,'Data · isolated subnets'],egress:[1060,70,150,380,'Egress'],ext:[1230,70,150,380,'External services'],
+ shared:[350,500,860,130,'Shared services · platform'],onp:[20,500,310,130,'On-premises / corporate'],regb:[1400,70,160,380,'Region B']};
+function layersSVG(){const N=NETP[prov()]||NETP.aws,ov=layerOv(),top=kids('root').filter(n=>n.region!=='B'),pos={},cnt={},zs=zoneList();
+ // components in their layers; boxes are taller to show zones
+ top.forEach(n=>{const L=LAYER_OF(n),bx=LBOX[L],k=cnt[L]=(cnt[L]||0)+1,wide=bx[2]>200,col=wide?((k-1)%3):0,row=wide?Math.floor((k-1)/3):k-1;pos[n.id]={x:bx[0]+14+col*(wide?105:0),y:bx[1]+30+row*50,w:wide?96:bx[2]-28,h:40,L}});
+ const repl=mr()?top.filter(n=>n.type==='db'&&n.multi):[];repl.forEach((n,i)=>{const b=LBOX.regb;pos[n.id+'~B']={x:b[0]+14,y:b[1]+30+i*50,w:b[2]-28,h:40,L:'regb',ghost:n}});
+ const people=(x,y,c)=>`<g class="ppl" transform="translate(${x},${y})">${[0,7,14].slice(0,c).map(dx=>`<circle cx="${dx+4}" cy="3" r="3"/><path d="M${dx} 13 q4 -8 8 0 z"/>`).join('')}</g>`;
+ const zoneDots=n=>{if(!ov.az||['user','saas','ext','dns','cdn'].includes(n.type))return '';const d=zoneSpread(n);if(!d)return '';const p=pos[n.id];
+  return `<g class="azd">${d.map((z,i)=>`<text x="${p.x+7+i*30}" y="${p.y+37}" class="${S.outage===z.z?'down':''}">${z.z}${'●'.repeat(Math.min(3,z.c))||'○'}</text>`).join('')}</g>`};
+ const nbox=n=>{const p=pos[n.id],u=n.type==='user';return `<g class="ln ${p.L}"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="6"/>${u?people(p.x+p.w-28,p.y+6,n.origin==='corp'?2:3):''}<text x="${p.x+7}" y="${p.y+13}" class="lid">${esc(n.id)}</text><text x="${p.x+7}" y="${p.y+25}" class="lnm">${esc(String(n.name).slice(0,u?11:16))}</text>${zoneDots(n)}</g>`};
+ const gbox=id=>{const p=pos[id],g=p.ghost;return `<g class="ln ghost"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="6"/><text x="${p.x+7}" y="${p.y+13}" class="lid">${esc(g.id)} · B</text><text x="${p.x+7}" y="${p.y+25}" class="lnm">${g.multi==='aa'?'peer (writes)':'replica'}</text></g>`};
+ // elbowed routes in the gaps between layers, with rounded corners; horizontal runs hop over vertical runs
+ const segs=[],paths=[],gapR=b=>b[0]+b[2]+10,gapL=b=>b[0]-10,BUS=LBOX.shared[1]-14;let lane=0;
+ function route(a,b,kind){const A=pos[a],B=pos[b];if(!A||!B)return null;const la=LBOX[A.L],lb=LBOX[B.L],ay=A.y+A.h/2,by=B.y+B.h/2,off=((lane++)%5-2)*3;
+  if(kind==='dep'){const ax=A.x+A.w/2+off,bx=B.x+B.w/2;return [{x:ax,y:A.y+A.h},{x:ax,y:BUS+off},{x:bx,y:BUS+off},{x:bx,y:B.y}]}
+  const sameCol=la[0]===lb[0];
+  if(sameCol){const cx=gapR(la)+off;return [{x:A.x+A.w,y:ay},{x:cx,y:ay},{x:cx,y:by},{x:B.x+B.w,y:by}]}
+  const right=lb[0]>la[0];const sx=right?A.x+A.w:A.x,ex=right?B.x:B.x+B.w,c1=(right?gapR(la):gapL(la))+off,c2=(right?gapL(lb):gapR(lb))+off;
+  if(Math.abs(c1-c2)<12)return [{x:sx,y:ay},{x:c1,y:ay},{x:c1,y:by},{x:ex,y:by}];
+  const bus=BUS+off;return [{x:sx,y:ay},{x:c1,y:ay},{x:c1,y:bus},{x:c2,y:bus},{x:c2,y:by},{x:ex,y:by}]}
+ function add(pts,cls,lab){if(!pts)return;paths.push({pts,cls,lab});for(let i=0;i<pts.length-1;i++){const p=pts[i],q=pts[i+1];if(Math.abs(p.x-q.x)<.5&&Math.abs(p.y-q.y)>1)segs.push({x:p.x,y1:Math.min(p.y,q.y),y2:Math.max(p.y,q.y),pts})}}
+ function d(pts){const R=6,J=4;let s=`M${pts[0].x} ${pts[0].y}`;
+  for(let i=0;i<pts.length-1;i++){const A=pts[i],B=pts[i+1],h=Math.abs(A.y-B.y)<.5;
+   if(h){const dir=Math.sign(B.x-A.x)||1,lo=Math.min(A.x,B.x)+R+J,hi=Math.max(A.x,B.x)-R-J;segs.filter(v=>v.pts!==pts&&v.x>lo&&v.x<hi&&A.y>v.y1+J&&A.y<v.y2-J).map(v=>v.x).sort((a,b)=>dir*(a-b)).forEach(x=>{s+=` L${x-dir*J} ${A.y} a${J} ${J} 0 0 ${dir>0?1:0} ${2*J*dir} 0`})}
+   if(i<pts.length-2){const C=pts[i+2],r=Math.min(R,Math.hypot(B.x-A.x,B.y-A.y)/2,Math.hypot(C.x-B.x,C.y-B.y)/2),ux=Math.sign(B.x-A.x),uy=Math.sign(B.y-A.y),vx=Math.sign(C.x-B.x),vy=Math.sign(C.y-B.y);
+    s+=` L${B.x-ux*r} ${B.y-uy*r} Q${B.x} ${B.y} ${B.x+vx*r} ${B.y+vy*r}`}else s+=` L${B.x} ${B.y}`}
+  return s}
+ const flows=S.edges.filter(e=>isFlow(e)&&pos[e.from]&&pos[e.to]);
+ if(ov.int)flows.filter(e=>['app','int','ext','data','ingress'].includes(pos[e.from].L)&&['app','int','ext','data'].includes(pos[e.to].L)).forEach(e=>add(route(e.from,e.to),'il'+(S.nodes[e.to].type==='queue'||S.nodes[e.from].type==='queue'?' ev':''),e.proto));
+ if(ov.plat)S.edges.filter(e=>e.kind==='dep'&&pos[e.from]&&pos[e.to]).forEach(e=>add(route(e.from,e.to,'dep'),'pl'));
+ const rlines=[];if(ov.repl)top.filter(n=>n.type==='db').forEach(n=>{const p=pos[n.id];if(!p)return;
+  if(n.standby)rlines.push(`<path class="rp" d="M${p.x+p.w-14} ${p.y+p.h} v8 h-${p.w-28} v-8"/><text class="rplab" x="${p.x+p.w/2}" y="${p.y+p.h+18}">⇄ standby ${zs[1]||'b'} · sync</text>`);
+  if(pos[n.id+'~B']){const B=pos[n.id+'~B'];add([{x:p.x+p.w,y:p.y+p.h/2+6},{x:LBOX.data[0]+LBOX.data[2]+10,y:p.y+p.h/2+6},{x:LBOX.data[0]+LBOX.data[2]+10,y:B.y+B.h/2},{x:B.x,y:B.y+B.h/2}],'rpx',n.multi==='aa'?'sync · writes both':n.multi==='global'?'async':'async replica')}});
+ const lines=paths.map(p=>{const m=p.pts[Math.floor((p.pts.length-1)/2)],m2=p.pts[Math.floor((p.pts.length-1)/2)+1]||m;return `<path class="${p.cls}" d="${d(p.pts)}"/>${p.lab?`<text class="elab ${p.cls.split(' ')[0]}" x="${(m.x+m2.x)/2}" y="${(m.y+m2.y)/2-4}">${esc(p.lab)}</text>`:''}`}).join('');
+ const boxes=Object.entries(LBOX).filter(([k])=>k!=='regb'||repl.length).map(([k,[x,y,w,h,t]])=>`<g class="lb ${k}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><text x="${x+10}" y="${y+18}">${esc(k==='regb'?`Region B · ${regNames().b}`:t)}</text></g>`).join('');
  const ifc=[['ingress',N.igw],['hub',N.hub+' · '+N.fw],['egress',N.nat+' · egress firewall'],['data',N.pe],['shared',N.pe],['onp',N.onp]].map(([k,t])=>{const [x,y,w,h]=LBOX[k];return `<g class="ifc"><rect x="${x+6}" y="${y+h-22}" width="${w-12}" height="18" rx="9"/><text x="${x+w/2}" y="${y+h-9}">${esc(t)}</text></g>`}).join('');
+ const azl=ov.az?`<g class="ov-az">${['app','int','data'].map(k=>{const [x,y,w,h]=LBOX[k];return `<text class="azl" x="${x+w-10}" y="${y+18}" text-anchor="end">zones ${zs.join(' · ')}${S.outage?` · ${S.outage} down`:''}</text>`}).join('')}</g>`:'';
  const hubNode=`<g class="ln hubv"><rect x="${LBOX.hub[0]+14}" y="${LBOX.hub[1]+150}" width="${LBOX.hub[2]-28}" height="46" rx="6"/><text x="${LBOX.hub[0]+22}" y="${LBOX.hub[1]+168}" class="lid">${esc(N.fw)}</text><text x="${LBOX.hub[0]+22}" y="${LBOX.hub[1]+184}" class="lnm">${esc(N.hub)}</text></g>`;
  const egw=top.find(n=>n.type==='egw'),egwV=egw?'':`<g class="ln virt"><rect x="${LBOX.egress[0]+14}" y="${LBOX.egress[1]+150}" width="${LBOX.egress[2]-28}" height="46" rx="6"/><text x="${LBOX.egress[0]+22}" y="${LBOX.egress[1]+168}" class="lid">${esc(N.nat)}</text><text x="${LBOX.egress[0]+22}" y="${LBOX.egress[1]+184}" class="lnm">recommended</text></g>`;
  const H=[LBOX.hub[0]+LBOX.hub[2]/2,LBOX.hub[1]+173],E=[LBOX.egress[0]+LBOX.egress[2]/2,LBOX.egress[1]+173];
- const sec=`<g class="ov sec"><path class="ing" d="M95 52 L260 52 L435 52 L${H[0]} ${H[1]} L860 100"/><text class="seclab" x="110" y="44">ingress: ${esc(N.ddos)} · WAF · TLS</text><text class="seclab" x="380" y="44">rate limit · authN</text><text class="seclab" x="${H[0]-40}" y="${H[1]-30}">inspect</text>
-  <path class="egr" d="M860 195 L${H[0]} ${H[1]+30} L${E[0]} ${E[1]} L1300 ${E[1]}"/><text class="seclab eg" x="${E[0]-60}" y="${E[1]+40}">FQDN allow-list · NAT</text><text class="seclab" x="720" y="466">east-west: default deny · mTLS · ${esc(N.sg)}</text></g>`;
- const flows=S.edges.filter(e=>isFlow(e)&&pos[e.from]&&pos[e.to]);
- const integ=`<g class="ov int">${flows.filter(e=>['app','int','ext','data'].includes(LAYER_OF(S.nodes[e.from]))&&['app','int','ext'].includes(LAYER_OF(S.nodes[e.to]))).map(e=>line(e.from,e.to,'il'+(S.nodes[e.to].type==='queue'||S.nodes[e.from].type==='queue'?' ev':''),e.proto)).join('')}</g>`;
- const plat=`<g class="ov plat">${S.edges.filter(e=>e.kind==='dep'&&pos[e.from]&&pos[e.to]).map(e=>line(e.from,e.to,'pl')).join('')}</g>`;
- const net=`<g class="ov net">${ifc}${hubNode}${egwV}</g>`;
- return `<svg class="lsvg ${['net','sec','int','plat'].filter(k=>ov[k]).map(k=>'on-'+k).join(' ')}" viewBox="0 0 1400 630" role="img" aria-label="Layered design: network, security, integration and platform overlays">${boxes}${net}${plat}${integ}${sec}${top.map(nbox).join('')}</svg>`}
+ const sec=`<g class="ov sec"><path class="ing" d="M95 52 H${H[0]} V${H[1]} H${LBOX.app[0]+20} V${LBOX.app[1]+20}"/><text class="seclab" x="110" y="44">ingress: ${esc(N.ddos)} · WAF · TLS · rate limit · authN</text><text class="seclab" x="${H[0]-60}" y="${H[1]-28}">inspect</text>
+  <path class="egr" d="M${LBOX.app[0]+40} ${LBOX.int[1]+LBOX.int[3]-6} H${H[0]+30} V${E[1]+26} H${E[0]} V${E[1]} M${E[0]+60} ${E[1]} H1300"/><text class="seclab eg" x="${E[0]-55}" y="${E[1]+44}">egress: FQDN allow-list · NAT</text><text class="seclab" x="${LBOX.data[0]}" y="${LBOX.data[1]+LBOX.data[3]+18}">east-west: default deny · mTLS · ${esc(N.sg)}</text></g>`;
+ const W_=repl.length?1580:1400;
+ return `<svg class="lsvg ${['net','sec','int','plat','az','repl'].filter(k=>ov[k]).map(k=>'on-'+k).join(' ')}" viewBox="0 0 ${W_} 660" role="img" aria-label="Layered design with network, security, integration, platform, zone and replication overlays">${boxes}<g class="ov net">${ifc}${hubNode}${egwV}</g>${azl}<g class="ov sec">${sec}</g>${lines}${rlines.join('')}${top.map(nbox).join('')}${Object.keys(pos).filter(k=>k.endsWith('~B')).map(gbox).join('')}</svg>`}
+// How a component's instances spread over the zones (rule of thumb used by the simulator: round-robin from the home zone).
+function zoneSpread(n){const zs=zoneList();if(!zs.length)return null;
+ if(isManaged(n)&&n.type!=='db')return zs.map(z=>({z,c:1,m:true}));
+ if(n.type==='db'){return zs.map((z,i)=>({z,c:i===0?1:(i===1&&n.standby?1:0)}))}
+ const c=Math.max(1,instCount(n)),home=Math.max(0,zs.indexOf(homeZone(n)||zs[0])),out=zs.map(z=>({z,c:0}));for(let i=0;i<c;i++)out[(home+i)%zs.length].c++;return out}
+const layerOv=()=>({net:true,sec:true,int:true,plat:true,az:true,repl:true,...((S.view&&S.view.layers)||{})});
 function layerChecks(){const top=kids('root'),has=t=>top.some(n=>n.type===t),z=zoneCount(),req=S.req||{},extE=S.edges.filter(e=>isFlow(e)&&S.nodes[e.to]&&['saas','ext'].includes(S.nodes[e.to].type)),
  inetToData=S.edges.filter(e=>isFlow(e)&&S.nodes[e.from]&&S.nodes[e.from].type==='user'&&S.nodes[e.to]&&['db','cache','obj','svc'].includes(S.nodes[e.to].type)),miss=top.filter(n=>missingDeps(n).length);
  return [
@@ -3685,22 +3773,80 @@ function layerChecks(){const top=kids('root'),has=t=>top.some(n=>n.type===t),z=z
   ['Resilience',`Zones: ${z}${req.res?` (target: ${(RESIL.find(r=>r.k===req.res)||{}).name})`:''}`,!req.res||req.res==='single'||z>=2,'','reliability'],
   ['Resilience','Survives a region loss',!req.regionLoss||mr(),req.regionLoss&&!mr()?'The requirement needs a second region':'','reliability'],
   ['Platform','Every component is linked to the shared services it needs',!miss.length,miss.length?`${miss.length} component(s) missing platform links`:'','operations']]}
-function renderLayers(){const el=$('#layBody');if(!el)return;const req=S.req,ov=(S.view&&S.view.layers)||{net:true,sec:true,int:true,plat:true},N=NETP[prov()]||NETP.aws,ch=layerChecks();
+function renderLayers(){const el=$('#layBody');if(!el)return;const req=S.req,ov=layerOv(),N=NETP[prov()]||NETP.aws,ch=layerChecks();
  const top=kids('root').filter(n=>!['user','part'].includes(n.type)&&(DEPS[n.type]||[]).length);
- el.innerHTML=`${req?`<div class="lreq"><b>Targets</b> ${esc(req.avail)}% · RTO ${req.rto} min · RPO ${req.rpo} min · ${esc((RESIL.find(r=>r.k===req.res)||{}).name||'')}<br><span class="why">Downtime budget ${downtime(req.avail).year} a year, ${downtime(req.avail).month} a month</span></div>`:'<p class="why">Use ＋ New design to set availability, RTO and RPO targets.</p>'}
-  <div class="bar">${[['net','Network'],['sec','Security'],['int','Integration'],['plat','Platform']].map(([k,l])=>`<label><input type="checkbox" data-lov="${k}" ${ov[k]?'checked':''}> ${l}</label>`).join('')}</div>
+ el.innerHTML=`${req?`<div class="lreq"><b>Targets</b> ${esc(req.avail)}% · RTO ${fh(req.rto/60)} · RPO ${fh(req.rpo/60)} · ${esc((RESIL.find(r=>r.k===req.res)||{}).name||'')}<br><span class="why">Downtime budget ${downtime(req.avail).year} a year, ${downtime(req.avail).month} a month</span></div>`:'<p class="why">Use ＋ New design to set availability, RTO and RPO targets.</p>'}
+  <div class="bar">${[['net','Network'],['sec','Security'],['int','Integration'],['plat','Platform'],['az','Zones'],['repl','Replication']].map(([k,l])=>`<label><input type="checkbox" data-lov="${k}" ${ov[k]?'checked':''}> ${l}</label>`).join('')}</div>
   <button class="btn" id="layOpen" style="width:100%">Open the layered view</button>
+  <label class="lzc"><input type="checkbox" data-canvaz ${S.settings.view.az?'checked':''}> Show zones on the canvas</label>
+  ${mr()?`<h4>Regions on the canvas</h4><select id="regView" style="width:100%">${[['overlay','Overlay: one stack, region B as a stamp'],['stacked','Region B below region A'],['side','Side by side'],['A','Region A only · '+regNames().a],['B','Region B only · '+regNames().b]].map(([v,l])=>`<option value="${v}" ${regionView()===v?'selected':''}>${esc(l)}</option>`).join('')}</select>`:''}
+  ${replTable()}
   <h4>Best-practice checks</h4><ul class="lchk">${ch.map(([g,t,ok,d,p])=>`<li class="${ok?'ok':'warn'}"><b>${ok?'✓':'!'}</b><span>${esc(t)}${d?`<small>${esc(d)}</small>`:''}</span><span class="pchip">${esc(g)}</span></li>`).join('')}</ul>
   <h4>Shared platform by component</h4><table class="ltab"><tr><th>Component</th><th>Needs</th></tr>${top.map(n=>`<tr><td><b>${esc(n.id)}</b></td><td>${(DEPS[n.type]||[]).map(d=>{const okd=!missingDeps(n).includes(d);return `<span class="${okd?'ok':'crit'}" title="${esc(depWhy(n.type,d))}">${esc(T[d]?T[d].label:d)}${okd?'':' (missing)'}</span>`}).join(', ')}</td></tr>`).join('')}</table>
   ${top.some(n=>missingDeps(n).length)?'<button class="btn" id="layDeps">Link the missing platform services</button>':''}
   ${!kids('root').some(n=>n.type==='egw')&&S.edges.some(e=>isFlow(e)&&S.nodes[e.to]&&['saas','ext'].includes(S.nodes[e.to].type))?'<button class="btn" id="layEgw">Add an egress gateway</button>':''}
   <p class="why">Layers follow the Well-Architected security and reliability pillars of AWS, Azure and Google Cloud: ${esc(N.net)}s for ingress, a secured hub (${esc(N.fw)}), private application, isolated data, egress and shared services.</p>`}
-document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.lov;if(!k)return;S.view=S.view||{};S.view.layers={...((S.view&&S.view.layers)||{net:true,sec:true,int:true,plat:true}),[k]:e.target.checked};persist();renderLayers();const s=$('#layDlg .lsvg');if(s)$('#layDiag').innerHTML=layersSVG()});
+document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.lov;if(!k)return;S.view=S.view||{};S.view.layers={...layerOv(),[k]:e.target.checked};persist();renderLayers();const s=$('#layDlg .lsvg');if(s)$('#layDiag').innerHTML=layersSVG()});
 document.addEventListener('click',e=>{const t=e.target;if(t.id==='layOpen'){$('#layDiag').innerHTML=layersSVG();$('#layTitle').textContent=`Layered design · ${S.project} · ${pk().name}`;$('#layIfc').innerHTML=interfacesHTML();$('#layDlg').hidden=false}
  if(t.id==='layClose')$('#layDlg').hidden=true;if(t.id==='layDeps')act('Link the missing platform services',()=>addDeps(),{after:()=>renderLayers()});if(t.id==='layEgw')run('add egress gateway')});
 function interfacesHTML(){const via={net:'in network',privatelink:'private link',vpn:'VPN',dedicated:'dedicated circuit',internet:'internet',xregion:'cross-region'};
  return `<table class="ltab"><tr><th>From</th><th>To</th><th>Protocol</th><th>Path</th><th>Crosses</th></tr>${S.edges.filter(e=>isFlow(e)&&S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent==='root'&&S.nodes[e.to].parent==='root').map(e=>{const a=LAYER_OF(S.nodes[e.from]),b=LAYER_OF(S.nodes[e.to]);return `<tr><td>${esc(e.from)}</td><td>${esc(e.to)}</td><td>${esc(e.proto)}</td><td>${esc(via[e.via]||e.via)}</td><td>${a===b?'—':esc(LBOX[a][4].split(' ·')[0]+' → '+LBOX[b][4].split(' ·')[0])}</td></tr>`}).join('')}</table>`}
 $('#ndBtn')&&($('#ndBtn').onclick=ndOpen);
+/* ---------- provenance: who set each value (you, AI with confidence, rules) ---------- */
+function markProv(before,src,desc){let B={};try{B=JSON.parse(before)}catch(e){}
+ const tag={by:src.by||'you',who:src.by==='you'?who().name:undefined,model:src.model,conf:src.conf,note:src.note,desc:String(desc||'').slice(0,120),at:new Date().toISOString()};
+ Object.values(S.nodes).forEach(n=>{const o=B[n.id];n.prov=n.prov||{};
+  if(!o){n.prov._new=tag;return}
+  const keys=new Set([...Object.keys(n),...Object.keys(o)]);keys.forEach(k=>{if(['x','y','prov','failed','expanded','_pts'].includes(k))return;
+   if(k==='enrich'){const a=n.enrich||{},b=o.enrich||{};Object.keys({...a,...b}).forEach(j=>{if(JSON.stringify(a[j])!==JSON.stringify(b[j]))n.prov['enrich.'+j]=tag});return}
+   if(JSON.stringify(n[k])!==JSON.stringify(o[k]))n.prov[k]=tag})})}
+const PROP_LABEL={id:'ID',type:'Type',name:'Name',parent:'Inside',region:'Region',rep:'Instances',cap:'Capacity per instance (rps)',tier:'Size tier',standby:'Standby (other zone)',multi:'Multi-region',readReplicas:'Read replicas',shards:'Shards',sizeGB:'Data size (GB)',rw:'Read share',
+ rateLimit:'Rate limit (rps)',flavor:'Flavour',partitions:'Partitions',consumers:'Consumers',brokers:'Brokers',rps:'Offered load (rps)',origin:'Origin',audience:'Audience',idpMode:'Identity source',fedIdp:'Federated IdP',auto:'Autoscaling',net:'Network segment',twin:'Twin in region A',role:'Role',
+ pl:'Private link',quota:'Planning limit',host:'Hosting',zone:'Trust zone',encryptRest:'Encrypted at rest',classification:'Data classification',owner:'Owner',rto:'RTO',rpo:'RPO',runtime:'Runtime',backup:'Backup',tls:'TLS'};
+function provChip(p,dflt){if(!p)return `<span class="pv d">${esc(dflt||'default')}</span>`;
+ if(p.by==='ai')return `<span class="pv ai" title="${esc((p.note||p.desc||'')+(p.at?' · '+p.at.slice(0,16).replace('T',' '):''))}">AI · ${esc(p.model||'model')} · ${Math.round((p.conf||.7)*100)}%</span>`;
+ if(p.by==='rules')return `<span class="pv r" title="${esc(p.desc||'')}">rules</span>`;
+ if(p.by==='text')return `<span class="pv ai">from the requirement · ${Math.round((p.conf||.5)*100)}%</span>`;
+ return `<span class="pv u" title="${esc((p.desc||'')+(p.at?' · '+p.at.slice(0,16).replace('T',' '):''))}">${esc(p.who||'you')}</span>`}
+function openProps(id){const n=S.nodes[id];if(!n)return;const pv=n.prov||{},f=F[n.id]||{},val=v=>v===true?'yes':v===false?'no':v==null||v===''?'—':typeof v==='object'?esc(JSON.stringify(v)):esc(String(v));
+ const skip=new Set(['x','y','prov','enrich','_pts','failed','expanded']),rows=Object.keys(n).filter(k=>!skip.has(k)).map(k=>[PROP_LABEL[k]||k,val(n[k]),provChip(pv[k]||(k==='id'||k==='type'?null:pv._new),k==='id'?'generated':k==='type'?'chosen':'default')]);
+ const cfg=Object.entries(n.enrich||{}).map(([k,v])=>[PROP_LABEL[k]||k,val(v),provChip(pv['enrich.'+k],'best-practice default')]);
+ const comp=[['Product',esc(svcName(n))],['Instances now',instCount(n)],['Load in (rps)',fmt(f.in||0)],['Utilisation',isFinite(f.util)?pct(f.util||0):'down'],['Cost (list price)','$'+fmt(costOf(n))+'/mo'],['Zones',(zoneSpread(n)||[]).map(z=>`${z.z}:${z.c}`).join(' ')||'—'],['Flows in',S.edges.filter(e=>isFlow(e)&&e.to===id).map(e=>e.from).join(', ')||'—'],['Flows out',S.edges.filter(e=>isFlow(e)&&e.from===id).map(e=>e.to).join(', ')||'—'],['Platform links',S.edges.filter(e=>e.kind==='dep'&&e.from===id).map(e=>e.to).join(', ')||'—']];
+ const tbl=(title,rs,c3)=>`<h3>${title}</h3><table class="ptab"><tr><th>Property</th><th>Value</th><th>${c3}</th></tr>${rs.map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td>${r[2]||'<span class="pv c">computed</span>'}</td></tr>`).join('')}</table>`;
+ $('#propTitle').textContent=`Properties · ${n.id} ${n.name}`;
+ $('#propBody').innerHTML=`<p class="why">${pv._new?`Created by ${pv._new.by==='ai'?'AI ('+esc(pv._new.model||'model')+', confidence '+Math.round((pv._new.conf||.7)*100)+'%)':pv._new.by==='rules'?'rules':esc(pv._new.who||'you')}: ${esc(pv._new.desc||'')}.`:'Part of the starting design.'} The source column shows who set each value: you, AI with its confidence, the rules, or a default.</p>
+  ${tbl('Attributes',rows,'Source')}${cfg.length?tbl('Configuration',cfg,'Source'):''}${tbl('From the simulation',comp.map(r=>[r[0],esc(String(r[1]))]),'Source')}
+  <div class="ndnav"><span class="sp"></span><button type="button" class="btn" id="propInsp">Edit in the Inspector</button></div>`;
+ $('#propDlg').hidden=false;$('#propBody').dataset.id=id}
+document.addEventListener('click',e=>{if(e.target.id==='propClose'||e.target.id==='propDlg')$('#propDlg').hidden=true;if(e.target.id==='propInsp'){$('#propDlg').hidden=true;focusNode($('#propBody').dataset.id)}});
+/* ---------- users as people, replication badges, zone chips ---------- */
+function drawPeople(x,y,k,c,count){ctx.save();ctx.fillStyle=c;for(let i=0;i<count;i++){const ox=x+i*6.5*k,s=k;ctx.globalAlpha=(i===count-1?1:.55)*ctx.globalAlpha;ctx.beginPath();ctx.arc(ox+4*s,y+3.5*s,2.8*s,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(ox,y+13*s);ctx.quadraticCurveTo(ox+4*s,y+4*s,ox+8*s,y+13*s);ctx.closePath();ctx.fill()}ctx.restore()}
+function nodeBadges(n,x,y,w,h,k,below){const items=[];
+ if(n.type==='db'){if(n.standby)items.push({t:`⇄ standby zone ${zoneList()[1]||'b'} · sync`,c:'#7a3fc4'});if(mr()&&n.multi)items.push({t:`⇄ region B · ${n.multi==='aa'?'sync, writes both':'async'}`,c:'#7a3fc4'})}
+ if(S.settings.view.az){const d=zoneSpread(n);if(d&&!['user','saas','ext','dns','cdn'].includes(n.type))items.push({zones:d})}
+ if(!items.length)return below;let yy=below+4*k;ctx.font=`600 ${9*k}px "IBM Plex Mono",monospace`;
+ items.forEach(it=>{if(it.zones){let xx=x;it.zones.forEach(z=>{const t=`${z.z} ${'●'.repeat(Math.min(4,z.c))||'○'}`,tw=ctx.measureText(t).width+8*k,down=S.outage===z.z||(mr()&&S.routage&&regionOf(n)===S.routage.toUpperCase());ctx.fillStyle=hexA(down?colors.crit:colors.accent,.1);rr(xx,yy,tw,13*k,3*k);ctx.fill();ctx.fillStyle=down?colors.crit:colors.accent;ctx.fillText(t,xx+4*k,yy+9.5*k);xx+=tw+3*k});yy+=16*k}
+  else{const tw=ctx.measureText(it.t).width+8*k;ctx.fillStyle=hexA(it.c,.1);rr(x,yy,tw,13*k,3*k);ctx.fill();ctx.fillStyle=it.c;ctx.fillText(it.t,x+4*k,yy+9.5*k);yy+=16*k}});
+ return yy}
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.canvaz!==undefined){S.settings.view.az=e.target.checked;persist()}
+ if(e.target.id==='regView')setRegionView(e.target.value)});
+/* ---------- regions on the canvas: overlay, stacked, side by side, or one region ---------- */
+const regionView=()=>!mr()?'overlay':!expanded()?'overlay':V.regionOnly||(S.multi.layout||'stacked');
+function setRegionView(v){if(!mr()){say('Turn on two regions first.','s');return}
+ if(v==='overlay'){V.regionOnly=null;if(expanded())collapseRegions();say('Regions shown as one stack; region B is the stamp behind it.','s');renderLayers();return}
+ if(!expanded())expandRegions();
+ if(v==='A'||v==='B'){V.regionOnly=v;fit();say(`Showing region ${v} (${v==='A'?regNames().a:regNames().b}) only. Choose another view in the Layers panel, or "regions side by side".`,'s');renderLayers();return}
+ V.regionOnly=null;const A=kids('root').filter(n=>n.region==='A'),Bn=kids('root').filter(n=>n.region==='B');if(!A.length||!Bn.length){renderLayers();return}
+ const xs=A.map(n=>n.x),ys=A.map(n=>n.y),spanX=Math.max(...xs)-Math.min(...xs)+420,spanY=Math.max(...ys)-Math.min(...ys)+340;
+ pushUndo(`Regions view: ${v==='side'?'side by side':'stacked'}`);
+ const off=[];Bn.forEach(n=>{const t=S.nodes[n.twin];if(t){const nx=v==='side'?t.x+spanX:t.x,ny=v==='side'?t.y:t.y+spanY;off.push([nx-n.x,ny-n.y]);n.x=nx;n.y=ny}});
+ const dx=off.length?off[0][0]:0,dy=off.length?off[0][1]:0;Bn.filter(n=>!S.nodes[n.twin]).forEach(n=>{n.x+=dx;n.y+=dy});
+ S.multi.layout=v;changed();fit();say(`Region B drawn ${v==='side'?'beside':'below'} region A.`,'s')}
+function replTable(){const dbs=kids('root').filter(n=>n.type==='db'&&(!n.region||n.region==='A'));if(!dbs.length)return '';
+ return `<h4>Data replication</h4><table class="ltab"><tr><th>Database</th><th>In the region</th><th>Across regions</th></tr>${dbs.map(n=>`<tr><td><b>${esc(n.id)}</b></td><td>${n.standby?`standby in zone ${zoneList()[1]||'b'} · synchronous · RPO 0`:'<span class="crit">no standby</span>'}</td><td>${mr()?(n.multi==='aa'?'active-active · synchronous · RPO 0':n.multi==='global'?'global replica · asynchronous · RPO seconds':n.multi==='replica'?'read replica · asynchronous · manual promotion':'<span class="crit">none: region loss loses this database</span>'):'single region'}</td></tr>`).join('')}</table>`}
+/* ---------- console: multi-line input ---------- */
+(()=>{const t=$('#conIn');if(!t||t.tagName!=='TEXTAREA')return;const fitH=()=>{t.style.height='auto';t.style.height=Math.min(140,t.scrollHeight)+'px'};
+ t.addEventListener('input',fitH);t.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('#conForm').requestSubmit();setTimeout(fitH,0)}})})();
 
 /* ---------- convergence: import the hand-off from NEXUS Strategy ---------- */
 const STRAT_KEY='nexus.strategy.handoff.v1';
