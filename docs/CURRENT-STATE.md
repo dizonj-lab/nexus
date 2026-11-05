@@ -1,4 +1,11 @@
-# NEXUS — Current state (v0.2.13)
+# NEXUS — Current state (v0.2.14)
+
+- **NEXUS Strategy** (`poc/strategy/`, app page /strategy): the Chief
+  Technology Architect's nine-stage workflow with four lenses, RACI, 52
+  artefacts, People · Process · Technology, a business-case calculator,
+  strategy on a page, and a hand-off the canvas imports (`import strategy`).
+- **Canvas only** (`deploy/canvas.sh`, port 8091): canvas and Strategy without
+  sign-in.
 
 - **Public landing page** (`landing/`): static, Coming soon, with the
   design-break-correct walkthrough and the 5-minute product demo.

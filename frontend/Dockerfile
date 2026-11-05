@@ -6,6 +6,7 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY frontend ./
 COPY poc/prototype /src/poc/prototype
+COPY poc/strategy /src/poc/strategy
 ENV NEXT_TELEMETRY_DISABLED=1 NEXUS_BACKEND_URL=http://backend:8000
 RUN npm run build
 

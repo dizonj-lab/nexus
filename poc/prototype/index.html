@@ -130,7 +130,8 @@ button{cursor:pointer}
 .stage{position:relative;overflow:hidden;min-height:0}
 #cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
 .addmenu{position:relative}
-.embedded .brand,.embedded #projName,.embedded #roleSel{display:none}
+.embedded .brand,.embedded #projName,.embedded #roleSel,.embedded .modlink{display:none}
+.modlink{font-size:12px;font-weight:500;padding:3px 9px;border:1px solid var(--line,#d3dae4);border-radius:999px;text-decoration:none;color:inherit;opacity:.8;white-space:nowrap}.modlink:hover{opacity:1}
 .addpop{position:absolute;left:0;top:calc(100% + 6px);z-index:40;width:min(560px,92vw);max-height:min(70vh,560px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px}
 .addpop #palQ{width:100%;margin-bottom:8px;font-size:13px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
 .addpop .pg h4{margin:8px 2px 4px;font:600 10px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -344,7 +345,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.13">NEXUS<small>Architecture Workbench · v0.2.13</small></span>
+    <span class="brand" title="NEXUS Architecture Workbench v0.2.14">NEXUS<small>Architecture Workbench · v0.2.14</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal">
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -2543,12 +2544,13 @@ function run(raw,opt={}){
  let m;
  if(/^workload\b/i.test(c)){wlCmd(c);return}
  if(m=l.match(/^move\s+([a-z]{1,4}\d+)\s+(?:to|into)\s+region\s+([ab])\b/)){if(!expanded()){say('Draw region B separately first: "draw regions separately".','s');return}moveRegion(m[1].toUpperCase(),m[2].toUpperCase());return}
- if(regionCmd(c,l))return;
+ if(/^import strategy$/.test(l)){importStrategy();return}
+if(regionCmd(c,l))return;
  if(m=l.match(/^(?:fail|lose|kill|take down|what if|simulate)\s+(?:an?\s+)?(?:availability\s+)?zone\s+([abc])\b|^zone\s+([abc])\s+(?:fails|outage|down)/)){const z=m[1]||m[2];if(!zoneList().includes(z)){say(`This design has ${zoneCount()} zone${zoneCount()>1?'s':''} (${zoneList().join(', ')}). Set more with "zones 3".`,'s');return}setOutage(z);return}
  if(/^(restore|recover|end)\s+(the\s+)?zone|^zone\s+outage\s+off/.test(l)){setOutage(null);return}
  if(m=l.match(/^zones?\s+([123])$/)){setZones(+m[1]);say(`The region now has ${zoneCount()} zones (${zoneList().join(', ')}).`,'s');return}
  if(/^((create|new|add)\s+(subnet|security group|sg|app(lication)? group)\b|move\s+[a-z]{1,4}\d+\s+(to|into)\b|allow\s+\S+\s+from\b)/i.test(c)&&netCmd(c,ids))return;
- if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nConversation: the model remembers the last turns · new conversation · revise PL-03: <what to change>\nPatterns: patterns · apply cqrs to SVC1 · apply zero-trust · apply event-driven\nQuality: eval console (scores your model on a fixed set of requests)\nRedesign: redesign · redesign: <goal> · fix the weak points · apply the second opinion\nModels: escalate (re-run the last request on the escalation model) · escalate: <request> · 2nd opinion (review the whole design) · 2nd opinion: <focus>\nOther: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
+ if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nConversation: the model remembers the last turns · new conversation · revise PL-03: <what to change>\nPatterns: patterns · apply cqrs to SVC1 · apply zero-trust · apply event-driven\nQuality: eval console (scores your model on a fixed set of requests)\nRedesign: redesign · redesign: <goal> · fix the weak points · apply the second opinion\nModels: escalate (re-run the last request on the escalation model) · escalate: <request> · 2nd opinion (review the whole design) · 2nd opinion: <focus>\nStrategy: import strategy (from NEXUS Strategy) · Other: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
  if(/^(new conversation|forget|clear context|reset context)\b/.test(l)){CONV.length=0;PENDING_Q=false;remember('user','');CONV.length=0;$('#ctxTag').textContent='no context';say('Started a new conversation. The model still sees the current design.','s');return}
  if(/^patterns?$/.test(l)){say('Patterns (apply <pattern> [to ID]):\n'+Object.entries(PATTERNS).map(([k,v])=>`  ${k.padEnd(15)} ${v.d}`).join('\n'),'s');return}
  if(m=l.match(/^(?:apply|add|use)\s+(?:the\s+)?([a-z][a-z -]+?)(?:\s+pattern)?(?:\s+(?:to|for|around|on)\s+([a-z]{1,4}\d+))?$/i)){const k=patKey(m[1]);if(k){const around=m[2]?m[2].toUpperCase():null;act(`Pattern ${k}${around?' around '+around:''}`,()=>{const r=applyPattern(k,around);if(r)throw new Error(r)},{tradeoffs:['+ '+PATTERNS[k].pro,'− '+PATTERNS[k].con]});return}}
@@ -3479,6 +3481,24 @@ setLayout(S.settings.view.layout||'focus');
 fit();
 if(EMBED)parent.postMessage({type:'nexus:ready'},location.origin);else say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
 if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
+
+/* ---------- convergence: import the hand-off from NEXUS Strategy ---------- */
+const STRAT_KEY='nexus.strategy.handoff.v1';
+function strategyHandoff(){try{const h=JSON.parse(localStorage.getItem(STRAT_KEY)||'null');return h&&h.id?h:null}catch(e){return null}}
+function importStrategy(){const h=strategyHandoff();
+ if(!h){say('No strategy hand-off found. In NEXUS Strategy, open "Hand-off to NEXUS" and press Send to NEXUS.','s');return}
+ if(S.strategyImported===h.id){say(`The strategy hand-off from ${h.org||'NEXUS Strategy'} is already imported.`,'s');return}
+ const norm=t=>String(t||'').trim().toLowerCase(),next=(arr,p)=>p+(Math.max(0,...arr.map(x=>+String(x.id).replace(/\D/g,'')||0))+1);
+ const known=Object.keys(T);let ea=0,gt=0,tc=0;
+ pushUndo(`Import strategy from ${h.org||'NEXUS Strategy'}`);
+ (h.principles||[]).forEach(t=>{if(!t||(S.ea||[]).some(x=>norm(x.t)===norm(t)))return;S.ea.push({id:next(S.ea,'P'),t:String(t).slice(0,400),src:'strategy'});ea++});
+ (h.guardrails||[]).forEach(g=>{if(!g||!g.t||(S.gt||[]).some(x=>norm(x.t)===norm(g.t)))return;S.gt.push({id:next(S.gt,'GT'),t:String(g.t).slice(0,400),src:String(g.src||'NEXUS Strategy').slice(0,160)});gt++});
+ (h.capabilities||[]).forEach(c=>{if(!c||!c.name||(S.caps||[]).some(x=>norm(x.name)===norm(c.name)))return;S.caps.push({id:next(S.caps,'TC'),name:String(c.name).slice(0,160),types:(c.types||[]).filter(t=>known.includes(t)),on:true});tc++});
+ S.ver=S.ver||{caps:1,ea:1,gt:1};if(ea)S.ver.ea++;if(gt)S.ver.gt++;if(tc)S.ver.caps++;S.strategyImported=h.id;
+ logAI('NEXUS Strategy',`Imported the strategy of ${h.org||'the organisation'}`,`${ea} principle(s), ${gt} guardrail(s), ${tc} capability(ies) added; duplicates skipped`,1);
+ changed();
+ say(`Imported from NEXUS Strategy (${h.org||''}): ${ea} EA principle${ea===1?'':'s'}, ${gt} ground-truth rule${gt===1?'':'s'} and ${tc} Technical Capabilit${tc===1?'y':'ies'}. Every design is now reviewed against them; see the EA, GT and TC tabs. Built-in rule types (WAF, TLS, encryption, public storage, private links, DNS, dedicated circuits) are checked automatically; new guardrails are listed for reviewers and the models. Ctrl+Z undoes the import.${(h.briefs||[]).length?` Roadmap initiatives to design: ${h.briefs.slice(0,4).join('; ')}${h.briefs.length>4?'…':''}.`:''}`,'s')}
+{const h=strategyHandoff();if(h&&S.strategyImported!==h.id)setTimeout(()=>say(`A strategy hand-off from NEXUS Strategy (${h.org||''}) is waiting: ${(h.principles||[]).length} principles, ${(h.guardrails||[]).length} guardrails, ${(h.capabilities||[]).length} capabilities. Type "import strategy" to apply it.`,'s'),400)}
 say('Click ▾ on any component for actions. Every change is reviewed by the Action Guard and can be undone (Ctrl+Z). "help" lists console commands.','s');
 requestAnimationFrame(frame);
 })();

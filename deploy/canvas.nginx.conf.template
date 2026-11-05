@@ -1,0 +1,28 @@
+# Canvas only (no sign-in): the prototype design workbench and the Strategy module, from poc/.
+server {
+  listen 8080;
+  server_name _;
+  root /usr/share/nginx/html;
+  absolute_redirect off;
+  server_tokens off;
+  add_header X-Content-Type-Options nosniff always;
+  add_header Referrer-Policy strict-origin-when-cross-origin always;
+  add_header X-Frame-Options SAMEORIGIN always;
+  add_header Cache-Control "no-cache" always;
+
+  location = /healthz { return 200 "ok\n"; }
+  location = / { return 302 /prototype/; }
+  location = /strategy { return 302 /strategy/; }
+
+  # The model server, for the console's AI features (OpenAI-compatible, e.g. Ollama).
+  location /llm/ {
+    proxy_pass ${NEXUS_LLM_UPSTREAM}/;
+    proxy_set_header Origin "";
+    proxy_set_header Host localhost;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+    client_max_body_size 4m;
+  }
+
+  location / { try_files $uri $uri/ $uri/index.html =404; }
+}

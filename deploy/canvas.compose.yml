@@ -1,0 +1,24 @@
+# NEXUS canvas only: the design workbench and the Strategy module, with no landing page, sign-in,
+# API or database. Work is kept in each person's browser. For ideation and quick tests: ./deploy/canvas.sh
+#   → http://<buddy>:8091/              design workbench (redirects to /prototype/)
+#   → http://<buddy>:8091/strategy/     NEXUS Strategy
+# /llm/ reaches the model server so the console's AI features work. Anyone who can reach this port
+# can use them: keep it on the home network (or set NEXUS_CANVAS_BIND=127.0.0.1).
+name: nexus-canvas
+services:
+  canvas:
+    image: nginxinc/nginx-unprivileged:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ../poc:/usr/share/nginx/html:ro
+      - ./canvas.nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    environment:
+      NEXUS_LLM_UPSTREAM: ${NEXUS_LLM_UPSTREAM:-http://host.docker.internal:11434}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    ports:
+      - "${NEXUS_CANVAS_BIND:-0.0.0.0}:${NEXUS_CANVAS_PORT:-8091}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3

@@ -5,6 +5,38 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.14] — 2026-11-05
+
+### Added
+- **NEXUS Strategy** (`poc/strategy/`, in the app at **/strategy**): the
+  Chief Technology Architect's workbench, a separate module that converges
+  with the design workbench.
+  - **Workflow:** nine stages from mandate to measurable value. At each stage,
+    four lenses (Technology, Business, Financial, CxO) give the activities and
+    artefacts, along with who to collaborate with, an exit gate, success
+    measures, pitfalls and where the stage meets NEXUS.
+  - **Collaboration:** a RACI matrix of 20 roles across the stages.
+  - **Artefacts:** 52 artefacts (17 of them delivery artefacts), each with a
+    template, status, owner, link and notes, plus filters.
+  - **People · Process · Technology:** the delivery artefacts by impact.
+  - **Business case:** TCO, NPV, ROI, payback, cumulative cash flow and
+    sensitivity.
+  - **Strategy on a page:** for the CxOs, with copy as Markdown and print.
+  - **Hand-off to NEXUS:** principles, guardrails and the approved stack.
+- **Convergence:** in the design canvas, `import strategy` adds the hand-off
+  as EA principles, ground-truth rules and Technical Capabilities. It skips
+  duplicates, is recorded in the AI log and can be undone. The canvas says
+  when a hand-off is waiting.
+- **Canvas only** (`./deploy/canvas.sh`, port 8091): the design canvas and
+  the Strategy module with no landing page or sign-in, for ideation and
+  quick tests. Work stays in the browser.
+
+### Note
+- Guardrails imported from a strategy join ground truth. NEXUS checks the
+  rule types it already knows automatically (WAF, TLS, encryption, public
+  storage, private links, DNS, dedicated circuits). New ones are listed for
+  reviewers and the models until a check exists for them.
+
 ## [0.2.13] — 2026-11-03
 
 ### Added

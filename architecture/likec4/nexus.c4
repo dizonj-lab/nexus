@@ -76,6 +76,10 @@ model {
   nexus = system 'NEXUS' {
     description 'Interactive, agentic architecture workbench'
 
+    strategy = webapp 'NEXUS Strategy' {
+      technology 'Static HTML, CSS, JavaScript'
+      description 'Chief Technology Architect workbench: nine-stage workflow with technology, business, financial and CxO lenses, RACI, artefacts, business case, strategy on a page. Hands principles, guardrails and the approved stack to the canvas'
+    }
     landing = webapp 'Public landing page' {
       technology 'Static HTML, CSS, JavaScript on nginx'
       description 'Product story, the design-break-correct walkthrough and the demo video; sign-up is Coming soon. Separate from the app (deploy/landing.sh)'
@@ -202,6 +206,8 @@ model {
   extAgent -[mcp]-> nexus.gateway 'calls NEXUS tools'
 
   visitor -> nexus.landing 'reads, watches the demo'
+  architect -> nexus.strategy 'shapes the technology strategy'
+  nexus.strategy -> nexus.web 'hands off principles, guardrails, stack (import strategy)'
 
   // core
   nexus.web -> nexus.api 'REST + WebSocket'

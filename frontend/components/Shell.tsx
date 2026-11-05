@@ -24,6 +24,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const nav = [
     { href: "/projects", label: "Projects" },
+    { href: "/strategy", label: "Strategy" },
     ...(me?.system_role === "admin" ? [{ href: "/admin", label: "Administration" }] : []),
     { href: "/about", label: "About" },
   ];

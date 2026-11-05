@@ -231,3 +231,20 @@ The lab is the same app with the landing page switched off
 port and image tag. Changes can be tried there, on any branch, without
 touching the main instance's data or images.
 
+## D39 — Strategy is a separate module that converges through the model
+The Chief Technology Architect works at a different altitude from the
+solution architect, so NEXUS Strategy is its own module (its own page,
+state and workflow), not more panels on the canvas. It converges through
+the design model: its principles, guardrails and approved stack become the
+canvas's EA principles, ground truth and Technical Capabilities, and its
+roadmap initiatives become design briefs. The hand-off is explicit
+(`import strategy`), reviewed, recorded and undoable. Today it travels
+through the browser; with WP1 it becomes an MCP tool on the governance
+server.
+
+## D40 — A canvas-only deployment for ideation
+For quick ideation and tests, the canvas and the Strategy module are also
+served on their own (`deploy/canvas.sh`), with no landing page, sign-in, API
+or database. Work stays in each browser. The full app (projects, roles,
+versions, decisions) remains the system of record.
+

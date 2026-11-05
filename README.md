@@ -16,6 +16,7 @@ and LikeC4 are generated from the same design model.
 | `backend/` | FastAPI API: auth, RBAC, design store, changesets, agent harness (`app/harness`, cards in `agents/`) |
 | `schema/` | Design-model JSON schema and the sample design |
 | `poc/prototype/index.html` | The canvas (single file), embedded by the app; also runs on its own |
+| `poc/strategy/` | NEXUS Strategy: the Chief Technology Architect's workbench (app page /strategy); hands principles, guardrails and the stack to the canvas |
 | `architecture/likec4/nexus.c4` | Target architecture as a LikeC4 model |
 | `landing/` | Public landing page (static): product story, design-break-correct walkthrough, demo video; sign-up is Coming soon |
 | `deploy/` | Docker Compose for Buddy: PostgreSQL, API, app, nginx edge; the lab instance; the landing page |
@@ -64,6 +65,13 @@ it):
 
 ```bash
 cd ~/nexus && git pull && ./deploy/landing.sh
+```
+
+**Canvas only** (no landing page, no sign-in; work stays in the browser), port
+8091, with the Strategy module at `/strategy/`:
+
+```bash
+cd ~/nexus && git pull && ./deploy/canvas.sh
 ```
 
 Agent evals against the real model:

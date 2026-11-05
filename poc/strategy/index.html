@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NEXUS Strategy · Chief Technology Architect</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232a49cf'/%3E%3Cpath d='M18 46V18L46 46V18' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23f0a14d'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="strategy.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2a49cf"/><path d="M18 46V18L46 46V18" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="18" r="4.5" fill="#fff"/><circle cx="18" cy="46" r="4.5" fill="#fff"/><circle cx="46" cy="18" r="4.5" fill="#fff"/><circle cx="46" cy="46" r="4.5" fill="#fff"/><circle cx="32" cy="32" r="5" fill="#f0a14d"/></svg>
+      <span>NEXUS</span><span class="mod">Strategy</span>
+    </div>
+    <nav class="modules" aria-label="NEXUS modules">
+      <a class="on" href="#" aria-current="page">Strategy</a>
+      <a id="toDesign" href="../prototype/index.html">Design workbench</a>
+    </nav>
+    <div class="org"><label>Organisation <input id="orgName" maxlength="80"></label></div>
+    <div class="prog" title="Exit-gate items checked across all stages"><span id="progTxt">0%</span><span class="bar"><i id="progBar"></i></span></div>
+    <div class="tools">
+      <button class="btn" id="exportBtn" title="Download everything as JSON">Export</button>
+      <label class="btn" title="Load a JSON export">Import<input type="file" id="importIn" accept="application/json" hidden></label>
+      <button class="btn ghost" id="resetBtn" title="Start again from the example">Reset</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="views" aria-label="Views">
+      <button data-view="flow" aria-current="page"><b>Workflow</b><span>Stage by stage, four lenses</span></button>
+      <button data-view="raci"><b>Collaboration</b><span>Who does what (RACI)</span></button>
+      <button data-view="arts"><b>Artefacts</b><span>Track every artefact</span></button>
+      <button data-view="ppt"><b>People · Process · Technology</b><span>Delivery artefacts by impact</span></button>
+      <button data-view="fin"><b>Business case</b><span>TCO, NPV, payback</span></button>
+      <button data-view="page"><b>Strategy on a page</b><span>For the CxOs and everyone</span></button>
+      <button data-view="handoff"><b>Hand-off to NEXUS</b><span>Principles, guardrails, stack</span></button>
+      <p class="hint">Example content is for a fictional bank. Replace it with yours; everything is saved in this browser. Export to keep a copy.</p>
+    </nav>
+    <main id="main" tabindex="-1"></main>
+  </div>
+
+  <aside class="drawer" id="drawer" hidden aria-labelledby="dTitle">
+    <div class="dhead"><h2 id="dTitle"></h2><button class="x" id="dClose" aria-label="Close">×</button></div>
+    <div id="dBody"></div>
+  </aside>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="strategy.js"></script>
+</body>
+</html>

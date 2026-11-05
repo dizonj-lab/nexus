@@ -15,3 +15,4 @@ deploy/lab.env
 .c4test/
 *.egg-info/
 deploy/landing.env
+deploy/canvas.env
