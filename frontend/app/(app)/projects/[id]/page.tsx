@@ -39,7 +39,14 @@ export default function ProjectPage() {
         <span className="crumbs"><Link href="/projects">Projects</Link> /</span>
         <h1>{project.name}</h1>
         <RolePill role={project.role} />
-        <span className={`save ${save.s}`} title={save.d}>{save.d ?? SAVE_TEXT[save.s]}</span>
+        <span className={`save ${save.s}`} title={save.d}>{save.d ? save.d.split("\n")[0] : SAVE_TEXT[save.s]}</span>
+        {save.s === "error" && save.d && save.d.includes("\n") && (
+          <details className="save-errors">
+            <summary>Details</summary>
+            <ul>{save.d.split("\n").slice(1).map((x, i) => <li key={i}><code>{x}</code></li>)}</ul>
+            <p className="note">Your work is kept in the canvas. Fix these or undo the last change, and it saves again.</p>
+          </details>
+        )}
         {save.s === "conflict" && <button className="btn small" onClick={() => setStamp((x) => x + 1)}>Reload design</button>}
       </div>
       <div className="tabs proj-tabs" role="tablist">

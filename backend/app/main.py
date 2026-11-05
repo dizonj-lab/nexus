@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="NEXUS API", version="0.3.2", lifespan=lifespan, dependencies=[Depends(csrf_guard)],
+app = FastAPI(title="NEXUS API", version="0.3.3", lifespan=lifespan, dependencies=[Depends(csrf_guard)],
               docs_url="/api/docs", openapi_url="/api/openapi.json")
 for r in (auth.router, users.router, projects.router, agents.router):
     app.include_router(r)

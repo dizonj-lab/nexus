@@ -342,7 +342,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 #demTip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-family:var(--f-mono);font-size:10.5px;line-height:1.45;box-shadow:0 4px 14px rgba(10,20,40,.12);white-space:nowrap}
 #conOut .eng{font-size:10px;color:var(--accent);border:1px solid var(--accent-soft);border-radius:3px;padding:0 4px;margin-right:4px}
 @media (max-width:700px){.modal .row5{grid-template-columns:1fr 1fr}.modal .row2{grid-template-columns:1fr}.demstats{grid-template-columns:1fr 1fr}#pDem{width:calc(100% - 20px)}}
-/* v0.3.2: new design wizard and layered view */
+/* v0.3.3: new design wizard and layered view */
 .modal.nd{width:min(980px,100%);max-height:92vh}.modal.lay{width:min(1320px,100%);max-height:94vh}
 .ndhead{display:flex;justify-content:space-between;align-items:center}.ndhead .ib{font-size:20px}
 .ndsteps{display:flex;gap:6px;flex-wrap:wrap}.ndst{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted)}
@@ -375,7 +375,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 .lsvg .seclab{font-size:10px;fill:#c03030;font-weight:600}.lsvg .seclab.eg{fill:#7a3fc4}
 .lsvg .il{fill:none;stroke:#0f7f78;stroke-width:1.8;stroke-opacity:.8}.lsvg .il.ev{stroke-dasharray:3 3;stroke-width:2.4}.lsvg .elab{font-size:9px;fill:#0f7f78;text-anchor:middle}
 .lsvg .pl{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 4;stroke-opacity:.7}
-/* v0.3.2: properties, sources, console colours, layered view extras */
+/* v0.3.3: properties, sources, console colours, layered view extras */
 .srct{display:inline-block;margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:#f0e8fb;color:#7a3fc4;vertical-align:middle}
 .modal label small{font-size:11px;color:var(--muted)}
 .modal.props{width:min(860px,100%);max-height:90vh}
@@ -399,7 +399,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.2">NEXUS<small>Architecture Workbench · v0.3.2</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.3">NEXUS<small>Architecture Workbench · v0.3.3</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -669,6 +669,8 @@ const T={
  idp:{p:'IDP',label:'Identity provider',cap:3000,zone:'dmz',lat:12,pro:'Strong identity, MFA, token issuance',con:'Tier-0 dependency'},
  svc:{p:'SVC',label:'Service (container)',cap:800,zone:'app',lat:22,pro:'Independent scaling and deploys',con:'Operational overhead per service'},
  vm:{p:'VM',label:'Virtual server',cap:600,zone:'app',lat:28,pro:'Fits legacy and licensed software',con:'Slower scaling; patching burden'},
+ llm:{p:'GENAI',label:'Generative AI (foundation models)',cap:300,zone:'app',lat:900,pro:'Managed foundation models; no GPUs to run',con:'Token cost; prompts and answers need guardrails and logging'},
+ ml:{p:'ML',label:'ML platform (train and serve)',cap:1500,zone:'app',lat:60,pro:'Managed training, model registry and endpoints',con:'Endpoints cost while idle; needs MLOps discipline'},
  fn:{p:'FN',label:'Function',cap:2500,zone:'app',lat:35,pro:'Scale-to-zero; pay per call',con:'Cold starts; vendor lock-in'},
  api:{p:'EP',label:'API endpoint',cap:1500,zone:'app',lat:4},
  adp:{p:'ADP',label:'Adapter',cap:1200,zone:'app',lat:6,pro:'Isolates third-party contract changes',con:'Extra translation layer'},
@@ -702,7 +704,7 @@ const isFlow=e=>e.kind!=='dep'&&e.kind!=='repl';
 const PACK={
  aws:{name:'AWS',outer:'AWS · VPC 10.0.0.0/16 · eu-west-1 · 2 AZs',rrMax:15,
   zone:{internet:'INTERNET',edge:'PUBLIC SUBNETS · 2 AZ',dmz:'INGRESS · PRIVATE SUBNET',app:'APP SUBNETS · PRIVATE',data:'DATA SUBNETS · ISOLATED'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'CloudFront',waf:'AWS WAF',lb:'Application LB',egw:'NAT GW + Network Firewall',gw:'API Gateway',idp:'Cognito',svc:'ECS Fargate',vm:'EC2',fn:'Lambda',api:'API route',adp:'Sidecar container',queue:'SQS',cache:'ElastiCache Redis',db:'RDS PostgreSQL',obj:'S3',reg:'ECR',art:'S3 (artifacts)',kms:'KMS',sec:'Secrets Manager',mon:'CloudWatch'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'CloudFront',waf:'AWS WAF',lb:'Application LB',egw:'NAT GW + Network Firewall',gw:'API Gateway',idp:'Cognito',svc:'ECS Fargate',vm:'EC2',fn:'Lambda',llm:'Amazon Bedrock',ml:'Amazon SageMaker',api:'API route',adp:'Sidecar container',queue:'SQS',cache:'ElastiCache Redis',db:'RDS PostgreSQL',obj:'S3',reg:'ECR',art:'S3 (artifacts)',kms:'KMS',sec:'Secrets Manager',mon:'CloudWatch'},
   q:{kafka:'Amazon MSK',mq:'Amazon MQ (RabbitMQ)',native:'SQS'},
   idp:{native:'Cognito user pool',corp:'Cognito + SAML federation',social:'Cognito + social IdPs',work:'IAM Identity Center'},
   pl:'PrivateLink',dedicated:'Direct Connect',vpn:'Site-to-Site VPN',
@@ -710,7 +712,7 @@ const PACK={
   waf:'AWS managed Common, SQLi, KnownBadInputs'},
  azure:{name:'Azure',outer:'AZURE · VNet 10.0.0.0/16 · West Europe · zone-redundant',rrMax:5,
   zone:{internet:'INTERNET',edge:'EDGE SUBNET · FRONT DOOR / APP GW',dmz:'APIM SUBNET',app:'APP SUBNET · PRIVATE',data:'DATA SUBNET · PRIVATE ENDPOINTS'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Front Door',waf:'App Gateway WAF',lb:'Azure Load Balancer',egw:'Azure Firewall',gw:'API Management',idp:'Entra ID',svc:'Container Apps',vm:'Azure VM',fn:'Functions',api:'APIM operation',adp:'Sidecar container',queue:'Service Bus',cache:'Azure Cache for Redis',db:'PostgreSQL Flexible',obj:'Blob Storage',reg:'ACR',art:'Blob (artifacts)',kms:'Key Vault keys',sec:'Key Vault secrets',mon:'Azure Monitor'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Front Door',waf:'App Gateway WAF',lb:'Azure Load Balancer',egw:'Azure Firewall',gw:'API Management',idp:'Entra ID',svc:'Container Apps',vm:'Azure VM',fn:'Functions',llm:'Azure OpenAI (AI Foundry)',ml:'Azure Machine Learning',api:'APIM operation',adp:'Sidecar container',queue:'Service Bus',cache:'Azure Cache for Redis',db:'PostgreSQL Flexible',obj:'Blob Storage',reg:'ACR',art:'Blob (artifacts)',kms:'Key Vault keys',sec:'Key Vault secrets',mon:'Azure Monitor'},
   q:{kafka:'Event Hubs (Kafka)',mq:'Service Bus Premium',native:'Service Bus'},
   idp:{native:'Entra External ID',corp:'Entra ID federation (SAML)',social:'Entra External ID + social',work:'Entra ID'},
   pl:'Private Endpoint',dedicated:'ExpressRoute',vpn:'VPN Gateway',
@@ -718,7 +720,7 @@ const PACK={
   waf:'OWASP CRS 3.2, Prevention mode'},
  gcp:{name:'GCP',outer:'GCP · VPC · europe-west1 · 2 zones',rrMax:10,
   zone:{internet:'INTERNET',edge:'EDGE · CLOUD LB + ARMOR',dmz:'INGRESS SUBNET',app:'APP SUBNET · PRIVATE',data:'DATA SUBNET · PRIVATE SERVICE ACCESS'},
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Cloud CDN',waf:'Cloud Armor',lb:'Cloud Load Balancing',egw:'Cloud NAT + Secure Web Proxy',gw:'API Gateway',idp:'Identity Platform',svc:'Cloud Run',vm:'Compute Engine',fn:'Cloud Functions',api:'API route',adp:'Sidecar container',queue:'Pub/Sub',cache:'Memorystore Redis',db:'Cloud SQL PostgreSQL',obj:'Cloud Storage',reg:'Artifact Registry',art:'Cloud Storage (artifacts)',kms:'Cloud KMS',sec:'Secret Manager',mon:'Cloud Logging + Monitoring'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Cloud CDN',waf:'Cloud Armor',lb:'Cloud Load Balancing',egw:'Cloud NAT + Secure Web Proxy',gw:'API Gateway',idp:'Identity Platform',svc:'Cloud Run',vm:'Compute Engine',fn:'Cloud Functions',llm:'Vertex AI (Gemini)',ml:'Vertex AI (training and endpoints)',api:'API route',adp:'Sidecar container',queue:'Pub/Sub',cache:'Memorystore Redis',db:'Cloud SQL PostgreSQL',obj:'Cloud Storage',reg:'Artifact Registry',art:'Cloud Storage (artifacts)',kms:'Cloud KMS',sec:'Secret Manager',mon:'Cloud Logging + Monitoring'},
   q:{kafka:'Managed Service for Apache Kafka',mq:'RabbitMQ on GKE',native:'Pub/Sub'},
   idp:{native:'Identity Platform',corp:'Identity Platform + SAML',social:'Identity Platform + social',work:'Cloud Identity'},
   pl:'Private Service Connect',dedicated:'Cloud Interconnect',vpn:'Cloud VPN',
@@ -727,7 +729,7 @@ const PACK={
  vmware:{name:'Data centre',outer:'DATA CENTRE · Site A active / Site B standby',rrMax:5,
   zone:{internet:'INTERNET',edge:'DMZ · PERIMETER',dmz:'INGRESS ZONE',app:'APPLICATION ZONE',data:'DATA ZONE'},
   // Vendor-neutral roles with a widely used product as the default; teams override them per design (stack command or Settings).
-  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Akamai CDN',waf:'F5 Advanced WAF',lb:'F5 BIG-IP LTM',egw:'Forward proxy + NGFW',gw:'Kong Gateway',idp:'Keycloak',svc:'Kubernetes (OpenShift)',vm:'Virtual machine (vSphere)',fn:'Knative',api:'Route',adp:'Sidecar container',queue:'RabbitMQ',cache:'Redis',db:'PostgreSQL (Patroni HA)',obj:'S3-compatible storage (MinIO)',reg:'Harbor',art:'JFrog Artifactory',kms:'HSM (Thales Luna)',sec:'HashiCorp Vault',mon:'Prometheus + Grafana + ELK'},
+  svc:{user:'Internet',ext:'External system',saas:'SaaS',cdn:'Akamai CDN',waf:'F5 Advanced WAF',lb:'F5 BIG-IP LTM',egw:'Forward proxy + NGFW',gw:'Kong Gateway',idp:'Keycloak',svc:'Kubernetes (OpenShift)',vm:'Virtual machine (vSphere)',llm:'vLLM / Ollama on GPU servers',ml:'Kubeflow + MLflow on GPU servers',fn:'Knative',api:'Route',adp:'Sidecar container',queue:'RabbitMQ',cache:'Redis',db:'PostgreSQL (Patroni HA)',obj:'S3-compatible storage (MinIO)',reg:'Harbor',art:'JFrog Artifactory',kms:'HSM (Thales Luna)',sec:'HashiCorp Vault',mon:'Prometheus + Grafana + ELK'},
   q:{kafka:'Apache Kafka',mq:'RabbitMQ',native:'RabbitMQ'},
   idp:{native:'Keycloak',corp:'Keycloak brokering AD / Entra ID',social:'Keycloak + social',work:'Active Directory (LDAP / Kerberos)'},
   pl:'Private circuit',dedicated:'MPLS / dark fibre',vpn:'IPsec VPN',
@@ -901,9 +903,9 @@ const kids=pid=>Object.values(S.nodes).filter(n=>n.parent===pid);
 const edgesIn=pid=>S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent===pid&&S.nodes[e.to].parent===pid);
 const flowsIn=pid=>edgesIn(pid).filter(isFlow);
 // Managed services: the provider scales them. One box, no instances; scaling is a configuration change (limit, quota, max instances).
-const MANAGED_SET={aws:['dns','cdn','waf','lb','egw','gw','idp','fn','queue','obj','reg','art','kms','sec','mon'],azure:['dns','cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],gcp:['dns','cdn','waf','lb','egw','gw','idp','fn','svc','queue','obj','reg','art','kms','sec','mon'],vmware:[]};
-const MQ={dns:{q:Infinity,lab:'',res:'global'},cdn:{q:100000,lab:'Edge capacity',res:'global'},waf:{q:25000,lab:'Inspection limit',res:'regional'},lb:{q:40000,lab:'Scales automatically up to',res:'regional'},egw:{q:30000,lab:'Throughput limit per zone',res:'zonal'},gw:{q:10000,lab:'Throttle limit',res:'regional'},idp:{q:3000,lab:'Request quota',res:'regional'},fn:{q:5000,lab:'Concurrency limit',res:'regional'},svc:{q:16000,lab:'Max instances',res:'regional'},queue:{q:100000,lab:'Throughput',res:'regional'},obj:{q:5500,lab:'Requests per prefix',res:'regional'},reg:{q:Infinity,lab:'',res:'regional'},art:{q:Infinity,lab:'',res:'regional'},kms:{q:Infinity,lab:'',res:'regional'},sec:{q:Infinity,lab:'',res:'regional'},mon:{q:Infinity,lab:'',res:'regional'}};
-const DR={gw:'Deploy the API in a second region and fail over with DNS health checks.',idp:'User pools are not replicated across regions: export users regularly and keep a standby pool, or federate to a corporate IdP that is multi-region.',fn:'Deploy functions in a second region; keep code and config in the artifact store.',queue:'Queues are not replicated across regions: fan out to a queue in the DR region, or rebuild from the source of truth.',obj:'Turn on cross-region replication for the bucket.',waf:'Keep the same rules in the DR region (policy as code).',lb:'Stand up the load balancer in the DR region from Terraform; fail over with DNS.',svc:'Deploy the service in a second region; fail over with the global load balancer.',kms:'Use multi-region keys so data restored in the DR region can be decrypted.',sec:'Replicate secrets to the DR region.',reg:'Replicate images to the DR region.',art:'Replicate artifacts to the DR region.',mon:'Ship logs to the DR region or a central account.',egw:'Run one per zone, and the same in the DR region.',cdn:'Global by design; keep a second origin in the DR region.'};
+const MANAGED_SET={aws:['dns','cdn','waf','lb','egw','gw','idp','fn','llm','ml','queue','obj','reg','art','kms','sec','mon'],azure:['dns','cdn','waf','lb','egw','gw','idp','fn','llm','ml','svc','queue','obj','reg','art','kms','sec','mon'],gcp:['dns','cdn','waf','lb','egw','gw','idp','fn','llm','ml','svc','queue','obj','reg','art','kms','sec','mon'],vmware:[]};
+const MQ={dns:{q:Infinity,lab:'',res:'global'},llm:{q:200,lab:'Model throughput quota (requests and tokens per minute)',res:'regional'},ml:{q:2000,lab:'Endpoint instance limit',res:'regional'},cdn:{q:100000,lab:'Edge capacity',res:'global'},waf:{q:25000,lab:'Inspection limit',res:'regional'},lb:{q:40000,lab:'Scales automatically up to',res:'regional'},egw:{q:30000,lab:'Throughput limit per zone',res:'zonal'},gw:{q:10000,lab:'Throttle limit',res:'regional'},idp:{q:3000,lab:'Request quota',res:'regional'},fn:{q:5000,lab:'Concurrency limit',res:'regional'},svc:{q:16000,lab:'Max instances',res:'regional'},queue:{q:100000,lab:'Throughput',res:'regional'},obj:{q:5500,lab:'Requests per prefix',res:'regional'},reg:{q:Infinity,lab:'',res:'regional'},art:{q:Infinity,lab:'',res:'regional'},kms:{q:Infinity,lab:'',res:'regional'},sec:{q:Infinity,lab:'',res:'regional'},mon:{q:Infinity,lab:'',res:'regional'}};
+const DR={llm:'Model access is regional: enable cross-region inference, or keep the same model available in the second region with its own quota.',ml:'Keep models in a central registry and deploy endpoints in both regions; retrain from versioned data.',gw:'Deploy the API in a second region and fail over with DNS health checks.',idp:'User pools are not replicated across regions: export users regularly and keep a standby pool, or federate to a corporate IdP that is multi-region.',fn:'Deploy functions in a second region; keep code and config in the artifact store.',queue:'Queues are not replicated across regions: fan out to a queue in the DR region, or rebuild from the source of truth.',obj:'Turn on cross-region replication for the bucket.',waf:'Keep the same rules in the DR region (policy as code).',lb:'Stand up the load balancer in the DR region from Terraform; fail over with DNS.',svc:'Deploy the service in a second region; fail over with the global load balancer.',kms:'Use multi-region keys so data restored in the DR region can be decrypted.',sec:'Replicate secrets to the DR region.',reg:'Replicate images to the DR region.',art:'Replicate artifacts to the DR region.',mon:'Ship logs to the DR region or a central account.',egw:'Run one per zone, and the same in the DR region.',cdn:'Global by design; keep a second origin in the DR region.'};
 const isManaged=n=>!!n&&(MANAGED_SET[prov()]||[]).includes(n.type)&&!(n.type==='queue'&&n.flavor!=='native');
 const quotaOf=n=>n.quota??(MQ[n.type]||{q:Infinity}).q;
 function cfgText(n){const m=MQ[n.type]||{},q=quotaOf(n);if(!m.lab||!isFinite(q))return 'no limit to manage';
@@ -1021,7 +1023,7 @@ function simulate(){
 }
 
 /* ---------- platform dependency expert ---------- */
-const DEPS={dns:['mon'],svc:['reg','sec','mon'],vm:['art','sec','mon'],fn:['art','sec','mon'],db:['kms','mon','art'],obj:['kms'],cache:['kms','mon'],queue:['kms','mon'],waf:['mon'],cdn:['art'],gw:['mon'],idp:['sec','mon'],egw:['mon']};
+const DEPS={dns:['mon'],llm:['sec','kms','mon'],ml:['reg','art','kms','mon'],svc:['reg','sec','mon'],vm:['art','sec','mon'],fn:['art','sec','mon'],db:['kms','mon','art'],obj:['kms'],cache:['kms','mon'],queue:['kms','mon'],waf:['mon'],cdn:['art'],gw:['mon'],idp:['sec','mon'],egw:['mon']};
 const depWhy=(t,d)=>({reg:'container images',art:{fn:'deployment package',vm:'golden images and packages',db:'backups and exports',cdn:'static app bundle (origin)'}[t]||'build artifacts',kms:'customer-managed keys (GT4)',sec:'credentials and API keys',mon:'logs and metrics to the SIEM'}[d]);
 const missingDeps=n=>n.parent!=='root'?[]:(DEPS[n.type]||[]).filter(d=>!S.edges.some(e=>e.kind==='dep'&&e.from===n.id&&S.nodes[e.to]&&S.nodes[e.to].type===d));
 function connectDep(a,b){if(!S.edges.some(e=>e.from===a&&e.to===b&&e.kind==='dep'))S.edges.push({from:a,to:b,kind:'dep',proto:'HTTPS',via:'net'})}
@@ -1737,6 +1739,8 @@ const RES={
   queue:n=>n.flavor==='kafka'?[['aws_msk_cluster',[`cluster_name           = "${slug(n)}"`,'kafka_version          = "3.6.0"',`number_of_broker_nodes = ${n.brokers}`,'broker_node_group_info {\n  instance_type  = "kafka.m7g.large"\n  client_subnets = [aws_subnet.data.id]\n}','encryption_info {\n  encryption_in_transit {\n    client_broker = "TLS"\n  }\n}',`# topic: ${n.partitions} partitions, key "${n.pkey||'choose: e.g. order_id'}", consumer group of ${n.consumers}`,tags(n)]]]
    :n.flavor==='mq'?[['aws_mq_broker',[`broker_name         = "${slug(n)}"`,'engine_type         = "RabbitMQ"','engine_version      = "3.13"','host_instance_type  = "mq.m5.large"','deployment_mode     = "CLUSTER_MULTI_AZ"','publicly_accessible = false',tags(n)]]]
    :[['aws_sqs_queue',[`name                    = "${slug(n)}"`,'sqs_managed_sse_enabled = true',tags(n)]]],
+  llm:n=>[['aws_bedrock_guardrail',[`name                      = "${slug(n)}-guardrail"`,'blocked_input_messaging   = "This request is not allowed."','blocked_outputs_messaging = "This answer is not allowed."','# content, PII and prompt-attack filters per your AI policy',tags(n)]],['aws_bedrock_model_invocation_logging_configuration',['logging_config {\n  text_data_delivery_enabled = true\n  s3_config {\n    bucket_name = var.ai_log_bucket\n  }\n}']]],
+  ml:n=>[['aws_sagemaker_endpoint_configuration',[`name = "${slug(n)}"`,'kms_key_arn = var.cmk','production_variants {\n  variant_name           = "primary"\n  model_name             = var.model_name\n  initial_instance_count = 2\n  instance_type          = "ml.m5.xlarge"\n}',tags(n)]],['aws_sagemaker_endpoint',[`name                 = "${slug(n)}"`,`endpoint_config_name = aws_sagemaker_endpoint_configuration.${slug(n)}.name`,tags(n)]]],
   cdn:n=>[['aws_cloudfront_distribution',['enabled = true','# origin: artifact bucket (static app) and the WAF-fronted API; viewer TLSv1.2_2021',tags(n)]]],
   api:n=>[['aws_apigatewayv2_route',['api_id    = var.api_id',`route_key = "${n.name}"`]]],
   reg:n=>[['aws_ecr_repository',[`name                 = "${slug(n)}"`,'image_tag_mutability = "IMMUTABLE"','image_scanning_configuration {\n  scan_on_push = true\n}','encryption_configuration {\n  encryption_type = "KMS"\n}',tags(n)]]],
@@ -1759,6 +1763,8 @@ const RES={
   cache:n=>[['azurerm_redis_cache',[`name                          = "${slug(n)}"`,'sku_name                      = "Premium"','family                        = "P"','capacity                      = 1','minimum_tls_version           = "1.2"','public_network_access_enabled = false']]],
   obj:n=>[['azurerm_storage_account',[`name                            = "${slug(n)}sa"`,'account_tier                    = "Standard"','account_replication_type        = "ZRS"','min_tls_version                 = "TLS1_2"','allow_nested_items_to_be_public = false','public_network_access_enabled   = false']]],
   queue:n=>n.flavor==='kafka'?[['azurerm_eventhub_namespace',[`name     = "${slug(n)}"`,'sku      = "Premium"','capacity = 1','# Kafka endpoint on :9093']],['azurerm_eventhub',['name              = "events"',`namespace_id      = azurerm_eventhub_namespace.${slug(n)}.id`,`partition_count   = ${n.partitions}`,'message_retention = 7']]]:[['azurerm_servicebus_namespace',[`name = "${slug(n)}"`,'sku  = "Premium"','minimum_tls_version = "1.2"']]],
+  llm:n=>[['azurerm_cognitive_account',[`name                  = "${slug(n)}"`,'resource_group_name   = azurerm_resource_group.main.name','location              = var.location','kind                  = "OpenAI"','sku_name              = "S0"','public_network_access_enabled = false # private endpoint only']],['azurerm_cognitive_deployment',[`name                 = "${slug(n)}-model"`,`cognitive_account_id = azurerm_cognitive_account.${slug(n)}.id`,'model {\n  format = "OpenAI"\n  name   = var.model_name\n}','sku {\n  name = "Standard"\n}']]],
+  ml:n=>[['azurerm_machine_learning_workspace',[`name                    = "${slug(n)}"`,'resource_group_name     = azurerm_resource_group.main.name','location                = var.location','key_vault_id            = var.key_vault_id','storage_account_id      = var.ml_storage_id','application_insights_id = var.app_insights_id','public_network_access_enabled = false','identity {\n  type = "SystemAssigned"\n}']]],
   cdn:n=>[['azurerm_cdn_frontdoor_profile',[`name     = "${slug(n)}"`,'sku_name = "Premium_AzureFrontDoor"']]],
   api:n=>[['azurerm_api_management_api_operation',[`operation_id = "${slug(n)}"`,`method       = "${n.name.split(' ')[0]}"`,`url_template = "${n.name.split(' ')[1]||'/'}"`]]],
   reg:n=>[['azurerm_container_registry',[`name                          = "${slug(n)}acr"`,'resource_group_name           = azurerm_resource_group.main.name','sku                           = "Premium"','admin_enabled                 = false','public_network_access_enabled = false']]],
@@ -1781,6 +1787,8 @@ const RES={
   cache:n=>[['google_redis_instance',[`name                    = "${slug(n)}"`,'tier                    = "STANDARD_HA"','memory_size_gb          = 4','transit_encryption_mode = "SERVER_AUTHENTICATION"']]],
   obj:n=>[['google_storage_bucket',[`name                        = "${slug(n)}"`,'location                    = var.region','uniform_bucket_level_access = true','public_access_prevention    = "enforced"']]],
   queue:n=>n.flavor==='kafka'?[['google_managed_kafka_cluster',[`cluster_id = "${slug(n)}"`,'location   = var.region',`capacity_config {\n  vcpu_count   = ${n.brokers*3}\n  memory_bytes = ${n.brokers*3*4*1073741824}\n}`,`# topic: ${n.partitions} partitions, key "${n.pkey||'tbd'}"`]]]:[['google_pubsub_topic',[`name = "${slug(n)}"`,'kms_key_name = var.cmk']]],
+  llm:n=>[['google_project_service',[`service = "aiplatform.googleapis.com" # ${n.name}: Gemini on Vertex AI, reached through Private Service Connect`]]],
+  ml:n=>[['google_vertex_ai_endpoint',[`name         = "${slug(n)}"`,`display_name = "${n.name}"`,'location     = var.region','encryption_spec {\n  kms_key_name = var.cmk\n}']]],
   cdn:n=>[['google_compute_backend_bucket',[`name        = "${slug(n)}"`,'bucket_name = var.static_bucket','enable_cdn  = true']]],
   reg:n=>[['google_artifact_registry_repository',[`repository_id = "${slug(n)}"`,'location      = var.region','format        = "DOCKER"','kms_key_name  = var.cmk']]],
   art:n=>[['google_storage_bucket',[`name                        = "${slug(n)}-artifacts"`,'location                    = var.region','uniform_bucket_level_access = true','public_access_prevention    = "enforced"','versioning {\n  enabled = true\n}']]],
@@ -1791,6 +1799,8 @@ const RES={
  vmware:{
   waf:n=>[['avi_wafpolicy',[`name = "${slug(n)}"`,'mode = "WAF_MODE_ENFORCEMENT"']]],
   lb:n=>[['nsxt_policy_lb_service',[`display_name = "${slug(n)}"`,'size         = "MEDIUM"']]],
+  llm:n=>[['vsphere_virtual_machine',[`count    = ${Math.max(2,instCount(n))} # GPU servers for ${n.name}: vLLM / Ollama`,`name     = "${slug(n)}-\${count.index}"`,'num_cpus = 16','memory   = 131072','# attach GPUs with pci_device_id; keep models in the artifact store']]],
+  ml:n=>[['vsphere_virtual_machine',[`count    = ${Math.max(3,instCount(n))} # Kubernetes GPU nodes for ${n.name}: Kubeflow + MLflow`,`name     = "${slug(n)}-\${count.index}"`,'num_cpus = 16','memory   = 65536']]],
   db:n=>[['vsphere_virtual_machine',[`count    = ${instCount(n)} # ${n.shards>1?n.shards+' shards × ':''}primary${n.readReplicas?' + '+n.readReplicas+' read replica(s)':''}${n.standby?' + standby at site B':''}`,`name     = "${slug(n)}-\${count.index}"`,`# size: ${PACK.vmware.dbClass[n.tier]}`,'guest_id = "rhel9_64Guest"','datastore_id = data.vsphere_datastore.encrypted.id','network_interface {\n  network_id = nsxt_policy_segment.data.path\n}']]],
   _:n=>[['vsphere_virtual_machine',[`count    = ${instCount(n)}`,`name     = "${slug(n)}-\${count.index}"`,`# ${svcName(n)}`,'num_cpus = 4','memory   = 16384',`network_interface {\n  network_id = nsxt_policy_segment.${['data','app','platform'].includes(zoneOf(n))?(zoneOf(n)==='platform'?'app':zoneOf(n)):'edge'}.path\n}`]]]
  }
@@ -2268,7 +2278,7 @@ function tidyAll(){
 
 /* ---------- palette & crumb ---------- */
 const NETITEMS={get __aadb(){return {p:'DB',l:'Active-active database',s:`${mrdbName('aa')} · writes in both regions`}},__corp:{p:'U',l:'Internal users',s:'company network · VPN / dedicated'},__subnet:{p:'NET',l:'Subnet',s:'segment by tier, CIDR and zone'},__sg:{p:'SG',l:'Security group',s:'default-deny inbound rules'},__ag:{p:'APP',l:'Application group',s:'components of one business app'}};
-const PAL_GROUPS=[['Network',['__subnet','__sg','__ag']],['People and outside',['user','__corp','saas','ext']],['Edge and access',['dns','cdn','waf','lb','egw','gw','idp']],['Compute',['svc','vm','fn','api','adp']],['Data and messaging',['queue','cache','db','__aadb','obj']],['Shared platform',['reg','art','kms','sec','mon']]];
+const PAL_GROUPS=[['Network',['__subnet','__sg','__ag']],['People and outside',['user','__corp','saas','ext']],['Edge and access',['dns','cdn','waf','lb','egw','gw','idp']],['Compute',['svc','vm','fn','api','adp']],['AI and ML',['llm','ml']],['Data and messaging',['queue','cache','db','__aadb','obj']],['Shared platform',['reg','art','kms','sec','mon']]];
 function renderPalette(){const q=($('#palQ')&&$('#palQ').value||'').toLowerCase();
  const info=t=>T[t]?{p:T[t].p,l:T[t].label,s:pk().svc[t]||''}:NETITEMS[t];
  const body=PAL_GROUPS.map(([g,ts])=>{const items=ts.filter(t=>!q||info(t).l.toLowerCase().includes(q)||info(t).s.toLowerCase().includes(q)||t.includes(q));
@@ -2740,7 +2750,7 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#mClose').c
 
 
 /* ---------- cost model (list-price estimates, editable in Settings) ---------- */
-const PRICE_BASE={dns:{inst:2,perM:.4},cdn:{inst:0,perM:.85},waf:{inst:5,perM:.6},lb:{inst:18,perM:.25},egw:{inst:320,perM:.04},gw:{inst:0,perM:1},idp:{inst:55,perM:0},svc:{inst:36,perM:0},vm:{inst:70,perM:0},fn:{inst:0,perM:2.2},queue:{inst:150,perM:.4},cache:{inst:160,perM:0},db:{inst:380,perM:0},obj:{inst:0,perM:.4},reg:{inst:10,perM:0},art:{inst:5,perM:0},kms:{inst:3,perM:0},sec:{inst:2,perM:0},mon:{inst:60,perM:0}};
+const PRICE_BASE={dns:{inst:2,perM:.4},llm:{inst:0,perM:2500},ml:{inst:300,perM:0},cdn:{inst:0,perM:.85},waf:{inst:5,perM:.6},lb:{inst:18,perM:.25},egw:{inst:320,perM:.04},gw:{inst:0,perM:1},idp:{inst:55,perM:0},svc:{inst:36,perM:0},vm:{inst:70,perM:0},fn:{inst:0,perM:2.2},queue:{inst:150,perM:.4},cache:{inst:160,perM:0},db:{inst:380,perM:0},obj:{inst:0,perM:.4},reg:{inst:10,perM:0},art:{inst:5,perM:0},kms:{inst:3,perM:0},sec:{inst:2,perM:0},mon:{inst:60,perM:0}};
 const PRICE_MULT={aws:1,azure:1.06,gcp:.97,vmware:.8};
 const TIER_COST={s:.5,m:1,l:2,xl:4,xxl:8};
 const SEC_MONTH=2.628e6;
@@ -3570,7 +3580,7 @@ fit();
 if(EMBED)parent.postMessage({type:'nexus:ready'},location.origin);else say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
 if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
 
-/* ---------- v0.3.2: New design (requirement, availability, RTO/RPO, resilience, layers, platform) and the Layers view ---------- */
+/* ---------- v0.3.3: New design (requirement, availability, RTO/RPO, resilience, layers, platform) and the Layers view ---------- */
 const NINES=[['99','99%','two nines'],['99.5','99.5%',''],['99.9','99.9%','three nines'],['99.95','99.95%',''],['99.99','99.99%','four nines'],['99.999','99.999%','five nines']];
 function downtime(a){const f=1-(+a)/100,m=f*365.25*24*60,fm=x=>x>=1440?`${(x/1440).toFixed(1)} days`:x>=60?`${(x/60).toFixed(1)} h`:x>=1?`${x.toFixed(1)} min`:`${Math.round(x*60)} s`;return {year:fm(m),month:fm(m/12),week:fm(m/52.18),day:fm(m/365.25)}}
 // Rule-of-thumb capability of each resilience pattern, for planning. The simulator tests the actual design.
@@ -3710,7 +3720,7 @@ const NETP={aws:{net:'VPC',hub:'Transit Gateway',igw:'Internet gateway',nat:'NAT
  gcp:{net:'VPC network',hub:'Network Connectivity Center',igw:'External load balancer',nat:'Cloud NAT',fw:'Cloud NGFW',pe:'Private Service Connect',ddos:'Cloud Armor',onp:'Cloud Interconnect (VPN backup)',sg:'firewall rules'},
  vmware:{net:'NSX segment',hub:'DC core and firewall',igw:'Internet edge routers',nat:'Edge NAT',fw:'Perimeter NGFW',pe:'Service VIPs',ddos:'Upstream DDoS scrubbing',onp:'MPLS / dark fibre',sg:'NSX distributed firewall'}};
 // Which layer each component belongs in.
-const LAYER_OF=n=>n.type==='user'?(n.origin==='corp'?'onp':'inet'):['dns','cdn'].includes(n.type)?'inet':n.type==='waf'?'edge':['lb','gw'].includes(n.type)?'ingress':['svc','vm','fn','api','adp','part'].includes(n.type)?'app':n.type==='queue'?'int':['db','cache','obj'].includes(n.type)?'data':n.type==='egw'?'egress':['saas','ext'].includes(n.type)?'ext':['reg','art','kms','sec','mon','idp'].includes(n.type)?'shared':'app';
+const LAYER_OF=n=>n.type==='user'?(n.origin==='corp'?'onp':'inet'):['dns','cdn'].includes(n.type)?'inet':n.type==='waf'?'edge':['lb','gw'].includes(n.type)?'ingress':['svc','vm','fn','api','adp','part','llm','ml'].includes(n.type)?'app':n.type==='queue'?'int':['db','cache','obj'].includes(n.type)?'data':n.type==='egw'?'egress':['saas','ext'].includes(n.type)?'ext':['reg','art','kms','sec','mon','idp'].includes(n.type)?'shared':'app';
 const LBOX={inet:[20,70,150,380,'Internet'],edge:[190,70,140,380,'Edge security'],ingress:[350,70,170,380,'Ingress · public subnets'],hub:[540,70,150,380,'Secured hub'],
  app:[710,70,330,150,'Application · private subnets'],int:[710,230,330,90,'Integration · events and queues'],data:[710,330,330,140,'Data · isolated subnets'],egress:[1060,70,150,380,'Egress'],ext:[1230,70,150,380,'External services'],
  shared:[350,500,860,130,'Shared services · platform'],onp:[20,500,310,130,'On-premises / corporate'],regb:[1400,70,160,380,'Region B']};

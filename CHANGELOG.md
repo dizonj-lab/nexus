@@ -5,6 +5,30 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.3] — 2026-11-05
+
+### Fixed
+- **"The design is not valid"**: the server's design schema predated DNS
+  components and cross-region replication links, so every multi-region
+  design was refused when saved. The schema now accepts them, and a test
+  covers a multi-region design with AI components.
+- When a save is refused, the project page says how many problems there are
+  and shows the first; **Details** lists each one with its path in the
+  design.
+
+### Added
+- **Generative AI** component (Add component → AI and ML): Amazon Bedrock,
+  Azure OpenAI (AI Foundry), Vertex AI (Gemini), or vLLM / Ollama on GPU
+  servers in the data centre.
+- **ML platform** component: Amazon SageMaker, Azure Machine Learning,
+  Vertex AI (training and endpoints), or Kubeflow + MLflow on GPU servers.
+- Both are managed services with throughput quotas, disaster-recovery
+  guidance, list-price estimates and platform links (secrets, keys and
+  monitoring; the registry and artifacts for ML). They sit in the
+  application layer and generate Terraform: a Bedrock guardrail and
+  invocation logging, a SageMaker endpoint, an Azure OpenAI account and
+  deployment, an Azure ML workspace, Vertex AI, and vSphere GPU VMs.
+
 ## [0.3.2] — 2026-11-05
 
 ### Changed

@@ -40,7 +40,11 @@ export function Workbench({ project, userName, stamp, onState, onSaved }: Props)
       onSaved();
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) onState("conflict", "Someone saved a newer version. Reload to continue.");
-      else onState("error", e instanceof ApiError ? e.message : "Could not save.");
+      else if (e instanceof ApiError) {
+        // The server lists what is wrong (schema path and reason); keep them for the Details view.
+        const errs = ((e.body as { detail?: { errors?: string[] } })?.detail?.errors ?? []).filter(Boolean);
+        onState("error", errs.length ? `Not saved: ${errs.length} problem${errs.length > 1 ? "s" : ""} in the design\n${errs.join("\n")}` : e.message);
+      } else onState("error", "Could not save.");
       queued.current = null;
     } finally {
       saving.current = false;

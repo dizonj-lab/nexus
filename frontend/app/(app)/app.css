@@ -52,3 +52,9 @@
 details.raw summary { cursor: pointer; color: var(--muted); font-size: 12.5px; }
 .agent .row { flex-wrap: nowrap; align-items: start; }
 .agent .pill { height: auto; line-height: 1.2; padding: 3px 8px; flex-shrink: 0; }
+.save-errors { position: relative; font-size: 12.5px; }
+.save-errors summary { cursor: pointer; color: var(--bad); font-weight: 500; }
+.save-errors[open] > ul, .save-errors[open] > p { position: absolute; z-index: 30; }
+.save-errors[open] { z-index: 30; }
+.save-errors > ul { top: 22px; left: 0; width: min(560px, 80vw); max-height: 50vh; overflow: auto; margin: 0; padding: 10px 12px 34px 26px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); display: grid; gap: 4px; }
+.save-errors > p { display: none; }
