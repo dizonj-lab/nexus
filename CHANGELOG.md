@@ -5,6 +5,44 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-11-05
+
+### Added
+- **＋ New design** in the canvas header, a four-step wizard:
+  - **Requirement:** explain it in your own words. "Read it for me" fills in
+    the name, services, peak load, personal data, events, files, internal
+    users and third parties. It uses the console model when one is set up;
+    otherwise it picks the facts out of the words.
+  - **Resilience:** an availability target (99% to 99.999%) with the
+    **expected downtime** it allows per year, month, week and day, plus
+    **RTO** and **RPO**, and whether a region loss must be survived. Single
+    zone, **multi-AZ**, **multi-region active-passive** and **multi-region
+    active-active** are compared on availability, RTO, RPO, cost and
+    trade-offs. Each shows whether it meets the targets, and the cheapest
+    one that does is recommended.
+  - **Layers:** network layers (ingress, secured hub, private application,
+    isolated data, egress, shared services, plus their interfaces), security
+    ingress and egress, application integration (APIs, queues, distributed
+    events) and shared platform per component.
+  - **Platform:** compute (Kubernetes, serverless functions, VMs), database
+    (one region, global, distributed SQL) and messaging (managed queue,
+    Kafka, broker), with trade-offs and list-price estimates at your load
+    and resilience pattern.
+  - **Create:** builds the design through the Action Guard with zones,
+    regions, DNS failover, database replication, two instances across
+    zones, platform links and the chosen products, and records an
+    architecture decision.
+- **Layers** panel and **layered view**:
+  - the design placed in its layers, with four overlays to toggle: network
+    (layers and interfaces such as internet gateway, Transit Gateway with
+    the firewall, PrivateLink, NAT, Direct Connect, named per platform),
+    security (ingress and egress paths and their controls, east-west
+    default deny), integration (flows between services, queues and
+    externals) and platform (links to shared services);
+  - best-practice checks, a table of the shared platform each component
+    needs (with "link the missing"), an interfaces table, and the
+    availability, RTO and RPO targets with their downtime budget.
+
 ## [0.2.15] — 2026-11-05
 
 ### Added

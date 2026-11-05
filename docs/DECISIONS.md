@@ -258,3 +258,17 @@ translated into the technical workflow and artefacts for the technology
 team. The model drafts; the architect decides. Nothing it writes is applied
 without being shown and editable, and assumptions are marked.
 
+## D42 — Resilience starts from targets, not from a pattern
+A new design asks for availability, RTO and RPO first, shows the downtime the
+availability allows, and recommends the cheapest resilience pattern whose
+rule-of-thumb capability meets all three (single zone, multi-AZ,
+multi-region active-passive or active-active). The numbers are planning
+ranges from the Well-Architected reliability pillar. The simulator then
+tests the actual design with zone and region outages.
+
+## D43 — Layers are derived from the design, not drawn separately
+The layered view (network, security, integration, platform) places each
+component by its type into the recommended layer, and draws overlays from the
+design's own flows and platform links. The design model stays the single
+source of truth; the layers are another view of it, like LikeC4 and Terraform.
+

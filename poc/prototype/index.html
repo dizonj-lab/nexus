@@ -342,11 +342,44 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 #demTip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-family:var(--f-mono);font-size:10.5px;line-height:1.45;box-shadow:0 4px 14px rgba(10,20,40,.12);white-space:nowrap}
 #conOut .eng{font-size:10px;color:var(--accent);border:1px solid var(--accent-soft);border-radius:3px;padding:0 4px;margin-right:4px}
 @media (max-width:700px){.modal .row5{grid-template-columns:1fr 1fr}.modal .row2{grid-template-columns:1fr}.demstats{grid-template-columns:1fr 1fr}#pDem{width:calc(100% - 20px)}}
+/* v0.3.1: new design wizard and layered view */
+.modal.nd{width:min(980px,100%);max-height:92vh}.modal.lay{width:min(1320px,100%);max-height:94vh}
+.ndhead{display:flex;justify-content:space-between;align-items:center}.ndhead .ib{font-size:20px}
+.ndsteps{display:flex;gap:6px;flex-wrap:wrap}.ndst{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted)}
+.ndst.on{background:var(--accent);border-color:var(--accent);color:#fff}.ndst:disabled{opacity:.5;cursor:default}
+#ndBody{display:grid;gap:12px}#ndBody textarea{width:100%;font-size:14px;line-height:1.5}#ndBody input{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:5px;font-size:13px}
+.ndrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.ndchk,.ndlay{display:grid;gap:6px}.ndchk{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.modal .ndchk label,.modal .ndinl{display:flex;gap:6px;align-items:center;font-size:13px;color:inherit}
+.modal .ndl{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 11px}.ndl span{display:grid;gap:2px}.ndl b{font-size:13px}.ndl small{font-size:12px;color:var(--muted);line-height:1.45}
+.ndnav{display:flex;gap:8px;align-items:center}.ndnav .sp{flex:1}.ndnote{flex:1;font-size:12px;color:var(--muted)}
+.ndt{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px}.ndt table{border-collapse:collapse;margin-top:6px;width:100%}.ndt th{font-size:11px;color:var(--muted);text-align:left;font-weight:500}.ndt td{font-weight:600;font-size:15px;padding-top:2px}
+.ndcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.ndcard{text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 10px;display:grid;gap:4px;align-content:start;cursor:pointer;font-size:12px;color:inherit}
+.ndcard b{font-size:13px}.ndcard ul{margin:2px 0 0;padding-left:0;list-style:none;display:grid;gap:2px;color:var(--muted)}.ndcard.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(31,95,191,.18)}
+.ndcard.no{opacity:.62}.ndcard:disabled{cursor:not-allowed}.ndcard .pill{justify-self:start;font-size:10.5px}
+#ndBody h3{margin:4px 0 0;font-size:13px}
+.lreq{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-bottom:6px}
+#layBody h4{margin:10px 0 4px;font-size:12px}#layBody .bar{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;margin:6px 0}
+.lchk{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:12px}.lchk li{display:grid;grid-template-columns:16px 1fr auto;gap:6px;align-items:start}.lchk li.ok b{color:var(--ok)}.lchk li.warn b{color:var(--warn)}.lchk small{display:block;color:var(--muted)}
+.ltab{width:100%;border-collapse:collapse;font-size:11.5px}.ltab th,.ltab td{border-bottom:1px solid var(--line);padding:4px 5px;text-align:left;vertical-align:top}.ltab .crit{color:var(--crit)}.ltab .ok{color:var(--ok)}
+#layBody .btn{margin-top:6px}
+.lsvg{width:100%;height:auto;display:block;background:var(--surface-2);border-radius:8px}
+.lsvg text{font-family:var(--f-mono);font-size:11px;fill:var(--fg)}
+.lsvg .lb rect{fill:none;stroke:var(--line);stroke-width:1.5}.lsvg .lb text{font-size:11px;font-weight:600;fill:var(--muted)}
+.lsvg .ln rect{fill:var(--surface);stroke:var(--accent);stroke-width:1.5}.lsvg .ln .lid{font-weight:700}.lsvg .ln .lnm{font-size:10px;fill:var(--muted)}
+.lsvg .ln.virt rect,.lsvg .ln.hubv rect{stroke-dasharray:4 3;fill:none}
+.lsvg .ifc rect{fill:var(--accent);fill-opacity:.12;stroke:none}.lsvg .ifc text{font-size:9.5px;text-anchor:middle;fill:var(--accent)}
+.lsvg .ov{display:none}.lsvg.on-net .ov.net,.lsvg.on-sec .ov.sec,.lsvg.on-int .ov.int,.lsvg.on-plat .ov.plat{display:inline}
+.lsvg.on-net .lb rect{stroke-dasharray:6 4;stroke:var(--accent);stroke-opacity:.5}
+.lsvg .ing{fill:none;stroke:#c03030;stroke-width:3;stroke-opacity:.55;stroke-dasharray:8 5}.lsvg .egr{fill:none;stroke:#7a3fc4;stroke-width:3;stroke-opacity:.55;stroke-dasharray:8 5}
+.lsvg .seclab{font-size:10px;fill:#c03030;font-weight:600}.lsvg .seclab.eg{fill:#7a3fc4}
+.lsvg .il{fill:none;stroke:#0f7f78;stroke-width:1.8;stroke-opacity:.8}.lsvg .il.ev{stroke-dasharray:3 3;stroke-width:2.4}.lsvg .elab{font-size:9px;fill:#0f7f78;text-anchor:middle}
+.lsvg .pl{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 4;stroke-opacity:.7}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.2.15">NEXUS<small>Architecture Workbench · v0.2.15</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
-    <input id="projName" aria-label="Project name" value="Customer Portal">
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.1">NEXUS<small>Architecture Workbench · v0.3.1</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
     <nav class="crumb" id="crumb" aria-label="Where you are in the design"></nav>
@@ -389,6 +422,11 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <div class="pbody" style="max-height:130px"><pre class="code" id="c4Code"></pre></div>
     </section>
 
+    <section class="panel" id="pLay" data-k="lay" style="width:340px">
+      <header><span class="ttl">Layers</span><span class="tag">network · security · integration · platform</span><span class="sp"></span><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
+      <div class="tune" hidden></div>
+      <div class="pbody" id="layBody" style="max-height:70vh"></div>
+    </section>
     <section class="panel" id="pLeg" data-k="leg" style="width:300px">
       <header><span class="ttl">Legend</span><span class="sp"></span><button class="ib tuneB" aria-label="Opacity and border">◐</button><button class="ib colB" aria-label="Collapse">–</button></header>
       <div class="tune" hidden></div>
@@ -475,6 +513,21 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
   </div>
 </div>
 
+<div class="scrim" id="ndDlg" hidden>
+  <div class="modal wide nd" role="dialog" aria-modal="true" aria-labelledby="ndTitle">
+    <div class="ndhead"><h2 id="ndTitle">New design</h2><button type="button" class="ib" data-nd="close" aria-label="Close">×</button></div>
+    <nav class="ndsteps" id="ndSteps" aria-label="Steps"></nav>
+    <div id="ndBody"></div>
+  </div>
+</div>
+<div class="scrim" id="layDlg" hidden>
+  <div class="modal wide lay" role="dialog" aria-modal="true" aria-labelledby="layTitle">
+    <div class="ndhead"><h2 id="layTitle">Layered design</h2><button type="button" class="ib" id="layClose" aria-label="Close">×</button></div>
+    <div class="bar"><span class="why">Toggle overlays in the Layers panel. Dashed boxes are recommended layers; filled boxes are components in your design.</span></div>
+    <div id="layDiag"></div>
+    <h3>Interfaces</h3><div id="layIfc"></div>
+  </div>
+</div>
 <div class="scrim" id="modal" hidden>
   <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <h2 id="mTitle">Settings</h2>
@@ -3084,7 +3137,7 @@ $('#lgGroups').onchange=e=>{S.settings.view.groups=e.target.checked;persist()};$
 $('#legBtn').onclick=()=>{if(document.body.classList.contains('focus')){openSide('pLeg');return}const l=$('#pLeg');l.hidden=!l.hidden;$('#legBtn').setAttribute('aria-pressed',!l.hidden);if(!l.hidden)placePanels(false)};
 
 /* ---------- focus layout: one side panel with a rail, slim console bar ---------- */
-const SIDE=[['pAdv','◎','Advisor'],['pIac','{ }','IaC'],['pC4','C4','LikeC4'],['pTree','⌥','Tree'],['pDem','∿','Load'],['pLeg','≡','Legend'],null,['pane-cap','TC','Capab.'],['pane-ea','EA','Principles'],['pane-gt','GT','Truth']];
+const SIDE=[['pAdv','◎','Advisor'],['pLay','▦','Layers'],['pIac','{ }','IaC'],['pC4','C4','LikeC4'],['pTree','⌥','Tree'],['pDem','∿','Load'],['pLeg','≡','Legend'],null,['pane-cap','TC','Capab.'],['pane-ea','EA','Principles'],['pane-gt','GT','Truth']];
 const HOME={};
 function setLayout(mode){
  const focus=mode==='focus',sb=$('#sidebody'),stage=$('#stage'),dock=$('#dock'),bar=$('#conbar');
@@ -3104,7 +3157,7 @@ function openSide(id,force,closed){
  if(!force&&wasOpen&&v.side===id){side.classList.add('closed');v.sideOpen=false}
  else{side.classList.toggle('closed',!!closed);v.side=id;v.sideOpen=!closed;
   document.querySelectorAll('#sidebody>.panel,#sidebody>.pane').forEach(el=>el.classList.toggle('on',el.id===id));
-  if(id==='pDem')renderDem();if(id==='pTree')renderTree()}
+  if(id==='pDem')renderDem();if(id==='pTree')renderTree();if(id==='pLay')renderLayers()}
  renderRail();persist();const was=side.classList.contains('closed');setTimeout(()=>{resize();if(!force||was!==!wasOpen)fit()},30);
 }
 $('#rail').addEventListener('click',e=>{const b=e.target.closest('button[data-side]');if(b)openSide(b.dataset.side)});
@@ -3152,7 +3205,7 @@ function changed(){
  flushLedger();
  renderLegendCtl();simulate();analyze();if(document.body.classList.contains('focus'))renderRail();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
  $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=Math.log10(S.mult);
-  renderWL();renderSimBan();
+  renderWL();renderSimBan();if(typeof renderLayers==='function'&&$('#pLay')&&$('#pLay').classList.contains('on'))renderLayers();
  persist();
 }
 
@@ -3481,6 +3534,173 @@ setLayout(S.settings.view.layout||'focus');
 fit();
 if(EMBED)parent.postMessage({type:'nexus:ready'},location.origin);else say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
 if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
+
+/* ---------- v0.3.1: New design (requirement, availability, RTO/RPO, resilience, layers, platform) and the Layers view ---------- */
+const NINES=[['99','99%','two nines'],['99.5','99.5%',''],['99.9','99.9%','three nines'],['99.95','99.95%',''],['99.99','99.99%','four nines'],['99.999','99.999%','five nines']];
+function downtime(a){const f=1-(+a)/100,m=f*365.25*24*60,fm=x=>x>=1440?`${(x/1440).toFixed(1)} days`:x>=60?`${(x/60).toFixed(1)} h`:x>=1?`${x.toFixed(1)} min`:`${Math.round(x*60)} s`;return {year:fm(m),month:fm(m/12),week:fm(m/52.18),day:fm(m/365.25)}}
+// Rule-of-thumb capability of each resilience pattern, for planning. The simulator tests the actual design.
+const RESIL=[
+ {k:'single',name:'Single zone',avail:99.5,rto:240,rpo:60,cost:1,region:false,rtoT:'Hours: rebuild or restore in another zone',rpoT:'Since the last backup',
+  pros:['Cheapest and simplest','Lowest latency between components'],cons:['A zone outage takes the whole service down','Recovery is a restore, not a failover']},
+ {k:'multiaz',name:'Multi-AZ (one region)',avail:99.95,rto:5,rpo:0,cost:1.3,region:false,rtoT:'Minutes: load balancer and database fail over across zones',rpoT:'Zero with a synchronous standby',
+  pros:['Survives a zone outage automatically','The usual default for production'],cons:['A region outage still stops the service','About 30% more cost for standby and spare capacity']},
+ {k:'ap',name:'Multi-region active-passive',avail:99.99,rto:30,rpo:1,cost:1.7,region:true,rtoT:'15 to 60 minutes: promote the standby region, DNS fails over',rpoT:'Seconds: asynchronous replication',
+  pros:['Survives a region outage','The standby region can be scaled down (warm standby)'],cons:['Failover must be automated and rehearsed','Recent writes can be lost on an unplanned failover','Standby capacity sits idle']},
+ {k:'aa',name:'Multi-region active-active',avail:99.999,rto:1,rpo:0,cost:2.2,region:true,rtoT:'Near zero: the other region is already serving',rpoT:'Zero with an active-active database',
+  pros:['No failover to run; users served from the nearest region','Survives a region outage with no data loss'],cons:['Highest cost and complexity','The database must support writes in both regions (constraints apply)','Each write waits for a cross-region round trip']}];
+const meets=(o,r)=>o.avail>=+r.avail&&o.rto<=+r.rto&&o.rpo<=+r.rpo&&(!r.regionLoss||o.region);
+function platOpts(r){const rps=Math.max(1,+r.rps||1000),z=r.res==='single'?1:2,rg=['ap','aa'].includes(r.res)?(r.res==='aa'?2:1.4):1,svcs=Math.max(1,(r.services||[]).length||2),req=rps*.3*2.63e6;
+ const P={compute:[
+   {k:'svc',name:'Containers on Kubernetes',prod:{aws:'EKS',azure:'AKS',gcp:'GKE',vmware:'Tanzu / OpenShift'},cost:Math.round((Math.max(3,Math.ceil(rps/300))*z*140+73)*rg),pros:['Portable across clouds and the data centre','Fine control; suits many services'],cons:['Cluster operations need a platform team','Pay for nodes even when idle']},
+   {k:'fn',name:'Serverless functions',prod:{aws:'Lambda',azure:'Functions',gcp:'Cloud Run functions',vmware:'Knative'},cost:Math.round((req/1e6*.2+req*.1*.5*.0000167)*rg),pros:['No servers to run; scales to zero','Pay per request'],cons:['Cold starts and time limits','Harder for long-running or stateful work']},
+   {k:'vm',name:'Virtual machines',prod:{aws:'EC2 Auto Scaling',azure:'VM Scale Sets',gcp:'Managed instance groups',vmware:'vSphere VMs'},cost:Math.round(Math.max(2,Math.ceil(rps/250))*z*70*svcs*rg),pros:['Familiar; lift-and-shift friendly','Any software runs'],cons:['Patching and images to maintain','Slower scaling']}],
+  database:[
+   {k:'',name:'Managed relational, one region',prod:{aws:'RDS / Aurora',azure:'Azure SQL / PostgreSQL',gcp:'Cloud SQL',vmware:'PostgreSQL on vSphere'},cost:380*(r.res==='single'?1:2)*svcs,pros:['Full SQL, simplest to run','Multi-AZ standby covers zone loss'],cons:['Region loss means restore from backup']},
+   {k:'global',name:'Global database (one writer region)',prod:{aws:'Aurora Global Database',azure:'Geo-replica + failover group',gcp:'Cross-region replica',vmware:'Async replica in site B'},cost:Math.round(380*3.2*svcs),pros:['Regional failover in about a minute','Local reads in the second region'],cons:['Writes in one region only','Seconds of data can be lost on unplanned failover']},
+   {k:'aa',name:'Distributed SQL, writes in both regions',prod:{aws:'Aurora DSQL',azure:'Cosmos DB (multi-region writes)',gcp:'Spanner (multi-region)',vmware:'CockroachDB / YugabyteDB'},cost:Math.round(380*4*svcs),pros:['Zero data loss; both regions write','No failover to run'],cons:['Not every SQL feature is supported','Each commit waits for a cross-region round trip']}],
+  messaging:[
+   {k:'native',name:'Managed queue',prod:{aws:'SQS',azure:'Service Bus queues',gcp:'Pub/Sub',vmware:'RabbitMQ'},cost:Math.round(req*.2/1e6*.4),pros:['Simple, cheap, scales on its own'],cons:['No replay of past events']},
+   {k:'kafka',name:'Event streaming (Kafka)',prod:{aws:'MSK',azure:'Event Hubs (Kafka)',gcp:'Managed Kafka',vmware:'Confluent / Kafka'},cost:3*150*rg,pros:['Replay, fan-out and high throughput','A backbone for distributed events'],cons:['More to operate and size','Partitions and consumer groups to design']},
+   {k:'mq',name:'Message broker (AMQP/JMS)',prod:{aws:'Amazon MQ',azure:'Service Bus (premium)',gcp:'RabbitMQ on GKE',vmware:'IBM MQ'},cost:Math.round(2*225*rg),pros:['Standard protocols for legacy integration'],cons:['Lower ceiling than streaming']}]};
+ P.database.forEach(o=>{o.needs=o.k==='global'?'ap':o.k==='aa'?'aa':''});return P}
+const recPlat=r=>({compute:'svc',database:r.res==='aa'?'aa':r.res==='ap'?'global':'',messaging:'kafka'});
+// Requirement → design facts: the console model when it is set up, else simple reading of the words.
+function readReq(t){const l=String(t||'').toLowerCase(),num=(l.match(/(\d[\d,.]*)\s*(k|m)?\s*(rps|requests? (?:per|a|\/) ?s|tps)/)||[]),mul={k:1e3,m:1e6}[num[2]]||1,
+  rps=num[1]?Math.round(parseFloat(num[1].replace(/,/g,''))*mul):(l.match(/(\d[\d,.]*)\s*(k|m)?\s*(users|customers)/)?Math.max(200,Math.round(parseFloat(RegExp.$1.replace(/,/g,''))*({k:1e3,m:1e6}[RegExp.$2]||1)/500)):1000);
+ const svc=(l.match(/services?:?\s*([a-z ,]+?)(?:\.|$)/)||[])[1];
+ const nm=String(t||'').split(/[:.,;\n]/)[0].replace(/^\s*(an?|the|we (want|need)( to build)?)\s+/i,'').trim().split(/\s+/).slice(0,4).join(' ').replace(/\s+(for|with|on|to|of|and|in|that|which)$/i,'');
+ const saas=['Stripe','Salesforce','Twilio','SendGrid','Okta','PayPal','Adyen','SAP','Workday','ServiceNow','Zendesk','HubSpot','Shopify'].filter(x=>new RegExp('\\b'+x+'\\b','i').test(t));
+ return {name:nm?nm.replace(/^\w/,c=>c.toUpperCase()).slice(0,40):'',saas,rps,pii:/personal|pii|customer data|payment|card|health|patient|financial data/.test(l),events:/event|queue|async|stream|kafka|message/.test(l),files:/file|document|upload|image|media/.test(l),
+  where:/azure/.test(l)?'azure':/gcp|google cloud/.test(l)?'gcp':/on.?prem|data cent(er|re)|vmware/.test(l)?'vmware':/aws|amazon/.test(l)?'aws':'',
+  services:svc?svc.split(/,| and /).map(x=>x.trim()).filter(Boolean).slice(0,5):[],corp:/employee|staff|internal|workforce/.test(l)}}
+async function readReqModel(text){const L=S.settings.llmApi||{};if(!L.base)throw new Error('no model');
+ const sys='Extract the facts of a system from the requirement. Reply with one JSON object only: {"name":"short system name","services":["2 to 5 business services, one or two words each"],"rps":1000,"pii":true,"events":false,"files":false,"saas":["named third-party services"],"who":"customers or staff","where":"aws|azure|gcp|vmware|"} Use only facts in the text; estimate rps from users if needed.';
+ const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),120000);
+ try{const r=await fetch(L.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',...(L.key?{Authorization:'Bearer '+L.key}:{})},body:JSON.stringify({model:L.model,temperature:.1,response_format:{type:'json_object'},messages:[{role:'system',content:sys},{role:'user',content:String(text).slice(0,4000)}]})});
+  if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json(),o=extractJSON(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content);if(!o)throw new Error('unreadable');return o}finally{clearTimeout(to)}}
+let NDW=null;
+function ndOpen(){NDW={step:0,text:'',name:'',where:S.deploy&&S.deploy!=='hybrid'?S.deploy:'aws',rps:1000,pii:true,events:true,files:false,corp:false,services:'',avail:'99.95',rto:60,rpo:5,regionLoss:false,res:'',plat:{},layers:{net:true,sec:true,int:true,plat:true},busy:false,note:''};$('#ndDlg').hidden=false;ndRender();setTimeout(()=>{const t=$('#ndText');if(t)t.focus()},30)}
+function ndRec(){const o=RESIL.find(x=>meets(x,NDW));return o?o.k:'aa'}
+function ndRender(){const s=NDW,st=s.step,b=$('#ndBody');const steps=['Requirement','Resilience','Layers','Platform'];
+ $('#ndSteps').innerHTML=steps.map((x,i)=>`<button type="button" class="ndst${i===st?' on':''}" data-nd="go" data-i="${i}" ${i>s.max?'disabled':''}>${i+1}. ${x}</button>`).join('');
+ const dt=downtime(s.avail);
+ if(st===0)b.innerHTML=`<label>Explain the requirement in your own words<textarea id="ndText" data-ndf="text" rows="5" placeholder="e.g. An online claims portal for 300,000 customers on AWS: submit claims with photos, track status, pay out via Stripe. Personal data. Must survive a zone failure; peak 1,500 requests per second.">${esc(s.text)}</textarea></label>
+  <div class="ndrow"><label>Name<input data-ndf="name" value="${esc(s.name)}" placeholder="from the requirement"></label><label>Platform<select data-ndf="where">${[['aws','AWS'],['azure','Azure'],['gcp','Google Cloud'],['vmware','Data centre']].map(([v,l])=>`<option value="${v}" ${s.where===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Peak requests / s<input type="number" data-ndf="rps" value="${s.rps}" min="1"></label></div>
+  <div class="ndrow"><label>Business services (comma separated)<input data-ndf="services" value="${esc(s.services)}" placeholder="e.g. claims, policies, payments"></label></div>
+  <div class="ndchk"><label><input type="checkbox" data-ndf="pii" ${s.pii?'checked':''}> Personal or payment data</label><label><input type="checkbox" data-ndf="events" ${s.events?'checked':''}> Events / queues between services</label><label><input type="checkbox" data-ndf="files" ${s.files?'checked':''}> Files or documents</label><label><input type="checkbox" data-ndf="corp" ${s.corp?'checked':''}> Internal staff users</label></div>
+  <p>${S.settings.llmApi&&S.settings.llmApi.base?'"Read it for me" asks the console model to fill these in from your words; you can change anything.':'Fill in the facts, or press "Read it for me" to pick them out of your words.'}</p>
+  <div class="ndnav"><span class="ndnote">${esc(s.note)}</span><button type="button" class="btn" data-nd="read" ${s.busy?'disabled':''}>${s.busy?'Reading…':'Read it for me'}</button><button type="button" class="btn primary" data-nd="next">Next: resilience →</button></div>`;
+ if(st===1){const rec=s.res||ndRec();
+  b.innerHTML=`<div class="ndrow"><label>Availability target<select data-ndf="avail">${NINES.map(([v,l,n])=>`<option value="${v}" ${s.avail===v?'selected':''}>${l}${n?' · '+n:''}</option>`).join('')}</select></label><label>RTO: back up within (minutes)<input type="number" min="0" data-ndf="rto" value="${s.rto}"></label><label>RPO: data loss at most (minutes)<input type="number" min="0" data-ndf="rpo" value="${s.rpo}"></label></div>
+  <div class="ndt"><b>${esc(NINES.find(n=>n[0]===s.avail)[1])} allows this much downtime</b><table><tr><th>per year</th><th>per month</th><th>per week</th><th>per day</th></tr><tr><td>${dt.year}</td><td>${dt.month}</td><td>${dt.week}</td><td>${dt.day}</td></tr></table></div>
+  <label class="ndinl"><input type="checkbox" data-ndf="regionLoss" ${s.regionLoss?'checked':''}> Must survive the loss of a whole region</label>
+  <div class="ndcards">${RESIL.map(o=>{const ok=meets(o,s);return `<button type="button" class="ndcard${(s.res||rec)===o.k?' on':''}${ok?'':' no'}" data-nd="res" data-k="${o.k}"><b>${o.name}</b>${o.k===ndRec()?'<span class="pill ok">recommended</span>':''}${ok?'<span class="pill">meets target</span>':'<span class="pill crit">misses target</span>'}
+   <span>Up to ≈${o.avail}% · RTO ${esc(o.rtoT)} · RPO ${esc(o.rpoT)}</span><span>Cost ≈ ×${o.cost} of single zone</span><ul>${o.pros.map(x=>`<li>+ ${esc(x)}</li>`).join('')}${o.cons.map(x=>`<li>− ${esc(x)}</li>`).join('')}</ul></button>`}).join('')}</div>
+  <p>Ranges are rules of thumb for planning, from the zonal and regional designs in the Well-Architected reliability pillar. After you create the design, test it with "fail zone a" and "fail region a".</p>
+  <div class="ndnav"><button type="button" class="btn" data-nd="back">← Back</button><span class="sp"></span><button type="button" class="btn primary" data-nd="next">Next: layers →</button></div>`}
+ if(st===2){const N=NETP[prov()]||NETP.aws;
+  b.innerHTML=`<p>Recommended layers and overlays for ${esc(pk().name)}, following the Well-Architected security and reliability pillars. They are drawn in the Layers view and checked as you design.</p>
+  <div class="ndlay">${[['net','Network layers',`Separate ${N.net}s or subnets for public ingress, an intermediate secured hub (${N.fw}, ${N.hub}), private application, isolated data, egress and shared services. Interfaces: ${N.igw}, ${N.hub} attachments, ${N.pe}, ${N.nat}${s.corp||S.deploy==='hybrid'?', '+N.onp:''}.`],
+   ['sec','Security ingress and egress',`Ingress: ${N.ddos}, WAF, TLS, rate limits and authentication before any service. Egress: only through ${N.nat} and an egress firewall with an FQDN allow-list; third parties over ${N.pe}. East-west: default-deny, mTLS.`],
+   ['int','Application integration',`APIs through the gateway, ${s.events?'queues and distributed events between services, ':''}interfaces to third parties: each with an owner, a protocol and a contract.`],
+   ['plat','Shared platform per component','Each component linked to the shared services it needs: container registry, secrets, keys, monitoring, identity, CI/CD artifacts.']].map(([k,t,d])=>`<label class="ndl"><input type="checkbox" data-ndf="layers.${k}" ${s.layers[k]?'checked':''}><span><b>${t}</b><small>${esc(d)}</small></span></label>`).join('')}</div>
+  <div class="ndnav"><button type="button" class="btn" data-nd="back">← Back</button><span class="sp"></span><button type="button" class="btn primary" data-nd="next">Next: platform →</button></div>`}
+ if(st===3){const P=platOpts({...s,services:String(s.services).split(',').filter(Boolean),res:s.res||ndRec()}),rec=recPlat({res:s.res||ndRec()}),cur=c=>s.plat[c]!==undefined?s.plat[c]:rec[c],res=s.res||ndRec(),pv=prov();
+  const cat=(c,label)=>`<h3>${label}</h3><div class="ndcards">${P[c].map(o=>{const dis=o.needs&&!(o.needs==='ap'?['ap','aa'].includes(res):res==='aa');return `<button type="button" class="ndcard${cur(c)===o.k?' on':''}${dis?' no':''}" data-nd="plat" data-c="${c}" data-k="${o.k}" ${dis?'disabled title="Needs a multi-region resilience pattern"':''}><b>${esc(o.name)}</b>${rec[c]===o.k?'<span class="pill ok">recommended</span>':''}<span>${esc(o.prod[pv]||o.prod.aws)} · ≈$${fmt(o.cost)}/mo</span><ul>${o.pros.map(x=>`<li>+ ${esc(x)}</li>`).join('')}${o.cons.map(x=>`<li>− ${esc(x)}</li>`).join('')}</ul></button>`}).join('')}</div>`;
+  b.innerHTML=`<p>Options for ${esc(pk().name)} with their trade-offs and a list-price estimate at your peak load and resilience pattern, to compare, not to budget. Your choices are recorded as an architecture decision.</p>${cat('compute','Compute')}${cat('database','Database')}${s.events?cat('messaging','Messaging and events'):''}
+  <div class="ndnav"><button type="button" class="btn" data-nd="back">← Back</button><span class="sp"></span><button type="button" class="btn primary" data-nd="create">Create design</button></div>`}
+}
+$('#ndBody')&&$('#ndBody').addEventListener('input',e=>{const t=e.target,k=t.dataset.ndf;if(!k)return;const v=t.type==='checkbox'?t.checked:t.value;if(k.startsWith('layers.'))NDW.layers[k.slice(7)]=v;else NDW[k]=v;if(['avail','rto','rpo','regionLoss'].includes(k)){NDW.res='';const sel=t.selectionStart;ndRender();const n=$(`[data-ndf="${k}"]`);if(n&&t.type!=='checkbox'&&t.tagName!=='SELECT'){n.focus();try{n.setSelectionRange(sel,sel)}catch(x){}}}});
+$('#ndDlg')&&$('#ndDlg').addEventListener('click',async e=>{const b=e.target.closest('[data-nd]');if(!b||!NDW)return;const a=b.dataset.nd;NDW.max=Math.max(NDW.max||0,NDW.step);
+ if(a==='close'){$('#ndDlg').hidden=true;return}
+ if(a==='go'){NDW.step=+b.dataset.i;ndRender();return}
+ if(a==='back'){NDW.step=Math.max(0,NDW.step-1);ndRender();return}
+ if(a==='next'){if(NDW.step===0&&!String(NDW.text).trim()&&!String(NDW.services).trim()){NDW.note='Explain the requirement first, or list its services.';ndRender();return}NDW.note='';NDW.step++;NDW.max=Math.max(NDW.max,NDW.step);ndRender();return}
+ if(a==='res'){NDW.res=b.dataset.k;NDW.plat.database=undefined;ndRender();return}
+ if(a==='plat'){NDW.plat[b.dataset.c]=b.dataset.k;ndRender();return}
+ if(a==='read'){const t=NDW.text;if(!String(t).trim()){NDW.note='Write the requirement first.';ndRender();return}NDW.busy=true;NDW.note='';ndRender();
+  let o=null;try{o=await readReqModel(t);NDW.note='Read by '+(S.settings.llmApi.model||'the model')+'. Check the facts.'}catch(x){o=readReq(t);NDW.note='Picked out of your words (no model). Check the facts.'}
+  const f=readReq(t);NDW.name=o.name||f.name||NDW.name;NDW.rps=+o.rps||f.rps||NDW.rps;NDW.pii=o.pii!==undefined?!!o.pii:f.pii;NDW.events=o.events!==undefined?!!o.events:f.events;NDW.files=o.files!==undefined?!!o.files:f.files;NDW.corp=f.corp||/staff|employee/.test(String(o.who||''));
+  const w=String(o.where||f.where||'').toLowerCase();if(['aws','azure','gcp','vmware'].includes(w))NDW.where=w;NDW.services=(Array.isArray(o.services)&&o.services.length?o.services:f.services).join(', ');NDW.saas=Array.isArray(o.saas)&&o.saas.length?o.saas:f.saas;
+  const m=String(t).toLowerCase();if(/region (failure|outage|loss)|survive a region|multi.?region/.test(m))NDW.regionLoss=true;if(/zone (failure|outage)|multi.?az/.test(m)&&+NDW.avail<99.95)NDW.avail='99.95';
+  NDW.busy=false;ndRender();return}
+ if(a==='create'){ndCreate();return}});
+function ndCreate(){const s=NDW,res=s.res||ndRec(),R=RESIL.find(x=>x.k===res),rec=recPlat({res}),pl={compute:s.plat.compute!==undefined?s.plat.compute:rec.compute,database:s.plat.database!==undefined?s.plat.database:rec.database,messaging:s.plat.messaging!==undefined?s.plat.messaging:rec.messaging};
+ const services=String(s.services).split(',').map(x=>x.trim()).filter(Boolean),name=(s.name||'New design').slice(0,40),P=platOpts({...s,services,res}),pick=(c)=>P[c].find(o=>o.k===pl[c]);
+ const dec=[`Resilience: ${R.name} for ${s.avail}% availability, RTO ${s.rto} min, RPO ${s.rpo} min`,`Compute: ${pick('compute').name}`,`Database: ${pick('database').name}`].concat(s.events?[`Messaging: ${pick('messaging').name}`]:[]);
+ $('#ndDlg').hidden=true;
+ act(`New design: ${name}`,()=>{
+  S.deploy=s.where;buildBaselineCore({name,where:s.where,rps:+s.rps||1000,pii:s.pii,events:s.events,files:s.files,services:services.length?services:['Core'],saas:s.saas||[],who:'customers',cdn:+s.rps>3000});
+  S.settings.zones=res==='single'?1:(+s.avail>=99.99?3:2);S.outage=null;S.routage=null;
+  if(R.region){S.multi={...(S.multi||{}),on:true,mode:res,a:undefined,b:undefined,expanded:false};routeUsersViaDns(res==='aa'?{policy:'latency',health:true,defaultRec:true,ttl:60,shareA:50}:{policy:'failover',health:true,defaultRec:true,ttl:60,shareA:100})}
+  else S.multi={...(S.multi||{}),on:false,expanded:false};
+  kids('root').forEach(n=>{if(n.type==='db'){n.standby=res!=='single';n.multi=pl.database||undefined}
+   if(n.type==='queue')n.flavor=pl.messaging;
+   if(n.type==='svc'&&pl.compute!=='svc'){const keep={id:n.id,name:n.name,x:n.x,y:n.y,parent:n.parent};Object.keys(n).forEach(k=>delete n[k]);Object.assign(n,{...mkNode(keep.id,pl.compute,keep.name,keep.x,keep.y),parent:keep.parent})}});
+  if(s.corp){const c=addNode('user','Employees','root',{x:ZX.internet,y:520});c.origin='corp';c.audience='workforce';c.rps=Math.max(50,Math.round(s.rps/10));const gw=kids('root').find(n=>n.type==='gw');if(gw)connect(c.id,gw.id,'HTTPS',pk().dedicated?'dedicated':'vpn')}
+  if(res!=='single')atLeastTwo();
+  addDeps();
+  S.req={text:String(s.text).slice(0,4000),avail:s.avail,rto:+s.rto,rpo:+s.rpo,regionLoss:!!s.regionLoss,res,layers:{...s.layers},plat:pl,at:new Date().toISOString()};
+  S.view=S.view||{};S.view.layers={...s.layers};
+ },{tradeoffs:[...R.pros.map(x=>'+ '+x),...R.cons.map(x=>'− '+x),...['compute','database'].concat(s.events?['messaging']:[]).flatMap(c=>{const o=pick(c);return ['+ '+o.name+': '+o.pros[0],'− '+o.name+': '+o.cons[0]]})],
+  adr:{title:`${name}: resilience and platform`,context:`Requirement: ${String(s.text).slice(0,300)||'(not written)'}\nTargets: ${s.avail}% availability (downtime ${downtime(s.avail).year} a year), RTO ${s.rto} min, RPO ${s.rpo} min${s.regionLoss?', must survive a region loss':''}.`,
+   decision:dec.join('. ')+'.',tradeoffs:`${R.name}: ${R.pros.join('; ')} / ${R.cons.join('; ')}. Estimated cost ≈ ×${R.cost} of a single zone.`,basis:['WAF-reliability','EA-P2']},
+  after:()=>{fit();openSide('pLay',true);say(`Created ${name}: ${R.name} on ${pk().name}${R.region?` (regions ${regNames().a} and ${regNames().b})`:''}, ${pick('compute').name.toLowerCase()}, ${pick('database').name.toLowerCase()}. Downtime budget at ${s.avail}%: ${downtime(s.avail).year} a year. The Layers view shows the network, security, integration and platform overlays. Test it: "fail zone a"${R.region?' or "fail region a"':''}.`,'s')}});
+}
+// Network vocabulary per platform, for the layered design.
+const NETP={aws:{net:'VPC',hub:'Transit Gateway',igw:'Internet gateway',nat:'NAT gateway',fw:'AWS Network Firewall',pe:'PrivateLink endpoints',ddos:'AWS Shield',onp:'Direct Connect (VPN backup)',sg:'security groups'},
+ azure:{net:'VNet',hub:'Virtual WAN hub',igw:'Front Door / public IP',nat:'NAT gateway',fw:'Azure Firewall',pe:'Private Endpoints',ddos:'Azure DDoS Protection',onp:'ExpressRoute (VPN backup)',sg:'NSGs'},
+ gcp:{net:'VPC network',hub:'Network Connectivity Center',igw:'External load balancer',nat:'Cloud NAT',fw:'Cloud NGFW',pe:'Private Service Connect',ddos:'Cloud Armor',onp:'Cloud Interconnect (VPN backup)',sg:'firewall rules'},
+ vmware:{net:'NSX segment',hub:'DC core and firewall',igw:'Internet edge routers',nat:'Edge NAT',fw:'Perimeter NGFW',pe:'Service VIPs',ddos:'Upstream DDoS scrubbing',onp:'MPLS / dark fibre',sg:'NSX distributed firewall'}};
+// Which layer each component belongs in.
+const LAYER_OF=n=>n.type==='user'?(n.origin==='corp'?'onp':'inet'):['dns','cdn'].includes(n.type)?'inet':n.type==='waf'?'edge':['lb','gw'].includes(n.type)?'ingress':['svc','vm','fn','api','adp','part'].includes(n.type)?'app':n.type==='queue'?'int':['db','cache','obj'].includes(n.type)?'data':n.type==='egw'?'egress':['saas','ext'].includes(n.type)?'ext':['reg','art','kms','sec','mon','idp'].includes(n.type)?'shared':'app';
+const LBOX={inet:[20,70,150,380,'Internet'],edge:[190,70,140,380,'Edge security'],ingress:[350,70,170,380,'Ingress · public subnets'],hub:[540,70,150,380,'Secured hub'],
+ app:[710,70,330,150,'Application · private subnets'],int:[710,230,330,90,'Integration · events and queues'],data:[710,330,330,120,'Data · isolated subnets'],egress:[1060,70,150,380,'Egress'],ext:[1230,70,150,380,'External services'],
+ shared:[350,480,860,130,'Shared services · platform'],onp:[20,480,310,130,'On-premises / corporate']};
+function layersSVG(){const N=NETP[prov()]||NETP.aws,ov=(S.view&&S.view.layers)||{net:true,sec:true,int:true,plat:true},top=kids('root'),pos={},cnt={};
+ top.forEach(n=>{const L=LAYER_OF(n),bx=LBOX[L],k=cnt[L]=(cnt[L]||0)+1,wide=bx[2]>200,col=wide?((k-1)%3):0,row=wide?Math.floor((k-1)/3):k-1;pos[n.id]={x:bx[0]+14+col*(wide?105:0),y:bx[1]+30+row*44,w:wide?96:bx[2]-28,h:34}});
+ const nbox=n=>{const p=pos[n.id];return `<g class="ln ${LAYER_OF(n)}"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="6"/><text x="${p.x+7}" y="${p.y+14}" class="lid">${esc(n.id)}</text><text x="${p.x+7}" y="${p.y+27}" class="lnm">${esc(String(n.name).slice(0,16))}</text></g>`};
+ const c=(id)=>{const p=pos[id];return p?[p.x+p.w/2,p.y+p.h/2]:null};
+ const line=(a,b,cls,lab)=>{const A=c(a),B=c(b);if(!A||!B)return '';const mx=(A[0]+B[0])/2;return `<path class="${cls}" d="M${A[0]} ${A[1]} C${mx} ${A[1]} ${mx} ${B[1]} ${B[0]} ${B[1]}"/>${lab?`<text class="elab" x="${mx}" y="${(A[1]+B[1])/2-4}">${esc(lab)}</text>`:''}`};
+ const boxes=Object.entries(LBOX).map(([k,[x,y,w,h,t]])=>`<g class="lb ${k}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><text x="${x+10}" y="${y+18}">${esc(t)}</text></g>`).join('');
+ const ifc=[['ingress',N.igw],['hub',N.hub+' · '+N.fw],['egress',N.nat+' · egress firewall'],['data',N.pe],['shared',N.pe],['onp',N.onp]].map(([k,t])=>{const [x,y,w,h]=LBOX[k];return `<g class="ifc"><rect x="${x+6}" y="${y+h-22}" width="${w-12}" height="18" rx="9"/><text x="${x+w/2}" y="${y+h-9}">${esc(t)}</text></g>`}).join('');
+ const hubNode=`<g class="ln hubv"><rect x="${LBOX.hub[0]+14}" y="${LBOX.hub[1]+150}" width="${LBOX.hub[2]-28}" height="46" rx="6"/><text x="${LBOX.hub[0]+22}" y="${LBOX.hub[1]+168}" class="lid">${esc(N.fw)}</text><text x="${LBOX.hub[0]+22}" y="${LBOX.hub[1]+184}" class="lnm">${esc(N.hub)}</text></g>`;
+ const egw=top.find(n=>n.type==='egw'),egwV=egw?'':`<g class="ln virt"><rect x="${LBOX.egress[0]+14}" y="${LBOX.egress[1]+150}" width="${LBOX.egress[2]-28}" height="46" rx="6"/><text x="${LBOX.egress[0]+22}" y="${LBOX.egress[1]+168}" class="lid">${esc(N.nat)}</text><text x="${LBOX.egress[0]+22}" y="${LBOX.egress[1]+184}" class="lnm">recommended</text></g>`;
+ const H=[LBOX.hub[0]+LBOX.hub[2]/2,LBOX.hub[1]+173],E=[LBOX.egress[0]+LBOX.egress[2]/2,LBOX.egress[1]+173];
+ const sec=`<g class="ov sec"><path class="ing" d="M95 52 L260 52 L435 52 L${H[0]} ${H[1]} L860 100"/><text class="seclab" x="110" y="44">ingress: ${esc(N.ddos)} · WAF · TLS</text><text class="seclab" x="380" y="44">rate limit · authN</text><text class="seclab" x="${H[0]-40}" y="${H[1]-30}">inspect</text>
+  <path class="egr" d="M860 195 L${H[0]} ${H[1]+30} L${E[0]} ${E[1]} L1300 ${E[1]}"/><text class="seclab eg" x="${E[0]-60}" y="${E[1]+40}">FQDN allow-list · NAT</text><text class="seclab" x="720" y="466">east-west: default deny · mTLS · ${esc(N.sg)}</text></g>`;
+ const flows=S.edges.filter(e=>isFlow(e)&&pos[e.from]&&pos[e.to]);
+ const integ=`<g class="ov int">${flows.filter(e=>['app','int','ext','data'].includes(LAYER_OF(S.nodes[e.from]))&&['app','int','ext'].includes(LAYER_OF(S.nodes[e.to]))).map(e=>line(e.from,e.to,'il'+(S.nodes[e.to].type==='queue'||S.nodes[e.from].type==='queue'?' ev':''),e.proto)).join('')}</g>`;
+ const plat=`<g class="ov plat">${S.edges.filter(e=>e.kind==='dep'&&pos[e.from]&&pos[e.to]).map(e=>line(e.from,e.to,'pl')).join('')}</g>`;
+ const net=`<g class="ov net">${ifc}${hubNode}${egwV}</g>`;
+ return `<svg class="lsvg ${['net','sec','int','plat'].filter(k=>ov[k]).map(k=>'on-'+k).join(' ')}" viewBox="0 0 1400 630" role="img" aria-label="Layered design: network, security, integration and platform overlays">${boxes}${net}${plat}${integ}${sec}${top.map(nbox).join('')}</svg>`}
+function layerChecks(){const top=kids('root'),has=t=>top.some(n=>n.type===t),z=zoneCount(),req=S.req||{},extE=S.edges.filter(e=>isFlow(e)&&S.nodes[e.to]&&['saas','ext'].includes(S.nodes[e.to].type)),
+ inetToData=S.edges.filter(e=>isFlow(e)&&S.nodes[e.from]&&S.nodes[e.from].type==='user'&&S.nodes[e.to]&&['db','cache','obj','svc'].includes(S.nodes[e.to].type)),miss=top.filter(n=>missingDeps(n).length);
+ return [
+  ['Network','Internet traffic enters only through the edge and ingress layers',!inetToData.length,inetToData.length?`${inetToData.map(e=>e.from+'→'+e.to).join(', ')} bypass the edge`:'No direct internet paths to services or data','security'],
+  ['Network','Data stores sit in isolated subnets, reached only from the application layer',!S.edges.some(e=>isFlow(e)&&S.nodes[e.to]&&['db'].includes(S.nodes[e.to].type)&&S.nodes[e.from]&&!['svc','vm','fn','api','adp','part','db'].includes(S.nodes[e.from].type)),'','security'],
+  ['Security','A WAF protects every internet-facing entry (GT3)',has('waf'),has('waf')?'':'Add a WAF','security'],
+  ['Security','Egress leaves through NAT and an egress firewall with an FQDN allow-list (GT5)',has('egw')||!extE.length,extE.length&&!has('egw')?`${extE.length} flow(s) to third parties without an egress gateway`:'','security'],
+  ['Security','Third parties are reached privately where possible',extE.every(e=>['privatelink','dedicated','vpn'].includes(e.via)),extE.filter(e=>!['privatelink','dedicated','vpn'].includes(e.via)).map(e=>e.from+'→'+e.to).join(', '),'security'],
+  ['Resilience',`Zones: ${z}${req.res?` (target: ${(RESIL.find(r=>r.k===req.res)||{}).name})`:''}`,!req.res||req.res==='single'||z>=2,'','reliability'],
+  ['Resilience','Survives a region loss',!req.regionLoss||mr(),req.regionLoss&&!mr()?'The requirement needs a second region':'','reliability'],
+  ['Platform','Every component is linked to the shared services it needs',!miss.length,miss.length?`${miss.length} component(s) missing platform links`:'','operations']]}
+function renderLayers(){const el=$('#layBody');if(!el)return;const req=S.req,ov=(S.view&&S.view.layers)||{net:true,sec:true,int:true,plat:true},N=NETP[prov()]||NETP.aws,ch=layerChecks();
+ const top=kids('root').filter(n=>!['user','part'].includes(n.type)&&(DEPS[n.type]||[]).length);
+ el.innerHTML=`${req?`<div class="lreq"><b>Targets</b> ${esc(req.avail)}% · RTO ${req.rto} min · RPO ${req.rpo} min · ${esc((RESIL.find(r=>r.k===req.res)||{}).name||'')}<br><span class="why">Downtime budget ${downtime(req.avail).year} a year, ${downtime(req.avail).month} a month</span></div>`:'<p class="why">Use ＋ New design to set availability, RTO and RPO targets.</p>'}
+  <div class="bar">${[['net','Network'],['sec','Security'],['int','Integration'],['plat','Platform']].map(([k,l])=>`<label><input type="checkbox" data-lov="${k}" ${ov[k]?'checked':''}> ${l}</label>`).join('')}</div>
+  <button class="btn" id="layOpen" style="width:100%">Open the layered view</button>
+  <h4>Best-practice checks</h4><ul class="lchk">${ch.map(([g,t,ok,d,p])=>`<li class="${ok?'ok':'warn'}"><b>${ok?'✓':'!'}</b><span>${esc(t)}${d?`<small>${esc(d)}</small>`:''}</span><span class="pchip">${esc(g)}</span></li>`).join('')}</ul>
+  <h4>Shared platform by component</h4><table class="ltab"><tr><th>Component</th><th>Needs</th></tr>${top.map(n=>`<tr><td><b>${esc(n.id)}</b></td><td>${(DEPS[n.type]||[]).map(d=>{const okd=!missingDeps(n).includes(d);return `<span class="${okd?'ok':'crit'}" title="${esc(depWhy(n.type,d))}">${esc(T[d]?T[d].label:d)}${okd?'':' (missing)'}</span>`}).join(', ')}</td></tr>`).join('')}</table>
+  ${top.some(n=>missingDeps(n).length)?'<button class="btn" id="layDeps">Link the missing platform services</button>':''}
+  ${!kids('root').some(n=>n.type==='egw')&&S.edges.some(e=>isFlow(e)&&S.nodes[e.to]&&['saas','ext'].includes(S.nodes[e.to].type))?'<button class="btn" id="layEgw">Add an egress gateway</button>':''}
+  <p class="why">Layers follow the Well-Architected security and reliability pillars of AWS, Azure and Google Cloud: ${esc(N.net)}s for ingress, a secured hub (${esc(N.fw)}), private application, isolated data, egress and shared services.</p>`}
+document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.lov;if(!k)return;S.view=S.view||{};S.view.layers={...((S.view&&S.view.layers)||{net:true,sec:true,int:true,plat:true}),[k]:e.target.checked};persist();renderLayers();const s=$('#layDlg .lsvg');if(s)$('#layDiag').innerHTML=layersSVG()});
+document.addEventListener('click',e=>{const t=e.target;if(t.id==='layOpen'){$('#layDiag').innerHTML=layersSVG();$('#layTitle').textContent=`Layered design · ${S.project} · ${pk().name}`;$('#layIfc').innerHTML=interfacesHTML();$('#layDlg').hidden=false}
+ if(t.id==='layClose')$('#layDlg').hidden=true;if(t.id==='layDeps')act('Link the missing platform services',()=>addDeps(),{after:()=>renderLayers()});if(t.id==='layEgw')run('add egress gateway')});
+function interfacesHTML(){const via={net:'in network',privatelink:'private link',vpn:'VPN',dedicated:'dedicated circuit',internet:'internet',xregion:'cross-region'};
+ return `<table class="ltab"><tr><th>From</th><th>To</th><th>Protocol</th><th>Path</th><th>Crosses</th></tr>${S.edges.filter(e=>isFlow(e)&&S.nodes[e.from]&&S.nodes[e.to]&&S.nodes[e.from].parent==='root'&&S.nodes[e.to].parent==='root').map(e=>{const a=LAYER_OF(S.nodes[e.from]),b=LAYER_OF(S.nodes[e.to]);return `<tr><td>${esc(e.from)}</td><td>${esc(e.to)}</td><td>${esc(e.proto)}</td><td>${esc(via[e.via]||e.via)}</td><td>${a===b?'—':esc(LBOX[a][4].split(' ·')[0]+' → '+LBOX[b][4].split(' ·')[0])}</td></tr>`}).join('')}</table>`}
+$('#ndBtn')&&($('#ndBtn').onclick=ndOpen);
 
 /* ---------- convergence: import the hand-off from NEXUS Strategy ---------- */
 const STRAT_KEY='nexus.strategy.handoff.v1';

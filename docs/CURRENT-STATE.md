@@ -1,4 +1,8 @@
-# NEXUS — Current state (v0.2.15)
+# NEXUS — Current state (v0.3.1)
+
+- **New design** wizard (requirement, availability with downtime, RTO, RPO,
+  resilience pattern, layers, platform options with trade-offs and cost) and
+  the **Layers** view with network, security, integration and platform overlays.
 
 - **New strategy in plain words**: idea → overview → Business, People, Process,
   Technology, Data & AI, Money (requires, depends on, Deeper) → decide → create,
