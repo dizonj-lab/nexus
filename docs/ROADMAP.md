@@ -18,3 +18,6 @@
 | WP6 | 0.8.0 | IaC and C4 servers with real validation; provider packs as plug-ins with a logical/physical split | Planned |
 | WP7 | 0.9.0 | Live collaboration: presence, shared sessions, threads on components; layered team review | Planned |
 | WP8 | 1.0.0 | Kubernetes, multi-tenant, hardening (login throttle in Redis, rate limits, backups) | Planned |
+
+**Proposed:** externalized knowledge packs and component intelligence, see
+[design/PACKS.md](design/PACKS.md). Phases P0–P4 map onto WP1–WP6.
