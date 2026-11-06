@@ -313,3 +313,10 @@ the Action Guard shows it with the source and asks for an acknowledgement
 when there is an outage. Where the provider gives no duration, NEXUS says so
 instead of guessing.
 
+## D49 — Grow one Service Pack at a time, to a quality gate
+NEXUS grows by Service Packs: one service family brought to a defined standard (sourced facts,
+tested rules, documented behaviour, declared integrations, validated IaC, migration, docs) before
+the next starts. Packs are versioned and pinned per design, so they upgrade and roll back
+independently of the core. Existing breadth is treated as legacy level 1 and upgraded pack by pack.
+Design: docs/design/SERVICE-PACKS.md.
+

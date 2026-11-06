@@ -21,3 +21,6 @@
 
 **Proposed:** externalized knowledge packs and component intelligence, see
 [design/PACKS.md](design/PACKS.md). Phases P0–P4 map onto WP1–WP6.
+
+**Proposed:** Service Packs, one service at a time to a quality gate, starting with SP-Kafka (MSK). See
+[design/SERVICE-PACKS.md](design/SERVICE-PACKS.md).
