@@ -383,7 +383,9 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 .ptabs{display:flex;gap:2px;padding:6px 10px 0;border-bottom:1px solid var(--line)}.ptabs button{background:none;border:0;border-bottom:2px solid transparent;padding:5px 9px;font:inherit;font-size:12.5px;color:var(--muted);cursor:pointer}.ptabs button[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 .pwin #propBody{flex:1;overflow:auto;padding:4px 14px 12px}.pwin h3{margin:10px 0 3px;font-size:13px}.pwin .ptab td:nth-child(2){word-break:break-word}
 .lim .k{font-size:10.5px;padding:1px 5px;border-radius:8px;border:1px solid var(--line);white-space:nowrap}.lim .k.quota{color:var(--warn);border-color:var(--warn)}.lim .k.limit{color:var(--crit);border-color:var(--crit)}.lim .k.setting{color:var(--accent);border-color:var(--accent)}
-.lim a{color:var(--accent)}.limlist{list-style:none;margin:6px 0;padding:0}.limlist li{border-bottom:1px solid var(--line);padding:7px 0}.limlist .lh{display:flex;gap:8px;align-items:baseline;justify-content:space-between}.limlist .lv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;margin:3px 0}.limlist .lv span{color:var(--muted)}.limlist .lv b{color:var(--ink);font-weight:600;white-space:nowrap}.limlist .src{font-size:11px;color:var(--muted)}.limlist .lv b .over{color:var(--crit)}.lim .over{color:var(--crit);font-weight:600}.thk ul{margin:2px 0 8px;padding-left:18px}.thk li{margin:2px 0}.thk .src{font-size:11px;color:var(--muted)}
+.lim a{color:var(--accent)}.limlist{list-style:none;margin:6px 0;padding:0}.limlist li{border-bottom:1px solid var(--line);padding:7px 0}.limlist .lh{display:flex;gap:8px;align-items:baseline;justify-content:space-between}.limlist .lv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;margin:3px 0}.limlist .lv span{color:var(--muted)}.limlist .lv b{color:var(--ink);font-weight:600;white-space:nowrap}.limlist .src{font-size:11px;color:var(--muted)}.limlist .lv b .over{color:var(--crit)}
+.cslist{list-style:none;margin:6px 0;padding:0}.cslist li{border-bottom:1px solid var(--line);padding:7px 0}.cslist li.met{opacity:.72}.cslist .lh{display:flex;gap:8px;justify-content:space-between;align-items:baseline}.cslist .lv{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:12.5px;margin:3px 0}.cslist .lv span{color:var(--muted)}.cslist .lv b{color:var(--ink);font-weight:600}.cslist .lv b.crit{color:var(--crit)}
+.csact{margin-top:4px}.csact .btn{font-size:12px;padding:3px 9px}.csbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}.csrev{font-size:12px;margin:3px 0;padding:3px 7px;border-left:3px solid var(--line);background:var(--surface-2)}.csrev.ok{border-color:var(--ok)}.csrev.warn{border-color:var(--warn)}.lim .over{color:var(--crit);font-weight:600}.thk ul{margin:2px 0 8px;padding-left:18px}.thk li{margin:2px 0}.thk .src{font-size:11px;color:var(--muted)}
 @media (max-width:640px){.pwin{left:8px!important;top:64px!important;width:calc(100vw - 16px)!important;height:70vh!important}}
 .ptab{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:6px}.ptab th,.ptab td{border-bottom:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}.ptab th{font-size:11px;color:var(--muted);font-weight:500}
 .modal.props h3{margin:8px 0 2px;font-size:13px}
@@ -405,7 +407,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.4">NEXUS<small>Architecture Workbench · v0.3.4</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.5">NEXUS<small>Architecture Workbench · v0.3.5</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -459,7 +461,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
       <div class="tune" hidden></div>
       <div class="pbody" style="max-height:340px">
         <div class="bar"><label style="display:flex;gap:4px;align-items:center">Lines <select id="lgLines" style="font-size:11px;border:1px solid var(--line);background:var(--surface);border-radius:4px"><option value="ortho">Right-angle, jump at crossings</option><option value="curved">Curved, around components</option><option value="straight">Straight</option></select></label>
-          <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="lgDeps"> All dependency lines</label><label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="lgGroups" checked> Security and app groups</label></div>
+          <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="lgDeps"> All dependency lines</label><label style="display:flex;gap:4px;align-items:center" title="Thin dashed line back to the caller; events into or out of a queue have no response"><input type="checkbox" id="lgResp" checked> Responses (backward)</label><label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="lgGroups" checked> Security and app groups</label></div>
         <svg class="lg" viewBox="0 0 280 326" width="300" style="max-width:100%" role="img" aria-label="Legend of line styles, colours and badges">
           <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--ink)">
           <text x="0" y="12" fill="var(--muted)" font-size="9.5" letter-spacing=".08em">FLOWS (arrow = direction)</text>
@@ -557,7 +559,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </div>
 <div class="pwin" id="propDlg" role="dialog" aria-labelledby="propTitle" hidden>
     <div class="pwh" id="propHead"><h2 id="propTitle">Properties</h2><button type="button" class="ib" id="propClose" aria-label="Close">×</button></div>
-    <div class="ptabs" role="tablist"><button type="button" role="tab" data-ptab="attr" aria-selected="true">Attributes</button><button type="button" role="tab" data-ptab="lim" aria-selected="false">Limits and defaults</button><button type="button" role="tab" data-ptab="think" aria-selected="false">Thinking</button></div>
+    <div class="ptabs" role="tablist"><button type="button" role="tab" data-ptab="attr" aria-selected="true">Attributes</button><button type="button" role="tab" data-ptab="lim" aria-selected="false">Limits and defaults</button><button type="button" role="tab" data-ptab="crit" aria-selected="false">Critical settings</button><button type="button" role="tab" data-ptab="think" aria-selected="false">Thinking</button></div>
     <div id="propBody"></div>
 </div>
 <div class="scrim" id="modal" hidden>
@@ -1317,8 +1319,8 @@ function analyze(log=true){
    else if(m==='global')add('info','mrdb:'+n.id,n.id,`${n.id} is active-passive across regions`,`${mrdbName('global')}: writes go to region A; failover takes about a minute and can lose about a second of writes. Region B serves reads locally.`,['EA-P2'],null)})}
  if(kids('root').some(n=>n.type==='user'&&n.origin==='corp')&&!kids('root').some(n=>n.type==='idp'&&(n.idpMode==='corp'||n.audience==='workforce')))add('warn','corpidp',kids('root').find(n=>n.origin==='corp').id,'Internal users have no workforce sign-in',`Being on the company network is not proof of identity (zero trust). Add an identity provider federated to the corporate directory (${pk().idp.corp}), with MFA.`,['EA-P1'],{k:'idp'});
  {const w=wl();PAYLOAD_LIMIT.forEach(([pv,t,kb,why])=>{if(prov()!==pv)return;kids('root').filter(n=>n.type===t&&(t!=='svc'||true)).forEach(n=>{if(w.reqKB>kb)add('crit','payload:'+n.id,n.id,`Requests of ${fmt(w.reqKB)} KB are too large for ${n.id}`,`${why}. Upload large bodies straight to object storage with a pre-signed URL and pass a reference instead.`,['Technical constraint'],null)})})}
- {const open=kids('root').map(n=>[n,bpItems(n).filter(x=>x.c&&!x.on)]).filter(([,a])=>a.length);
-  if(open.length)add('info','bp',open[0][0].id,`${open.length} component${open.length>1?'s have':' has'} critical settings not confirmed`,open.slice(0,6).map(([n,a])=>`${n.id}: ${a.map(x=>x.l.charAt(0).toLowerCase()+x.l.slice(1)).join(', ')}`).join('. ')+'. Confirm them under Critical configuration in the Inspector.',[...new Set(open.flatMap(([,a])=>a.map(x=>'WAF-'+x.p)))],null)}
+ {const open=kids('root').map(n=>[n,bpItems(n).filter(x=>x.c&&!x.on&&!csItem(n,x).met)]).filter(([,a])=>a.length);
+  if(open.length)add('info','bp',open[0][0].id,`${open.length} component${open.length>1?'s have':' has'} critical settings open`,open.slice(0,6).map(([n,a])=>`${n.id}: ${a.map(x=>x.l.charAt(0).toLowerCase()+x.l.slice(1)).join(', ')}`).join('. ')+'. Open Critical settings to see each value, the recommendation and a Fix button.',[...new Set(open.flatMap(([,a])=>a.map(x=>'WAF-'+x.p)))],{k:'bpopen',n:open[0][0].id})}
  if(log){out.forEach(f=>{const k=f.key.split(':')[0];if(!seenF.has(f.key)){seenF.add(f.key);logAI(k==='deps'?'Platform expert':'Advisor',`${f.sev.toUpperCase()} ${f.title}`,`Rule ${k} fired on ${f.target||'design'} · basis ${f.basis.join(', ')}`,f.sev==='crit'?.96:.82)}});
   [...seenF].forEach(k=>{if(!out.some(f=>f.key===k))seenF.delete(k)})}
  if(NP){try{NP.evaluate(packDesign()).forEach(f=>{const t=S.nodes[f.on];if(!t||t.parent!=='root')return;
@@ -1440,10 +1442,11 @@ function fixFn(x){
   cap:()=>{const c=S.caps.find(c=>c.types.includes(x.t));if(c)c.on=true;else S.caps.push({id:'TC'+(S.caps.length+1),name:T[x.t].label+' (proposed via ADR)',types:[x.t],on:true});S.ver.caps++}
  }[x.k];
 }
-const fixLabel=x=>({pack:x.label||'Apply the pack fix',dns:'Route through DNS',mraa:`Use ${mrdbName('aa')}`,sgallow:'Allow it in the security group',netdefault:'Move it to its tier',quota:`${packQ(S.nodes[x.n])&&packQ(S.nodes[x.n]).fact.adjustable?'Request a quota increase to':'Raise limit to'} ${fmt(x.to||0)} rps`,perAz:'One per zone',between:'Insert a service between',waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
+const fixLabel=x=>({bpopen:'Open critical settings',pack:x.label||'Apply the pack fix',dns:'Route through DNS',mraa:`Use ${mrdbName('aa')}`,sgallow:'Allow it in the security group',netdefault:'Move it to its tier',quota:`${packQ(S.nodes[x.n])&&packQ(S.nodes[x.n]).fact.adjustable?'Request a quota increase to':'Raise limit to'} ${fmt(x.to||0)} rps`,perAz:'One per zone',between:'Insert a service between',waf:'Insert WAF',tls:'Enforce TLS',via:`Use ${pk().pl}`,egw:'Route via egress gateway',unlink:'Remove this flow',scale:`Scale to ×${x.to}`,standby:'Add passive standby',restore:'Restore node',idp:'Add identity provider',cap:'Accept as capability (ADR)',enc:'Encrypt at rest',decide:'Open scaling options',deps:'Add platform dependencies'}[x.k]);
 function applyFix(f){
  const x=f.fix;if(!x)return;
  if(x.k==='decide'){focusNode(x.n);return}
+ if(x.k==='bpopen'){openProps(x.n,'crit');return}
  const opts={};
  if(x.k==='cap')opts.adr={title:`Adopt ${T[x.t].label.toLowerCase()} as a capability`,context:f.why,decision:'Add to Technical Capabilities as proposed; platform team to operate.',tradeoffs:f.adr||'',basis:f.basis};
  if(x.k==='deps')opts.tradeoffs=['+ Every component can be built, deployed, keyed and observed','− Shared platform services become tier-0: protect and replicate them'];
@@ -1639,13 +1642,94 @@ const BP={
 // Settings that already exist on the component are read from it, not asked twice.
 const BP_DERIVED={dnshc:n=>!!n.health,dnsdef:n=>(n.policy||'geolocation')!=='geolocation'||!!n.defaultRec,dnsttl:n=>(n.ttl||60)<=60,dxlink:n=>{const es=S.edges.filter(e=>e.from===n.id&&isFlow(e));return es.length>0&&es.every(e=>e.via==='dedicated')},aa:n=>n.multi==='aa',zones:n=>Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)>=2,xzone:n=>Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)>=2||isManaged(n),ha:n=>!!n.standby,cmk:n=>!n.enrich||n.enrich.encryptRest!==false,rate:n=>!!n.rateLimit};
 const BP_HINT={dnshc:'set in the DNS fields above',dnsdef:'set in the DNS fields above',dnsttl:'set in the DNS fields above',dxlink:'set each flow’s connectivity',aa:'set Multi-region above',zones:'set Replicas or autoscaling above',xzone:'set Replicas above (managed services span zones)',ha:'set Standby above',cmk:'from encryption at rest',rate:'set a client rate limit above'};
+// The setting behind each item: its name, the value when nobody set it (the product default where documented),
+// and the recommended value. "process" items are practices, not settings: they are marked done, not fixed.
+// Keys are "type.key" or a shared "key". Values in [] are [setting, default, recommended, process?].
+const CS={
+ 'dnssec':['DNSSEC','unsigned','signed, key in KMS'],'qlog':['Query logging','off','on, to the log archive'],'gameday':['Region failover test','never run','run every quarter','p'],
+ 'dx2':['Connections','1 connection, 1 location','2 connections at 2 locations'],'dxgw':['Direct Connect gateway','attached to one region','attached to both regions'],'vpnbk':['Backup path','none','site-to-site VPN'],
+ 'macsec':['Link encryption','none','MACsec (or IPsec over the circuit)'],'bfd':['Failover detection','BGP timers (about 90 s)','BFD (under a second)'],
+ 'verified':['Engine constraints review','not done','checked against current documentation','p'],'occ':['Conflict retries','none','retry with backoff','p'],'compat':['SQL compatibility review','not done','schema and queries checked','p'],
+ 'iam':['Database authentication','password','IAM authentication tokens'],'backup':['Automated backups','1 day (API default; 7 in the console)','7 days or more, point-in-time restore'],
+ 'waf.mode':['Rule action','count only','block'],'waf.managed':['Managed rule groups','none','core rule set and known bad inputs'],'logs':['Logging','off','on, to the SIEM or log archive'],
+ 'cdn.https':['Viewer protocol','HTTP and HTTPS','redirect to HTTPS, TLS 1.2 or later'],'cdn.oac':['Origin access','public origin','private origin access'],'cdn.wafedge':['Web ACL','none','attached'],
+ 'lb.tls':['Listener','HTTP :80','HTTPS :443 with a TLS 1.2+ policy; HTTP redirects'],'lb.health':['Target health check','/ every 30 s (default)','/healthz every 10–15 s'],'delprot':['Deletion protection','off','on'],
+ 'egw.allow':['Outbound policy','allow all','FQDN allow-list, default deny'],
+ 'gw.auth':['Authorizer','none','JWT / OIDC on every route'],'gw.schema':['Request validation','off','body and parameters validated'],'gw.tlsb':['Back-end connection','HTTP','HTTPS, TLS 1.2 or later'],
+ 'idp.mfa':['MFA','off','required'],'idp.ttl':['Access-token lifetime','60 min','15 min or less'],'idp.lockout':['Threat protection','off','adaptive authentication on'],
+ 'svc.probes':['Health probes','none','liveness and readiness'],'svc.limits':['Resources','no requests or limits','CPU and memory requests and limits'],'scan':['Image scanning','off','on push; block critical CVEs'],
+ 'svc.nonroot':['Runs as','root','non-root, read-only filesystem'],'secrets':['Secrets come from','environment variables','the secrets manager'],
+ 'vm.patch':['OS patching','manual','automated patch baseline'],'vm.harden':['Image','stock OS image','CIS-hardened image'],'vm.backup':['Backups','none','daily, or rebuild from the image'],'vm.noip':['Public IP','assigned','none; admin through a bastion'],
+ 'fn.timeout':['Timeout and concurrency','3 s, no reserved concurrency','set to the call budget, with reserved concurrency'],'fn.dlq':['Failure destination','none','dead-letter queue'],'fn.leastpriv':['Execution role','broad policy','least privilege'],
+ 'mtls':['Transport','TLS, one way','mutual TLS'],'api.timeout':['Timeouts and retries','client defaults','explicit timeouts, retries with backoff'],'idem':['Idempotency','none','request IDs, duplicates ignored','p'],
+ 'adp.breaker':['Circuit breaker','none','on, with timeouts'],'adp.retry':['Retries','none','backoff with jitter'],
+ 'queue.dlq':['Dead-letter queue','none','redrive after 5 failed receives'],'queue.enc':['Encryption','provider default','customer key at rest, TLS in transit'],'queue.retention':['Retention','4 days (SQS default)','long enough to replay (up to 14 days)'],'queue.lag':['Backlog alarm','none','alarm on age of the oldest message'],
+ 'cache.tls':['In-transit encryption','off','on'],'cache.enc':['At-rest encryption','off','on'],'cache.auth':['Authentication','none','AUTH token or RBAC users'],'cache.replica':['Replicas','0','1 or more in another zone'],'cache.evict':['Eviction','engine default','LRU with TTLs on every key'],
+ 'db.tls':['Connections','TLS optional','TLS required'],'db.pool':['Connection pooling','none','proxy or PgBouncer'],'db.mon':['Monitoring','basic metrics','performance insights and slow-query logs'],
+ 'obj.nopublic':['Public access','not blocked','blocked for the account and the bucket'],'obj.ver':['Versioning','off','on (object lock for records)'],'obj.life':['Lifecycle','none','cheaper tier after 30 days'],'obj.repl':['Replication','none','to region B'],
+ 'reg.immut':['Tags','mutable','immutable'],'reg.private':['Access','public endpoint','private endpoint only'],'art.ver':['Versioning','off','on, with retention'],'art.access':['Access policy','account-wide','least privilege'],
+ 'kms.rotate':['Key rotation','off','automatic, yearly'],'policy':['Access policy','account-wide','least privilege'],'kms.delwin':['Deletion waiting period','30 days','30 days'],
+ 'sec.rotate':['Rotation','off','every 30 days'],'sec.audit':['Access audit','management events only','every read audited, with alerts'],
+ 'mon.alarms':['Alarms','none','SLO and saturation alarms'],'mon.retention':['Log retention','never expires','per policy (for example 1 year)'],'mon.siem':['Security logs','not exported','sent to the SIEM'],'mon.dash':['Dashboards','none','one per service'],
+ 'dnshc':['Health checks','off','on'],'dnsdef':['Default record','none','set'],'dnsttl':['Record TTL','60 s','60 s or less'],'aa':['Multi-region mode','single region','active-active'],'zones':['Instances','1','2 or more'],'xzone':['Zones','1','2 or more'],'ha':['Standby','none','another zone'],'dxlink':['Connectivity','internet or VPN','dedicated circuit'],'perzone':['Gateways','one','one per zone'],
+ 'rate':['Client rate limit','none','per-client limit with 429 and Retry-After'],'enc':['Encryption','provider default','customer key at rest, TLS in transit'],'retention':['Retention','provider default','sized for replay'],'ver':['Versioning','off','on'],
+ 'tls':['Encryption in transit','optional','TLS 1.2 or later, required'],'auth':['Authentication','none','required'],'timeout':['Timeouts','defaults','set explicitly'],'cmk':['Encryption at rest','provider-managed key','customer-managed key'],'rotate':['Rotation','off','automatic'],'repl':['Replication','none','cross-region']
+};
+const csOf=(n,k)=>CS[n.type+'.'+k]||CS[k]||[k,'not set','recommended'];
+// Items read from fields of the component show the real value and are fixed by setting that field.
+const CS_LIVE={
+ dnshc:{cur:n=>n.health?'on':'off',rec:'on',fix:m=>{m.health=true}},dnsdef:{cur:n=>n.defaultRec?'set':'none',rec:'set',fix:m=>{m.defaultRec=true}},
+ dnsttl:{cur:n=>`${n.ttl??60} s`,rec:'60 s or less',fix:m=>{m.ttl=Math.min(+(m.ttl??60),60)}},aa:{cur:n=>n.multi||'single region',rec:'active-active',fix:m=>{m.multi='aa'}},
+ zones:{cur:n=>`${Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)} instance(s)`,rec:'2 or more, spread over zones',fix:m=>{m.rep=Math.max(2,m.rep||1);if(m.auto)m.auto.min=Math.max(2,m.auto.min)}},
+ xzone:{cur:n=>isManaged(n)?'managed: spans zones':`${Math.max(n.rep||1,autoOf(n)?autoOf(n).min:0)} instance(s)`,rec:'2 or more zones',fix:m=>{if(!isManaged(m))m.rep=Math.max(2,m.rep||1)}},
+ ha:{cur:n=>n.standby?`standby in zone ${zoneList()[1]||'b'}`:'none',rec:'standby in another zone',fix:m=>{m.standby=true}},
+ cmk:{cur:n=>n.enrich&&n.enrich.encryptRest===false?'off':'on',rec:'on, customer-managed key',fix:m=>{m.enrich={...(m.enrich||{}),encryptRest:true}}},
+ rate:{cur:n=>n.rateLimit?`${fmt(n.rateLimit)} rps`:'none',rec:'per-client limit',fix:m=>{m.rateLimit=Math.max(100,Math.round(((F[m.id]||{}).in||1000)*1.5/100)*100)}},
+ dxlink:{cur:n=>{const es=S.edges.filter(e=>e.from===n.id&&isFlow(e));return es.map(e=>`${e.to}: ${e.via}`).join(', ')||'no flows'},rec:'every flow over the dedicated circuit',fix:m=>{S.edges.filter(e=>e.from===m.id&&isFlow(e)).forEach(e=>e.via='dedicated')}},
+ perzone:{cur:n=>n.perAz?'one per zone':'one',rec:'one per zone',fix:m=>{m.perAz=true}}};
+BP_DERIVED.perzone=n=>!!n.perAz;BP_HINT.perzone='one per zone';
+// Everything about one critical item: setting, current value, recommendation, whether it is met, how to fix it.
+function csItem(n,x){const c=csOf(n,x.k),live=x.der&&CS_LIVE[x.k],v=(n.cfgv||{})[x.k];
+ const cur=live?live.cur(n):v!=null?v:x.on?c[2]:c[1],rec=live?live.rec:c[2],proc=c[3]==='p';
+ const rev=(n.cfgReview&&n.cfgReview.items||{})[x.k];
+ return {...x,setting:c[0],cur,rec,proc,met:x.on||(!live&&c[1]===c[2]),fix:live?live.fix:(m=>{m.cfg={...(m.cfg||{}),[x.k]:true};m.cfgv={...(m.cfgv||{}),[x.k]:c[2]}}),rev}}
+function fixSetting(id,k,quiet){const n=S.nodes[id];if(!n)return;const it=bpItems(n).find(x=>x.k===k);if(!it)return;const c=csItem(n,it);
+ act(`${id}: ${c.setting} → ${c.rec}`,()=>c.fix(S.nodes[id]),{src:{by:'rules',note:'critical setting, Well-Architected recommendation'},tradeoffs:quiet?null:[`+ ${c.l} (${PILLARS[c.p].l})`,`  was: ${c.cur}`],after:()=>{if(!$('#propDlg').hidden&&PTAB==='crit')openProps($('#propBody').dataset.id)}})}
+function fixAllSettings(id,critOnly){const n=S.nodes[id];if(!n)return;const open=bpItems(n).map(x=>csItem(n,x)).filter(c=>!c.met&&(!critOnly||c.c)&&!c.proc);if(!open.length){say(`${id}: nothing to fix.`,'s');return}
+ act(`${id}: apply ${open.length} recommended setting${open.length>1?'s':''}`,()=>{const m=S.nodes[id];open.forEach(c=>c.fix(m))},{src:{by:'rules',note:'critical settings, Well-Architected recommendations'},tradeoffs:open.map(c=>`+ ${c.setting}: ${c.cur} → ${c.rec}`),after:()=>{if(!$('#propDlg').hidden&&PTAB==='crit')openProps($('#propBody').dataset.id)}})}
+// Second opinion: the escalation model checks the recommendations for this component. Advisory; it changes nothing.
+let CSCTRL=null;
+async function reviewSettings(id){const n=S.nodes[id];if(!n)return;if(CSCTRL){CSCTRL.abort();return}const L=escCfg(),items=bpItems(n).map(x=>csItem(n,x));
+ const box=document.getElementById('csRev');const show=t=>{const b=document.getElementById('csRev');if(b)b.innerHTML=t};
+ const ctrl=new AbortController();CSCTRL=ctrl;const t0=Date.now();show(`<span class="why">Asking ${esc(L.model)} to check ${items.length} settings… <button type="button" class="btn" id="csStop">Stop</button></span>`);
+ const facts={component:`${n.id} ${T[n.type].label} "${n.name}"`,product:svcName(n),provider:pk().name,internetFacing:NP?NP.internetFacing(packDesign(),n.id):null,dataClassification:(n.enrich||{}).classification||null,
+  requirement:S.req?{availability:S.req.avail,rtoMinutes:S.req.rto,multiRegion:mr()}:null,settings:items.map(c=>({key:c.k,item:c.l,setting:c.setting,current:c.cur,recommended:c.rec,critical:!!c.c,pillar:c.p}))};
+ const sys=`You are a senior cloud architect giving a second opinion on recommended settings for one component. Use only the facts given and well-known provider documentation; do not invent products or numbers.
+For each setting say whether you agree with the recommended value for THIS component: "agree", "change" (give a better value) or "not needed" (explain why it does not apply). Keep each note under 25 words.
+Respond with JSON only: {"summary":"one sentence","items":[{"key":"...","verdict":"agree|change|not needed","value":"better value if change","note":"..."}]}`;
+ try{const txt=await llmChat(L,[{role:'system',content:sys},{role:'user',content:JSON.stringify(facts)}],{maxTokens:1200,timeoutMs:llmTimeout(),ctrl,onTok:k=>show(`<span class="why">${esc(L.model)} is checking · ${k} tokens · ${Math.round((Date.now()-t0)/1000)} s <button type="button" class="btn" id="csStop">Stop</button></span>`)});
+  const o=extractJSON(txt);if(!o||!Array.isArray(o.items))throw new Error('the model did not return a review');
+  const known=new Set(items.map(c=>c.k)),rv={};o.items.filter(x=>x&&known.has(x.key)).forEach(x=>{rv[x.key]={v:String(x.verdict||'').toLowerCase().slice(0,12),note:String(x.note||'').slice(0,200),value:x.value?String(x.value).slice(0,80):''}});
+  const m=S.nodes[id];if(m){m.cfgReview={model:L.model,at:new Date().toISOString(),summary:String(o.summary||'').slice(0,300),items:rv};persist()}
+  logAI(`Model ${L.model} · second opinion`,`Critical settings of ${id}: ${Object.values(rv).filter(x=>x.v==='agree').length}/${items.length} agreed`,o.summary||'',.7);
+  if(!$('#propDlg').hidden&&PTAB==='crit')openProps(id);else if(V.sel===id)renderAdvisor()}
+ catch(e){show(`<span class="crit">No second opinion: ${esc(e.message)}.</span> <span class="why">Settings → Second opinion and escalation.</span>`)}
+ finally{if(CSCTRL===ctrl)CSCTRL=null}}
+function csRows(n){const items=bpItems(n).map(x=>csItem(n,x));if(!items.length)return '<p class="why">No critical settings for this kind of component.</p>';
+ const R=n.cfgReview,badge=c=>{const r=c.rev;if(!r)return '';const cls=r.v==='agree'?'ok':r.v==='change'?'warn':'muted';return `<div class="csrev ${cls}"><b>2nd opinion: ${esc(r.v||'?')}</b>${r.value?` → ${esc(r.value)}`:''}${r.note?` · ${esc(r.note)}`:''}</div>`};
+ const open=items.filter(c=>!c.met),crit=open.filter(c=>c.c).length;
+ return `<p class="why">${items.length-open.length}/${items.length} as recommended${crit?` · <b class="crit">${crit} critical open</b>`:''}. Recommendations follow the AWS, Azure and Google Cloud Well-Architected frameworks; Fix applies the recommended value through the Action Guard (undo with Ctrl+Z).</p>
+  <div class="csbar"><button type="button" class="btn primary" data-csall="${esc(n.id)}" ${open.some(c=>!c.proc)?'':'disabled'}>Fix all open</button><button type="button" class="btn" data-csrev="${esc(n.id)}">${R?'Ask again':'Get second opinion'}</button><span id="csRev">${R?`<span class="why">${esc(R.model)} · ${esc((R.at||'').slice(0,16).replace('T',' '))}: ${esc(R.summary||'')}</span>`:''}</span></div>
+  <ul class="cslist">${items.map(c=>`<li class="${c.met?'met':c.c?'open crit-row':'open'}"><div class="lh"><b>${c.met?'✓':c.c?'!':'·'} ${esc(c.l)}</b><span><span class="pchip">${esc(PILLARS[c.p].l)}</span>${c.c?' <b class="crit bpc">critical</b>':''}</span></div>
+   <div class="lv"><span>${esc(c.setting)}: <b class="${c.met?'':'crit'}">${esc(c.cur)}</b></span>${c.met?'':`<span>Recommended: <b>${esc(c.rec)}</b></span>`}${c.hint?`<span class="why">${esc(c.hint)}</span>`:''}</div>
+   ${badge(c)}${c.met?'':`<div class="csact">${c.proc?`<button type="button" class="btn" data-csfix="${esc(n.id)}" data-k="${c.k}">Mark done</button>`:`<button type="button" class="btn" data-csfix="${esc(n.id)}" data-k="${c.k}">Fix: ${esc(c.rec)}</button>`}</div>`}</li>`).join('')}</ul>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-csfix],[data-csall],[data-csrev],#csStop');if(!t)return;
+ if(t.id==='csStop'){if(CSCTRL)CSCTRL.abort();return}if(t.dataset.csfix)fixSetting(t.dataset.csfix,t.dataset.k);else if(t.dataset.csall)fixAllSettings(t.dataset.csall);else if(t.dataset.csrev)reviewSettings(t.dataset.csrev)});
 function bpItems(n){const key=n.type==='user'?(n.origin==='corp'?'corp':''):n.type==='db'&&n.multi==='aa'?'dsql':n.type;return (BP[key]||[]).map(([k,l,p,c,pv])=>{const der=BP_DERIVED[k]&&(k!=='rate'||['waf','gw'].includes(n.type));const on=der?!!BP_DERIVED[k](n):!!(n.cfg&&n.cfg[k]);if(mr()&&(k==='repl'||k==='dxgw'))c=1;return {k,l,p,c,hint:pv?(pv[prov()]||''):'',der,on}})}
-function bpHTML(n){const it=bpItems(n);if(!it.length)return '';const ok=it.filter(x=>x.on).length,miss=it.filter(x=>x.c&&!x.on).length;
- return `<h4>Critical configuration · Well-Architected <span class="why">${ok}/${it.length} confirmed${miss?` · <span class="crit">${miss} critical open</span>`:''}</span></h4><div class="bp">${it.map(x=>`<label class="bprow${x.der?' der':''}"><input type="checkbox" data-bp="${x.k}" ${x.on?'checked':''} ${x.der?'disabled':''}><span><b>${esc(x.l)}</b>${x.hint?`<small>${esc(x.hint)}</small>`:''}${x.der?`<small>${esc(BP_HINT[x.k]||'set above')}</small>`:''}</span><span class="pchip" title="${esc(PILLARS[x.p].l)} pillar">${esc(PILLARS[x.p].l)}</span>${x.c?'<b class="crit bpc">critical</b>':''}</label>`).join('')}</div>
- <div class="why">Recommended for ${esc(svcName(n))} by the AWS, Azure and Google Cloud Well-Architected frameworks. The checks belong to the role, so they still apply if you change the product. Product-specific settings will come from the platform agent (WP5).</div>
- <div class="act"><button class="btn" id="bpAll" type="button">Confirm all recommended</button></div>`}
-function bindBP(n){document.querySelectorAll('[data-bp]').forEach(i=>i.onchange=e=>{const k=i.dataset.bp,on=i.checked,it=bpItems(n).find(x=>x.k===k);act(`${n.id}: ${it?it.l:k} ${on?'confirmed':'not confirmed'}`,()=>{const m=S.nodes[n.id];m.cfg={...(m.cfg||{}),[k]:on}})});
- const b=document.getElementById('bpAll');if(b)b.onclick=()=>act(`${n.id}: confirm all recommended settings`,()=>{const m=S.nodes[n.id];m.cfg={...(m.cfg||{})};bpItems(m).filter(x=>!x.der).forEach(x=>m.cfg[x.k]=true)})}
+function bpHTML(n){const it=bpItems(n);if(!it.length)return '';
+ return `<h4>Critical settings · Well-Architected</h4>${csRows(n)}<div class="act"><button class="btn" type="button" data-csprops="${esc(n.id)}">Open in a window</button></div>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-csprops]');if(t)openProps(t.dataset.csprops,'crit')});
+function bindBP(n){}
 
 /* ---------- subnets, security groups, application groups ---------- */
 const TIERS_NET=['edge','dmz','app','data','platform'];
@@ -2170,6 +2254,31 @@ function routeEdge(a,b){
 function polyLen(p){let L=0;for(let i=0;i<p.length-1;i++)L+=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);return L}
 function pointAt(p,t){const L=polyLen(p)*t;let acc=0;for(let i=0;i<p.length-1;i++){const s=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);if(acc+s>=L){const u=s?(L-acc)/s:0;return {x:p[i].x+(p[i+1].x-p[i].x)*u,y:p[i].y+(p[i+1].y-p[i].y)*u}}acc+=s}return p[p.length-1]}
 // Trace a route with rounded corners; horizontal runs hop over vertical runs of other flows.
+/* ---------- flow lines never lie on top of each other ---------- */
+// 1) the ends that share a side of a component are spread along that side;
+// 2) middle runs that share a corridor are moved apart. Works on the screen route of each flow, every frame.
+function separateRoutes(list){const k=V.k,sp=Math.max(8,12*k);
+ const side=(p,q)=>Math.abs(p.y-q.y)<.5?(q.x>p.x?'R':'L'):(q.y>p.y?'B':'T');
+ list.forEach(e=>{let p=e._pts;if(!p||p.length<2)return;
+  if(p.length===2){const a=p[0],b=p[1];if(Math.abs(a.y-b.y)<.5){const m=(a.x+b.x)/2;p=[a,{x:m,y:a.y},{x:m,y:b.y},b]}else if(Math.abs(a.x-b.x)<.5){const m=(a.y+b.y)/2;p=[a,{x:a.x,y:m},{x:b.x,y:m},b]}}
+  e._pts=p.map(q=>({x:q.x,y:q.y}))});
+ const G={};list.forEach(e=>{const p=e._pts;if(!p||p.length<3)return;const s0=side(p[0],p[1]),s1=side(p[p.length-1],p[p.length-2]);
+  (G[e.from+s0]=G[e.from+s0]||[]).push({e,end:0,s:s0,o:p[p.length-1]});(G[e.to+s1]=G[e.to+s1]||[]).push({e,end:1,s:s1,o:p[0]})});
+ Object.values(G).forEach(g=>{if(g.length<2)return;const vert=g[0].s==='L'||g[0].s==='R';g.sort((a,b)=>vert?a.o.y-b.o.y||a.o.x-b.o.x:a.o.x-b.o.x||a.o.y-b.o.y);
+  const lim=(vert?NH/2-6:NW/2-14)*k,step=Math.min(sp,2*lim/(g.length-1));
+  g.forEach((m,i)=>{const off=(i-(g.length-1)/2)*step,p=m.e._pts,a=m.end?p.length-1:0,b=m.end?p.length-2:1;if(vert){p[a].y+=off;p[b].y+=off}else{p[a].x+=off;p[b].x+=off}})});
+ // corridors: middle segments (not touching a component) that run on the same line and overlap
+ ['v','h'].forEach(dir=>{const segs=[];list.forEach(e=>{const p=e._pts;if(!p)return;for(let i=1;i<p.length-2;i++){const A=p[i],B=p[i+1];
+   if(dir==='v'&&Math.abs(A.x-B.x)<.5&&Math.abs(A.y-B.y)>1)segs.push({e,i,c:A.x,lo:Math.min(A.y,B.y),hi:Math.max(A.y,B.y)});
+   if(dir==='h'&&Math.abs(A.y-B.y)<.5&&Math.abs(A.x-B.x)>1)segs.push({e,i,c:A.y,lo:Math.min(A.x,B.x),hi:Math.max(A.x,B.x)})}});
+  segs.sort((a,b)=>a.c-b.c);const used=new Set();
+  segs.forEach((s0,ix)=>{if(used.has(ix))return;const grp=[s0];used.add(ix);
+   for(let j=ix+1;j<segs.length&&segs[j].c-s0.c<sp*.8;j++){if(used.has(j))continue;const t=segs[j];if(grp.some(g=>t.lo<g.hi-2&&t.hi>g.lo+2)){grp.push(t);used.add(j)}}
+   if(grp.length<2)return;const mid=grp.reduce((a,g)=>a+g.c,0)/grp.length;grp.sort((a,b)=>(a.e.from+a.e.to).localeCompare(b.e.from+b.e.to));
+   grp.forEach((g,n)=>{const v=mid+(n-(grp.length-1)/2)*sp,p=g.e._pts;if(dir==='v'){p[g.i].x=v;p[g.i+1].x=v}else{p[g.i].y=v;p[g.i+1].y=v}})})})}
+// The response path: the request route moved a few pixels to one side, drawn back toward the caller.
+function offsetRoute(p,d){return p.map((q,i)=>{let ox=0,oy=0;[[p[i-1],q],[q,p[i+1]]].forEach(([A,B])=>{if(!A||!B)return;const dx=B.x-A.x,dy=B.y-A.y;if(Math.abs(dy)<.5&&Math.abs(dx)>.5)oy=Math.sign(dx)*d;else if(Math.abs(dx)<.5&&Math.abs(dy)>.5)ox=-Math.sign(dy)*d});return {x:q.x+ox,y:q.y+oy}})}
+const hasResponse=(a,b)=>!!a&&!!b&&a.type!=='queue'&&b.type!=='queue'&&(S.settings.view||{}).resp!==false;
 function tracePath(e,vsegs){
  const p=e._pts,curved=S.settings.view.lines==='curved',Rr=curved?Math.max(18,70*V.k):Math.min(9*V.k,12),J=Math.max(3.5,5*V.k);ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);
  const seg=(u,v)=>Math.hypot(v.x-u.x,v.y-u.y);
@@ -2259,9 +2368,7 @@ function frame(now){
  const drawn=es.filter(e=>isFlow(e)||e.kind==='repl'||VW.deps||focus(e.from)||focus(e.to));
  es.forEach(e=>{e._drawn=false});
  drawn.forEach(e=>{e._pts=routeEdge(S.nodes[e.from],S.nodes[e.to]);e._drawn=true});
- // separate lanes where flows from different sources share the same vertical run
- const lanes={};drawn.filter(isFlow).forEach(e=>{const p=e._pts;if(p.length===4&&Math.abs(p[1].x-p[2].x)<.5){const k=Math.round(p[1].x/(6*V.k));(lanes[k]=lanes[k]||[]).push(e)}});
- Object.values(lanes).forEach(g=>{const src=[...new Set(g.map(e=>e.from))].sort((x,y)=>S.nodes[x].y-S.nodes[y].y);if(src.length<2)return;g.forEach(e=>{const o=(src.indexOf(e.from)-(src.length-1)/2)*10*V.k;e._pts[1].x+=o;e._pts[2].x+=o})});
+ separateRoutes(drawn.filter(isFlow));
  const vsegs=[];drawn.filter(isFlow).forEach(e=>{const p=e._pts;for(let i=0;i<p.length-1;i++)if(Math.abs(p[i].x-p[i+1].x)<.5&&Math.abs(p[i].y-p[i+1].y)>1)vsegs.push({e,x:p[i].x,y1:Math.min(p[i].y,p[i+1].y),y2:Math.max(p[i].y,p[i+1].y)})});
  const labels=[];
  drawn.forEach(e=>{
@@ -2281,14 +2388,17 @@ function frame(now){
   if(e.proto==='HTTP'||e.via==='internet')ctx.setLineDash([5,4]);else if(['privatelink','vpn','dedicated'].includes(e.via))ctx.setLineDash([10,3,2,3]);
   tracePath(e,vsegs);ctx.stroke();ctx.setLineDash([]);
   const an=Math.atan2(e0.y-pe.y,e0.x-pe.x),ah=Math.max(7,w*1.3)*Math.min(1.2,V.k+.2);ctx.fillStyle=hexA(c,Math.min(1,a0+.25));ctx.beginPath();ctx.moveTo(e0.x,e0.y);ctx.lineTo(e0.x-ah*Math.cos(an-.45),e0.y-ah*Math.sin(an-.45));ctx.lineTo(e0.x-ah*Math.cos(an+.45),e0.y-ah*Math.sin(an+.45));ctx.closePath();ctx.fill();
+  if(hasResponse(a,b)){const rp=offsetRoute(p,-(w/2+3.5*Math.min(1.2,V.k+.2)));e._rpts=rp;ctx.globalAlpha=dim?.12:.75;ctx.strokeStyle=hexA(c,.7);ctx.lineWidth=Math.max(1,Math.min(2,w*.4));ctx.setLineDash([3,3]);ctx.beginPath();rp.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.stroke();ctx.setLineDash([]);
+   const r0=rp[0],r1=rp[1],an2=Math.atan2(r0.y-r1.y,r0.x-r1.x),ah2=5*Math.min(1.2,V.k+.2);ctx.fillStyle=hexA(c,.85);ctx.beginPath();ctx.moveTo(r0.x,r0.y);ctx.lineTo(r0.x-ah2*Math.cos(an2-.5),r0.y-ah2*Math.sin(an2-.5));ctx.lineTo(r0.x-ah2*Math.cos(an2+.5),r0.y-ah2*Math.sin(an2+.5));ctx.closePath();ctx.fill()}else e._rpts=null;
   ctx.globalAlpha=1;
   labels.push({e,f,dim,sel:sel||hovE,bad:e.proto==='HTTP'||(e.via==='internet'&&EXTERNAL.includes(b.type)&&a.type!=='egw')});
-  if(V.mode!=='flat'&&!reduce.matches&&f>0){e._acc=(e._acc||0)+dt*Math.min(28,f/45);while(e._acc>1&&particles.length<900){e._acc-=1;particles.push({e,t:0})}}
+  if(V.mode!=='flat'&&!reduce.matches&&f>0){e._acc=(e._acc||0)+dt*Math.min(28,f/45);while(e._acc>1&&particles.length<900){e._acc-=1;particles.push({e,t:0})}
+   if(e._rpts){e._racc=(e._racc||0)+dt*Math.min(20,f/60);while(e._racc>1&&particles.length<1300){e._racc-=1;particles.push({e,t:0,back:true})}}}
  });
  if(V.mode!=='flat'){
   particles=particles.filter(p=>p.e._drawn&&fls.includes(p.e));
   particles.forEach(p=>{const b=S.nodes[p.e.to],u=F[b.id]?F[b.id].util:0;const sp=.15+.55*(1-Math.min(1,isFinite(u)?u:1)*.8);p.t+=dt*sp*Math.min(2,300/Math.max(120,polyLen(p.e._pts)/V.k));
-   const q=pointAt(p.e._pts,Math.min(1,p.t));ctx.fillStyle=colOf(b);ctx.globalAlpha=rel&&!(rel.has(p.e.from)&&rel.has(p.e.to))?.1:.95;ctx.beginPath();ctx.arc(q.x,q.y,2.3*Math.min(1.3,V.k+.3),0,7);ctx.fill()});
+   if(p.back&&!p.e._rpts){p.t=2;return}const q=p.back?pointAt(p.e._rpts,1-Math.min(1,p.t)):pointAt(p.e._pts,Math.min(1,p.t));ctx.fillStyle=colOf(b);ctx.globalAlpha=(rel&&!(rel.has(p.e.from)&&rel.has(p.e.to))?.1:.95)*(p.back?.7:1);ctx.beginPath();ctx.arc(q.x,q.y,(p.back?1.6:2.3)*Math.min(1.3,V.k+.3),0,7);ctx.fill()});
   ctx.globalAlpha=1;particles=particles.filter(p=>p.t<1);
  }
  // labels: on the longest run, never over a component or another label; crowded ones appear on hover
@@ -3499,10 +3609,10 @@ async function designOpinion(focus){
 }
 
 /* ---------- legend and line options ---------- */
-function renderLegendCtl(){const v=S.settings.view;const a=$('#lgLines'),b=$('#lgDeps'),c=$('#lgGroups');if(a)a.value=v.lines;if(b)b.checked=!!v.deps;if(c)c.checked=v.groups!==false}
+function renderLegendCtl(){const v=S.settings.view;const a=$('#lgLines'),b=$('#lgDeps'),c=$('#lgGroups');if(a)a.value=v.lines;if(b)b.checked=!!v.deps;if(c)c.checked=v.groups!==false;const r=$('#lgResp');if(r)r.checked=v.resp!==false}
 $('#lgLines').onchange=e=>{S.settings.view.lines=e.target.value;persist()};
 $('#lgDeps').onchange=e=>{S.settings.view.deps=e.target.checked;persist()};
-$('#lgGroups').onchange=e=>{S.settings.view.groups=e.target.checked;persist()};$('#tidyBtn').onclick=tidyLayout;
+$('#lgGroups').onchange=e=>{S.settings.view.groups=e.target.checked;persist()};$('#lgResp').onchange=e=>{S.settings.view.resp=e.target.checked;persist()};$('#tidyBtn').onclick=tidyLayout;
 $('#legBtn').onclick=()=>{if(document.body.classList.contains('focus')){openSide('pLeg');return}const l=$('#pLeg');l.hidden=!l.hidden;$('#legBtn').setAttribute('aria-pressed',!l.hidden);if(!l.hidden)placePanels(false)};
 
 /* ---------- focus layout: one side panel with a rail, slim console bar ---------- */
@@ -4154,6 +4264,9 @@ function provChip(p,dflt){if(!p)return `<span class="pv d">${esc(dflt||'default'
 let PTAB='attr';
 function openProps(id,tab){if(tab)PTAB=tab;const n=S.nodes[id];if(!n)return;document.querySelectorAll('[data-ptab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.ptab===PTAB)));
  if(PTAB==='lim'){$('#propTitle').textContent=`Limits · ${n.id} ${n.name}`;$('#propBody').innerHTML=limitsHTML(n);$('#propDlg').hidden=false;$('#propBody').dataset.id=id;return}
+ if(PTAB==='crit'){const others=Object.values(S.nodes).filter(m=>m.parent==='root'&&bpItems(m).some(x=>x.c&&!csItem(m,x).met));$('#propTitle').textContent=`Critical settings · ${n.id} ${n.name}`;
+  $('#propBody').innerHTML=`${others.length?`<label class="why">Components with critical settings open <select id="csPick">${[n,...others.filter(m=>m.id!==n.id)].map(m=>`<option value="${esc(m.id)}" ${m.id===n.id?'selected':''}>${esc(m.id)} ${esc(m.name)} (${bpItems(m).filter(x=>x.c&&!csItem(m,x).met).length})</option>`).join('')}</select></label>`:''}${csRows(n)}`;
+  const pk2=document.getElementById('csPick');if(pk2)pk2.onchange=e=>openProps(e.target.value,'crit');$('#propDlg').hidden=false;$('#propBody').dataset.id=id;return}
  if(PTAB==='think'){$('#propTitle').textContent=`Thinking · ${n.id} ${n.name}`;$('#propBody').innerHTML=thinkHTML(n);$('#propDlg').hidden=false;$('#propBody').dataset.id=id;return}const pv=n.prov||{},f=F[n.id]||{},val=v=>v===true?'yes':v===false?'no':v==null||v===''?'—':typeof v==='object'?esc(JSON.stringify(v)):esc(String(v));
  const skip=new Set(['x','y','prov','enrich','_pts','failed','expanded','_tier']),shown=k=>k==='net'&&n.net?esc((netById(n.net)||{}).name||n.net):k==='region'?esc(regCity(n.region==='B'?regNames().b:regNames().a)):val(n[k]),rows=Object.keys(n).filter(k=>!skip.has(k)).map(k=>[PROP_LABEL[k]||k,shown(k),provChip(pv[k]||(k==='id'||k==='type'?null:pv._new),k==='id'?'generated':k==='type'?'chosen':'default')]);
  const cfg=Object.entries(n.enrich||{}).map(([k,v])=>[PROP_LABEL[k]||k,val(v),provChip(pv['enrich.'+k],'best-practice default')]);

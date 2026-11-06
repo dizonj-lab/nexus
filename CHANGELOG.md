@@ -5,6 +5,30 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.5] — 2026-11-06
+
+### Added
+- **Responses are shown.** Every request flow now has its response: a thin
+  dashed line beside it, with an arrow and dots flowing back to the caller.
+  Flows into or out of a queue have none (an event has no reply). Legend →
+  "Responses (backward)" turns them off.
+- **Critical settings you can act on** (Inspector, Properties → Critical
+  settings, or the Advisor's "Open critical settings"). Each item shows the
+  setting, its current value (the product's default when nobody set it, for
+  example RDS backups: 1 day by API, 7 in the console) and the recommended
+  value. **Fix** applies it through the Action Guard, recorded as set by the
+  rules; **Fix all open** does the whole component; practices are **Mark
+  done**. **Get second opinion** asks the escalation model to check each
+  recommendation for this component (agree, change with a better value, or
+  not needed); it is shown next to each item and changes nothing by itself.
+
+### Changed
+- **Flow lines no longer lie on top of each other.** Lines that leave or
+  reach the same side of a component start at different points along it,
+  and lines that share a corridor are moved apart.
+- The embedded canvas address carries the release, and the edge serves the
+  canvas without caching, so an upgrade shows after one reload.
+
 ## [0.3.4] — 2026-11-06
 
 ### Added

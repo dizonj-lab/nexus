@@ -5,6 +5,7 @@
 //   sim-runaway    streams the answer, then keeps sending whitespace forever (a known local-model failure in JSON mode)
 //   sim-hang       accepts the request and never answers (tests the time limit and Stop)
 //   sim-plain      answers without streaming
+//   sim-settings   reviews critical settings (agrees, except connection pooling)
 import http from "node:http";
 const port = +process.argv[2] || 18080;
 const answer = JSON.stringify({
@@ -19,15 +20,18 @@ const answer = JSON.stringify({
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS" };
 http.createServer((req, res) => {
   if (req.method === "OPTIONS") { res.writeHead(204, cors); return res.end(); }
-  if (req.url.endsWith("/models")) { res.writeHead(200, { ...cors, "Content-Type": "application/json" }); return res.end(JSON.stringify({ data: ["sim-stream", "sim-runaway", "sim-hang", "sim-plain"].map(id => ({ id })) })); }
+  if (req.url.endsWith("/models")) { res.writeHead(200, { ...cors, "Content-Type": "application/json" }); return res.end(JSON.stringify({ data: ["sim-stream", "sim-runaway", "sim-hang", "sim-plain", "sim-settings"].map(id => ({ id })) })); }
   let body = ""; req.on("data", c => body += c); req.on("end", () => {
     let j = {}; try { j = JSON.parse(body); } catch {}
     const model = j.model || "sim-stream";
+    let ans = answer;
+    if (model === "sim-settings") { let keys = []; try { keys = JSON.parse(j.messages[1].content).settings.map((x) => x.key); } catch {}
+      ans = JSON.stringify({ summary: "Simulated review of the settings.", items: keys.map((k) => k === "pool" ? { key: k, verdict: "change", value: "RDS Proxy", note: "Simulated: managed pooling suits Fargate tasks." } : { key: k, verdict: "agree", note: "Simulated." }) }); }
     console.log(new Date().toISOString(), model, "stream=" + !!j.stream, "max_tokens=" + j.max_tokens, "prompt bytes=" + body.length);
     if (model === "sim-hang") return; // never answers
-    if (model === "sim-plain" || !j.stream) { res.writeHead(200, { ...cors, "Content-Type": "application/json" }); return res.end(JSON.stringify({ choices: [{ message: { content: answer } }] })); }
+    if (model === "sim-plain" || !j.stream) { res.writeHead(200, { ...cors, "Content-Type": "application/json" }); return res.end(JSON.stringify({ choices: [{ message: { content: ans } }] })); }
     res.writeHead(200, { ...cors, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
-    const toks = answer.match(/.{1,6}/g); let i = 0, closed = false; res.on("close", () => closed = true);
+    const toks = ans.match(/.{1,24}/gs); let i = 0, closed = false; res.on("close", () => closed = true);
     const send = t => res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: t } }] })}\n\n`);
     const tick = setInterval(() => {
       if (closed) return clearInterval(tick);

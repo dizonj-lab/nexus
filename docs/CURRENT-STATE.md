@@ -1,4 +1,8 @@
-# NEXUS — Current state (v0.3.4)
+# NEXUS — Current state (v0.3.5)
+
+- Flow lines kept apart; responses drawn back to the caller; critical
+  settings with the real value, recommendation, Fix and a second opinion.
+
 
 - **Knowledge packs** (`packs/`): provider limits with sources, placement
   rules and Route 53 failover rules, tested and inlined into the canvas.
