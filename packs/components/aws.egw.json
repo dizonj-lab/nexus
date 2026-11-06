@@ -1,0 +1,40 @@
+{
+ "id": "aws.egw",
+ "version": "1.0.0",
+ "title": "NAT gateway (egress)",
+ "owner": "team-network",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "egw",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "bw",
+   "label": "Bandwidth",
+   "kind": "behaviour",
+   "default": 5,
+   "min": 5,
+   "max": 100,
+   "unit": "Gbps",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html",
+   "checked": "2026-11-06",
+   "note": "Scales automatically from 5 to 100 Gbps."
+  },
+  {
+   "id": "conns",
+   "label": "Connections per destination",
+   "kind": "quota",
+   "default": 55000,
+   "min": null,
+   "max": 440000,
+   "unit": "connections",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html",
+   "checked": "2026-11-06",
+   "note": "55,000 per IP address; up to 8 IPs per zonal NAT gateway."
+  }
+ ]
+}

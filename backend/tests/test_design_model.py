@@ -19,3 +19,15 @@ def test_unknown_type_is_still_rejected():
     d = dm.sample_design()
     d["nodes"]["X1"] = {"id": "X1", "type": "teleporter", "name": "X", "parent": "root"}
     assert any("X1" in e for e in dm.validate(d))
+
+
+def test_subnets_per_zone_and_pinned_zones_are_valid():
+    d = dm.sample_design()
+    d["nets"] = [{"id": "NET1", "name": "Private · application", "tier": "app", "std": True, "off": 10, "region": "A"},
+                 {"id": "NET2", "name": "Isolated · data", "tier": "data", "azs": ["a", "b"],
+                  "cidrs": {"a": "10.0.20.0/24", "b": "10.0.21.0/24"}, "region": "A"}]
+    d["nodes"]["SVC1"].update({"net": "NET1", "az": "b"})
+    d["nodes"]["DNS1"] = {"id": "DNS1", "type": "dns", "name": "Route 53", "parent": "root", "policy": "failover",
+                          "health": True, "hcInterval": 10, "hcThreshold": 3, "ttl": 10, "hcType": "alarm"}
+    d["settings"] = {**d.get("settings", {}), "view": {"azLayout": "side", "propPos": {"l": "100px", "t": "80px"}}}
+    assert dm.validate(d) == []

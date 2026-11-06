@@ -1,0 +1,27 @@
+{
+ "id": "aws.llm",
+ "version": "1.0.0",
+ "title": "Amazon Bedrock",
+ "owner": "team-ai",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "llm",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "tpm",
+   "label": "Throughput quotas",
+   "kind": "quota",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "tokens and requests per minute",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-runtime.html",
+   "checked": "2026-11-06",
+   "note": "Set per model and per Region; see Service Quotas → Amazon Bedrock. Cross-Region inference has its own quotas."
+  }
+ ]
+}

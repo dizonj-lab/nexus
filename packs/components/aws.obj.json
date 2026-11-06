@@ -1,0 +1,51 @@
+{
+ "id": "aws.obj",
+ "version": "1.0.0",
+ "title": "Amazon S3",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "obj",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "get",
+   "label": "GET/HEAD per second per prefix",
+   "kind": "behaviour",
+   "default": 5500,
+   "min": null,
+   "max": null,
+   "unit": "rps",
+   "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html",
+   "checked": "2026-11-06",
+   "note": "A minimum per prefix; S3 scales gradually and may answer 503 Slow Down meanwhile. Spread keys over prefixes.",
+   "sim": "rps"
+  },
+  {
+   "id": "put",
+   "label": "PUT/COPY/POST/DELETE per second per prefix",
+   "kind": "behaviour",
+   "default": 3500,
+   "min": null,
+   "max": null,
+   "unit": "rps",
+   "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "object",
+   "label": "Maximum object size",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 48.8,
+   "unit": "TiB",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html",
+   "checked": "2026-11-06",
+   "note": "Multipart upload; a single PUT is up to 5 GB."
+  }
+ ]
+}

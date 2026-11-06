@@ -1,0 +1,26 @@
+{
+ "id": "gcp.queue",
+ "version": "1.0.0",
+ "title": "Pub/Sub",
+ "owner": "team-integration",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "queue",
+  "provider": "gcp"
+ },
+ "facts": [
+  {
+   "id": "msg",
+   "label": "Maximum message size",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 10,
+   "unit": "MB",
+   "adjustable": false,
+   "source": "https://docs.cloud.google.com/pubsub/quotas",
+   "checked": "2026-11-06"
+  }
+ ]
+}

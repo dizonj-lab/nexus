@@ -1,0 +1,55 @@
+{
+ "id": "aws.cdn",
+ "version": "1.0.0",
+ "title": "Amazon CloudFront",
+ "owner": "team-network",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "cdn",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "rps",
+   "label": "Requests per second per distribution",
+   "kind": "quota",
+   "default": 250000,
+   "min": null,
+   "max": null,
+   "unit": "rps",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html",
+   "checked": "2026-11-06",
+   "note": "Adjustable: request an increase in Service Quotas. Does not apply to flat-rate pricing plans.",
+   "sim": "rps"
+  },
+  {
+   "id": "transfer",
+   "label": "Data transfer rate per distribution",
+   "kind": "quota",
+   "default": 150,
+   "min": null,
+   "max": null,
+   "unit": "Gbps",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html",
+   "checked": "2026-11-06",
+   "note": "Adjustable through Service Quotas.",
+   "sim": "gbps"
+  },
+  {
+   "id": "origin_timeout",
+   "label": "Origin response timeout",
+   "kind": "setting",
+   "default": 30,
+   "min": 1,
+   "max": 120,
+   "unit": "s",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html",
+   "checked": "2026-11-06",
+   "note": "More than 120 s by request."
+  }
+ ]
+}

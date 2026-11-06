@@ -1,0 +1,107 @@
+{
+ "id": "aws.dns",
+ "version": "1.0.0",
+ "title": "Amazon Route 53",
+ "owner": "team-network",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "dns",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "hc_interval",
+   "label": "Health check interval",
+   "kind": "setting",
+   "default": 30,
+   "min": 10,
+   "max": 30,
+   "unit": "s",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/Route53/latest/APIReference/API_HealthCheckConfig.html",
+   "checked": "2026-11-06",
+   "note": "10 s (fast) or 30 s (standard); fixed once the check exists.",
+   "field": "hcInterval"
+  },
+  {
+   "id": "hc_threshold",
+   "label": "Failure threshold",
+   "kind": "setting",
+   "default": 3,
+   "min": 1,
+   "max": 10,
+   "unit": "checks",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/cli/latest/reference/route53/update-health-check.html",
+   "checked": "2026-11-06",
+   "field": "hcThreshold"
+  },
+  {
+   "id": "ttl",
+   "label": "Record TTL (NEXUS default)",
+   "kind": "setting",
+   "default": 60,
+   "min": 0,
+   "max": null,
+   "unit": "s",
+   "source": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-values-basic.html",
+   "checked": "2026-11-06",
+   "note": "Alias records use the target's TTL. Not yet confirmed against the source page.",
+   "field": "ttl",
+   "verified": false
+  },
+  {
+   "id": "records",
+   "label": "Records per hosted zone",
+   "kind": "quota",
+   "default": 10000,
+   "min": null,
+   "max": null,
+   "unit": "records",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DNSLimitations.html",
+   "checked": "2026-11-06",
+   "note": "Extra charge above 10,000."
+  },
+  {
+   "id": "zones",
+   "label": "Hosted zones per account",
+   "kind": "quota",
+   "default": 500,
+   "min": null,
+   "max": null,
+   "unit": "zones",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DNSLimitations.html",
+   "checked": "2026-11-06"
+  }
+ ],
+ "rules": [
+  {
+   "id": "dns.failover-without-health",
+   "check": "dns.failover-health",
+   "severity": "crit",
+   "facts": [
+    "hc_interval",
+    "hc_threshold"
+   ]
+  },
+  {
+   "id": "dns.failover-slower-than-rto",
+   "check": "dns.failover-rto",
+   "severity": "warn",
+   "facts": [
+    "hc_interval",
+    "hc_threshold",
+    "ttl"
+   ]
+  },
+  {
+   "id": "dns.probe-private-endpoint",
+   "check": "dns.probe-private",
+   "severity": "warn",
+   "facts": []
+  }
+ ]
+}

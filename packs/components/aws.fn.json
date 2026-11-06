@@ -1,0 +1,79 @@
+{
+ "id": "aws.fn",
+ "version": "1.0.0",
+ "title": "AWS Lambda",
+ "owner": "team-platform",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "fn",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "concurrency",
+   "label": "Concurrent executions per Region",
+   "kind": "quota",
+   "default": 1000,
+   "min": null,
+   "max": null,
+   "unit": "executions",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
+   "checked": "2026-11-06",
+   "note": "Shared by every function in the Region. NEXUS plans 5 rps per execution (about 200 ms per call). New accounts may start lower.",
+   "sim": "rps",
+   "rps_per_unit": 5
+  },
+  {
+   "id": "memory",
+   "label": "Memory",
+   "kind": "setting",
+   "default": 128,
+   "min": 128,
+   "max": 10240,
+   "unit": "MB",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
+   "checked": "2026-11-06",
+   "note": "1 MB steps; 1,769 MB gives one vCPU."
+  },
+  {
+   "id": "timeout",
+   "label": "Timeout",
+   "kind": "setting",
+   "default": 3,
+   "min": 1,
+   "max": 900,
+   "unit": "s",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-timeout.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "payload",
+   "label": "Synchronous payload (request and response)",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 6,
+   "unit": "MB",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
+   "checked": "2026-11-06",
+   "note": "Asynchronous invocations allow 1 MB."
+  },
+  {
+   "id": "tmp",
+   "label": "Ephemeral storage (/tmp)",
+   "kind": "setting",
+   "default": 512,
+   "min": 512,
+   "max": 10240,
+   "unit": "MB",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-ephemeral-storage.html",
+   "checked": "2026-11-06"
+  }
+ ]
+}

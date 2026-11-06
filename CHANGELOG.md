@@ -5,6 +5,71 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.4] — 2026-11-06
+
+### Added
+- **Knowledge packs** (`packs/`): the first externalized knowledge, as proposed
+  in `docs/design/PACKS.md`. 21 vendor packs hold provider limits with their
+  default, minimum, maximum, whether they can be raised, the official source
+  and the date checked (AWS, plus Azure and Google Cloud where known). A
+  placement pack says what may go in which subnet, zone and region, and why.
+  The Route 53 pack checks failover: no health checks, failover slower than
+  the RTO (detection plus TTL), and probing private endpoints. Packs are
+  validated against a schema, tested (`node --test packs/tests/*.test.mjs`)
+  and inlined into the canvas by `node packs/build.mjs`.
+- **Subnets in every zone.** A new design gets public, application and data
+  subnets with one CIDR per zone, and each component is placed in the subnet
+  that fits it best; region B gets its own. Layers → "Add standard subnets"
+  does the same for an existing design. Components know their region, subnet
+  and zones (Properties → Thinking).
+- **Drag and drop between subnets, zones and regions.** While you drag, the
+  target turns green (fits), amber (possible, with risks) or red (not
+  possible), with the reason. Possible moves follow you: the Action Guard
+  shows the pros and cons from the placement pack. Impossible ones (a managed
+  queue or API gateway in a subnet, an internet-facing load balancer in a
+  private subnet, a full subnet, a subnet in the other region) snap back and
+  the console says why. Cancel puts the component back.
+- **Zones side by side** (Layers → Zones on the canvas, or "zones side by
+  side"): one lane per zone with what runs there: instances, the database
+  standby with its replication, zonal services and that zone's subnets.
+  Drop a component in another lane to pin it to that zone; a load balancer
+  cannot be pinned (it needs two zones).
+- **Reconnect a flow.** Select a flow and drag either end to another
+  component. The Action Guard shows the effect first: load moved,
+  utilisation, errors and latency. Technically wrong connections are refused
+  while you hover, with the reason.
+- **Properties window**: compact (460 px), movable by its title bar and
+  resizable from its corner; it no longer covers the canvas. Tabs:
+  Attributes, **Limits and defaults** (from the packs, with sources) and
+  **Thinking** (what the component knows, sees and concludes, with fixes).
+- **Browser checks** in `poc/tests/` with a simulated model server;
+  `./poc/tests/run-all.sh` runs everything. Test plan:
+  `docs/test-plans/v0.3.4.md`.
+
+### Changed
+- **Singapore by default**: region A is ap-southeast-1 (Singapore) on AWS,
+  Southeast Asia on Azure and asia-southeast1 on Google Cloud; region B is
+  Jakarta (Hong Kong on Azure).
+- The simulator uses the packs' provider limits: CloudFront allows 250,000
+  requests per second per distribution by default (was a planning figure of
+  100,000). Above it, the Advisor says to request an increase in Service
+  Quotas and cites the AWS page; fixed limits say they cannot be raised.
+- A value above a provider's hard limit (for example database storage) makes
+  the change "not supported" in the Action Guard.
+- Route 53 health checks in Terraform use the component's interval and
+  failure threshold.
+
+### Fixed
+- **Second opinion on a new design was slow or seemed to freeze.** The model
+  was asked to rewrite the whole design as operations, with no time limit and
+  no limit on the answer. Now a new design is reviewed as a result and may
+  only be amended (up to six operations); the answer is streamed, with a
+  token count; it stops as soon as a complete answer arrives (some local
+  models keep sending blank space); it is capped in length; it gives up after
+  a time limit (Settings → Second opinion, default 120 s); and **Stop**
+  cancels it while opinion 1 stays available.
+- Clicking a flow that crosses a group border selected the group instead.
+
 ## [0.3.3] — 2026-11-05
 
 ### Fixed

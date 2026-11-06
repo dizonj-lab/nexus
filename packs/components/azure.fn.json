@@ -1,0 +1,27 @@
+{
+ "id": "azure.fn",
+ "version": "1.0.0",
+ "title": "Azure Functions (Consumption)",
+ "owner": "team-platform",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "fn",
+  "provider": "azure"
+ },
+ "facts": [
+  {
+   "id": "timeout",
+   "label": "Function timeout (Consumption plan)",
+   "kind": "setting",
+   "default": 5,
+   "min": null,
+   "max": 10,
+   "unit": "min",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-scale",
+   "checked": "2026-11-06",
+   "note": "Consumption is a legacy plan; Flex Consumption defaults to 30 min. HTTP triggers must answer within 230 s."
+  }
+ ]
+}

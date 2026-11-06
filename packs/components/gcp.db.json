@@ -1,0 +1,28 @@
+{
+ "id": "gcp.db",
+ "version": "1.0.0",
+ "title": "Cloud SQL",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "db",
+  "provider": "gcp"
+ },
+ "facts": [
+  {
+   "id": "storage",
+   "label": "Maximum storage",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 65536,
+   "unit": "GB",
+   "adjustable": false,
+   "source": "https://docs.cloud.google.com/sql/docs/quotas",
+   "checked": "2026-11-06",
+   "note": "Dedicated-core instances; shared-core is limited to 3 TB.",
+   "field": "sizeGB"
+  }
+ ]
+}

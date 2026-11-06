@@ -16,6 +16,8 @@ and LikeC4 are generated from the same design model.
 | `backend/` | FastAPI API: auth, RBAC, design store, changesets, agent harness (`app/harness`, cards in `agents/`) |
 | `schema/` | Design-model JSON schema and the sample design |
 | `poc/prototype/index.html` | The canvas (single file), embedded by the app; also runs on its own |
+| `packs/` | Knowledge packs: provider limits with sources, placement rules, component rules; tested and inlined into the canvas (`node packs/build.mjs`) |
+| `poc/tests/` | Browser checks for the canvas with a simulated model server (`./poc/tests/run-all.sh`) |
 | `poc/strategy/` | NEXUS Strategy: the Chief Technology Architect's workbench (app page /strategy); hands principles, guardrails and the stack to the canvas |
 | `architecture/likec4/nexus.c4` | Target architecture as a LikeC4 model |
 | `landing/` | Public landing page (static): product story, design-break-correct walkthrough, demo video; sign-up is Coming soon |
@@ -34,7 +36,11 @@ cd frontend && npm install && npm run dev      # http://localhost:3000
 ```
 
 ```bash
-cd backend && .venv/bin/python -m pytest -q   # 41 tests
+cd backend && .venv/bin/python -m pytest -q   # 89 tests
+```
+
+```bash
+./poc/tests/run-all.sh                         # packs + canvas browser checks
 ```
 
 ## Deploy on Buddy

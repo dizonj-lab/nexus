@@ -1,0 +1,75 @@
+{
+ "id": "aws.lb",
+ "version": "1.0.0",
+ "title": "Application Load Balancer",
+ "owner": "team-network",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "lb",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "per_region",
+   "label": "Load balancers per Region",
+   "kind": "quota",
+   "default": 50,
+   "min": null,
+   "max": null,
+   "unit": "load balancers",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "targets",
+   "label": "Targets per load balancer",
+   "kind": "quota",
+   "default": 1000,
+   "min": null,
+   "max": null,
+   "unit": "targets",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "listeners",
+   "label": "Listeners per load balancer",
+   "kind": "quota",
+   "default": 50,
+   "min": null,
+   "max": null,
+   "unit": "listeners",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "rules",
+   "label": "Rules per load balancer",
+   "kind": "quota",
+   "default": 100,
+   "min": null,
+   "max": null,
+   "unit": "rules",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html",
+   "checked": "2026-11-06",
+   "note": "Target groups per load balancer are fixed at 100."
+  },
+  {
+   "id": "idle",
+   "label": "Idle timeout",
+   "kind": "setting",
+   "default": 60,
+   "min": 1,
+   "max": 4000,
+   "unit": "s",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html",
+   "checked": "2026-11-06"
+  }
+ ]
+}

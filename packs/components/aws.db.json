@@ -1,0 +1,80 @@
+{
+ "id": "aws.db",
+ "version": "1.0.0",
+ "title": "Amazon RDS and Aurora",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "db",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "replicas",
+   "label": "Read replicas per source (MySQL, MariaDB, PostgreSQL)",
+   "kind": "quota",
+   "default": 15,
+   "min": 0,
+   "max": 15,
+   "unit": "replicas",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html",
+   "checked": "2026-11-06",
+   "note": "Oracle and SQL Server allow 5; Aurora allows 15 per cluster.",
+   "field": "readReplicas"
+  },
+  {
+   "id": "storage",
+   "label": "Maximum storage (MySQL, PostgreSQL, MariaDB)",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 65536,
+   "unit": "GiB",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html",
+   "checked": "2026-11-06",
+   "note": "64 TiB. SQL Server 16 TiB on most storage types. Aurora up to 256 TiB on recent versions.",
+   "field": "sizeGB"
+  },
+  {
+   "id": "backup",
+   "label": "Backup retention",
+   "kind": "setting",
+   "default": 7,
+   "min": 0,
+   "max": 35,
+   "unit": "days",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.BackupRetention.html",
+   "checked": "2026-11-06",
+   "note": "7 days in the console, 1 day by API."
+  },
+  {
+   "id": "instances",
+   "label": "DB instances per Region",
+   "kind": "quota",
+   "default": 40,
+   "min": null,
+   "max": null,
+   "unit": "instances",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html",
+   "checked": "2026-11-06",
+   "note": "Shared with Aurora, Neptune and DocumentDB."
+  },
+  {
+   "id": "failover",
+   "label": "Multi-AZ failover time (typical)",
+   "kind": "behaviour",
+   "default": null,
+   "min": 60,
+   "max": 120,
+   "unit": "s",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.Failover.html",
+   "checked": "2026-11-06",
+   "note": "Typical, not guaranteed. Multi-AZ DB clusters: under 35 s."
+  }
+ ]
+}

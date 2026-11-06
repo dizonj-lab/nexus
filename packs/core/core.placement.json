@@ -1,0 +1,345 @@
+{
+ "id": "core.placement",
+ "version": "1.0.0",
+ "title": "Where components can run: subnets, zones and regions",
+ "owner": "team-network",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "*",
+  "provider": "*"
+ },
+ "tiers": {
+  "edge": "Public subnets (route to the internet gateway)",
+  "dmz": "Ingress subnets (public, behind the edge)",
+  "app": "Private application subnets (outbound through NAT)",
+  "data": "Isolated data subnets (no internet route)",
+  "platform": "Shared services subnets"
+ },
+ "reserved_ips": {
+  "aws": 5,
+  "azure": 5,
+  "gcp": 4,
+  "vmware": 3
+ },
+ "types": {
+  "user": {
+   "subnet": false,
+   "why": "Users are outside your network."
+  },
+  "ext": {
+   "subnet": false,
+   "why": "An external system runs outside your network. Reach it through private connectivity, a VPN or the egress gateway."
+  },
+  "saas": {
+   "subnet": false,
+   "why": "A SaaS service runs in the vendor's network, not in your subnets. Reach it through a private link or the egress gateway."
+  },
+  "dns": {
+   "subnet": false,
+   "region": false,
+   "why": "DNS traffic steering is a global service: it answers from the provider's edge, not from a subnet or a region."
+  },
+  "cdn": {
+   "subnet": false,
+   "region": false,
+   "why": "A CDN is global: it runs at the provider's edge locations, not in your subnets."
+  },
+  "waf": {
+   "subnet": false,
+   "why": "The WAF is attached to the CDN, load balancer or API gateway it protects; it has no place in a subnet."
+  },
+  "queue": {
+   "subnet": false,
+   "az": false,
+   "managed_only": true,
+   "why": "A managed queue is a regional service outside your VPC: the provider runs it across all zones. Reach it privately through an interface endpoint in your subnet.",
+   "self_hosted": "tiers"
+  },
+  "obj": {
+   "subnet": false,
+   "az": false,
+   "why": "Object storage is a regional service outside your VPC, stored across zones by the provider. Reach it privately through a gateway or interface endpoint."
+  },
+  "kms": {
+   "subnet": false,
+   "az": false,
+   "why": "Key management is a regional service outside your VPC. Reach it through an interface endpoint."
+  },
+  "sec": {
+   "subnet": false,
+   "az": false,
+   "why": "The secrets manager is a regional service outside your VPC. Reach it through an interface endpoint."
+  },
+  "mon": {
+   "subnet": false,
+   "az": false,
+   "why": "Observability is a regional service outside your VPC. Ship telemetry through an interface endpoint."
+  },
+  "reg": {
+   "subnet": false,
+   "az": false,
+   "why": "The container registry is a regional service outside your VPC. Pull images through an interface endpoint."
+  },
+  "art": {
+   "subnet": false,
+   "az": false,
+   "why": "The artifact store is a regional service outside your VPC."
+  },
+  "llm": {
+   "subnet": false,
+   "az": false,
+   "why": "Foundation-model APIs are regional services outside your VPC. Call them privately through an interface endpoint (for example PrivateLink for Bedrock)."
+  },
+  "idp": {
+   "subnet": false,
+   "az": false,
+   "why": "A managed identity provider is a regional service outside your VPC."
+  },
+  "gw": {
+   "subnet": false,
+   "az": false,
+   "managed_only": true,
+   "why": "A managed API gateway is a regional service outside your VPC. A private API is reached through an interface endpoint; its back ends can be in your subnets.",
+   "self_hosted": "tiers"
+  },
+  "lb": {
+   "tiers": {
+    "dmz": {
+     "fit": "best",
+     "pros": [
+      "Internet-facing load balancers need public subnets in at least two zones",
+      "Keeps the application subnets private"
+     ],
+     "cons": []
+    },
+    "edge": {
+     "fit": "ok",
+     "pros": [
+      "Reachable from the internet"
+     ],
+     "cons": [
+      "Shares the edge subnets with other public endpoints: a wider blast radius"
+     ]
+    },
+    "app": {
+     "fit": "ok",
+     "pros": [
+      "An internal load balancer between services"
+     ],
+     "cons": [
+      "Not reachable from the internet"
+     ],
+     "if_internet_facing": {
+      "fit": "no",
+      "why": "It receives internet traffic, and an internet-facing load balancer must be in public subnets with a route to the internet gateway. Private subnets have none."
+     }
+    },
+    "data": {
+     "fit": "no",
+     "why": "Isolated data subnets have no internet route and are meant only for data stores. Put the load balancer in the ingress or application subnets."
+    },
+    "platform": {
+     "fit": "poor",
+     "pros": [
+      "Internal only"
+     ],
+     "cons": [
+      "Mixes application traffic into the shared-services subnets"
+     ]
+    }
+   }
+  },
+  "egw": {
+   "tiers": {
+    "edge": {
+     "fit": "best",
+     "pros": [
+      "A NAT gateway lives in a public subnet so it can reach the internet gateway"
+     ],
+     "cons": []
+    },
+    "dmz": {
+     "fit": "ok",
+     "pros": [
+      "Public subnet with an internet route"
+     ],
+     "cons": [
+      "Shares the ingress subnets"
+     ]
+    },
+    "app": {
+     "fit": "no",
+     "why": "A NAT or egress gateway must sit in a public subnet with a route to the internet gateway; the private subnets send their traffic to it."
+    },
+    "data": {
+     "fit": "no",
+     "why": "Isolated subnets have no internet route, so an egress gateway cannot work there."
+    },
+    "platform": {
+     "fit": "no",
+     "why": "The shared-services subnets are private: an egress gateway needs a public subnet."
+    }
+   }
+  },
+  "_compute": {
+   "tiers": {
+    "app": {
+     "fit": "best",
+     "pros": [
+      "Private: no public addresses",
+      "Outbound only through NAT and the egress firewall"
+     ],
+     "cons": []
+    },
+    "dmz": {
+     "fit": "poor",
+     "pros": [
+      "No NAT cost for outbound calls"
+     ],
+     "cons": [
+      "Instances get public addresses: exposed to scanning and attack",
+      "Breaks the layered network (EA-P5)"
+     ]
+    },
+    "edge": {
+     "fit": "poor",
+     "pros": [
+      "Direct internet access"
+     ],
+     "cons": [
+      "Instances exposed to the internet",
+      "Bypasses the WAF and the load balancer",
+      "Breaks the layered network (EA-P5)"
+     ]
+    },
+    "data": {
+     "fit": "poor",
+     "pros": [
+      "Very close to the database (lower latency)"
+     ],
+     "cons": [
+      "No outbound internet route: package updates, third-party APIs and SaaS calls fail",
+      "Mixes compute into the data tier: weakens isolation"
+     ]
+    },
+    "platform": {
+     "fit": "ok",
+     "pros": [
+      "Fits shared tooling and agents"
+     ],
+     "cons": [
+      "Mixes application workloads with shared services"
+     ]
+    }
+   }
+  },
+  "_data": {
+   "tiers": {
+    "data": {
+     "fit": "best",
+     "pros": [
+      "Isolated: no route to the internet",
+      "Only the application tier can reach it"
+     ],
+     "cons": []
+    },
+    "app": {
+     "fit": "ok",
+     "pros": [
+      "Simpler routing"
+     ],
+     "cons": [
+      "Shares subnets with the application: one security-group mistake exposes data"
+     ]
+    },
+    "dmz": {
+     "fit": "poor",
+     "pros": [
+      "None for production"
+     ],
+     "cons": [
+      "A data store in a public subnet can be given a public address: a common cause of breaches",
+      "Fails ground truth: data stores sit in isolated subnets"
+     ]
+    },
+    "edge": {
+     "fit": "poor",
+     "pros": [
+      "None for production"
+     ],
+     "cons": [
+      "A data store next to the internet gateway",
+      "Fails ground truth: data stores sit in isolated subnets"
+     ]
+    },
+    "platform": {
+     "fit": "poor",
+     "pros": [
+      "Close to shared tooling"
+     ],
+     "cons": [
+      "Mixes customer data with shared services"
+     ]
+    }
+   }
+  }
+ },
+ "families": {
+  "svc": "_compute",
+  "vm": "_compute",
+  "fn": "_compute",
+  "api": "_compute",
+  "adp": "_compute",
+  "ml": "_compute",
+  "db": "_data",
+  "cache": "_data",
+  "queue": "_data",
+  "gw": "_compute"
+ },
+ "zones": {
+  "default": {
+   "fit": "ok",
+   "pros": [
+    "Lower latency and no cross-zone data charges between components in the same zone"
+   ],
+   "cons": [
+    "A zone outage takes every instance down",
+    "Fails a multi-zone resilience target"
+   ]
+  },
+  "rules": {
+   "lb": {
+    "fit": "no",
+    "why": "An Application Load Balancer needs subnets in at least two zones; it cannot be pinned to one zone."
+   },
+   "fn": {
+    "fit": "poor",
+    "pros": [
+     "Fewer network interfaces to manage"
+    ],
+    "cons": [
+     "Functions attached to one subnet stop when that zone fails; give them a subnet in each zone"
+    ]
+   },
+   "db": {
+    "fit": "ok",
+    "pros": [
+     "Chooses where the primary runs, next to the application"
+    ],
+    "cons": [
+     "The standby still runs in another zone; only the primary moves"
+    ]
+   },
+   "egw": {
+    "fit": "ok",
+    "pros": [
+     "A NAT gateway is zonal: one per zone is the resilient pattern"
+    ],
+    "cons": [
+     "Instances in other zones that use it pay cross-zone charges and lose egress if this zone fails"
+    ]
+   }
+  }
+ }
+}

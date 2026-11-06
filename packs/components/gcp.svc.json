@@ -1,0 +1,50 @@
+{
+ "id": "gcp.svc",
+ "version": "1.0.0",
+ "title": "Cloud Run",
+ "owner": "team-platform",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "svc",
+  "provider": "gcp"
+ },
+ "facts": [
+  {
+   "id": "timeout",
+   "label": "Request timeout",
+   "kind": "setting",
+   "default": 5,
+   "min": null,
+   "max": 60,
+   "unit": "min",
+   "adjustable": false,
+   "source": "https://docs.cloud.google.com/run/quotas",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "concurrency",
+   "label": "Concurrent requests per instance",
+   "kind": "setting",
+   "default": 80,
+   "min": 1,
+   "max": 1000,
+   "unit": "requests",
+   "adjustable": false,
+   "source": "https://docs.cloud.google.com/run/docs/about-concurrency",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "max_instances",
+   "label": "Maximum instances (default)",
+   "kind": "quota",
+   "default": 100,
+   "min": null,
+   "max": null,
+   "unit": "instances per revision",
+   "adjustable": true,
+   "source": "https://docs.cloud.google.com/run/docs/configuring/max-instances",
+   "checked": "2026-11-06"
+  }
+ ]
+}

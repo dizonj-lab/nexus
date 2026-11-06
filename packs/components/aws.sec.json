@@ -1,0 +1,27 @@
+{
+ "id": "aws.sec",
+ "version": "1.0.0",
+ "title": "AWS Secrets Manager",
+ "owner": "team-security",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "sec",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "get",
+   "label": "GetSecretValue rate",
+   "kind": "limit",
+   "default": 10000,
+   "min": null,
+   "max": null,
+   "unit": "rps per Region",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_limits.html",
+   "checked": "2026-11-06",
+   "note": "Cache secrets in the application."
+  }
+ ]
+}

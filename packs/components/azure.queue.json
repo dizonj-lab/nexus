@@ -1,0 +1,27 @@
+{
+ "id": "azure.queue",
+ "version": "1.0.0",
+ "title": "Azure Service Bus",
+ "owner": "team-integration",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "queue",
+  "provider": "azure"
+ },
+ "facts": [
+  {
+   "id": "msg",
+   "label": "Maximum message size",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 256,
+   "unit": "KB (Standard)",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-premium-messaging",
+   "checked": "2026-11-06",
+   "note": "Premium allows 100 MB over AMQP."
+  }
+ ]
+}

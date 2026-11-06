@@ -1,0 +1,27 @@
+{
+ "id": "azure.cdn",
+ "version": "1.0.0",
+ "title": "Azure Front Door",
+ "owner": "team-network",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "cdn",
+  "provider": "azure"
+ },
+ "facts": [
+  {
+   "id": "rps",
+   "label": "Requests per second per profile",
+   "kind": "limit",
+   "default": 100000,
+   "min": null,
+   "max": null,
+   "unit": "rps",
+   "source": "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits",
+   "checked": "2026-11-06",
+   "note": "Also 15,000 rps per point of presence per profile (higher by support request).",
+   "sim": "rps"
+  }
+ ]
+}

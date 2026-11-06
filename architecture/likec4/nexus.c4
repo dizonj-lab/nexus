@@ -84,6 +84,10 @@ model {
       technology 'Static HTML, CSS, JavaScript on nginx'
       description 'Product story, the design-break-correct walkthrough and the demo video; sign-up is Coming soon. Separate from the app (deploy/landing.sh)'
     }
+    packs = container 'Knowledge packs' {
+      technology 'JSON packs, JavaScript runtime (packs/)'
+      description 'Facts with default, minimum, maximum and source; placement rules for subnets, zones and regions; component rules (DNS failover). Versioned and tested in packs/, inlined into the canvas by packs/build.mjs; served by the governance MCP server from WP1'
+    }
     edge = container 'Edge' {
       technology 'nginx'
       description 'One origin: app, API, model server and LikeC4 site; sign-in required for the model server and diagrams. Runs twice: main (landing page) and lab (no landing page, own database) for ideation, development and testing'
@@ -208,6 +212,7 @@ model {
   visitor -> nexus.landing 'reads, watches the demo'
   architect -> nexus.strategy 'shapes the technology strategy'
   nexus.strategy -> nexus.web 'hands off principles, guardrails, stack (import strategy)'
+  nexus.web -> nexus.packs 'asks what a component knows, where it may go, what it concludes'
 
   // core
   nexus.web -> nexus.api 'REST + WebSocket'

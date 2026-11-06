@@ -1,0 +1,40 @@
+{
+ "id": "aws.cache",
+ "version": "1.0.0",
+ "title": "Amazon ElastiCache (Valkey / Redis OSS)",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "cache",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "replicas",
+   "label": "Replicas per shard",
+   "kind": "limit",
+   "default": null,
+   "min": 0,
+   "max": 5,
+   "unit": "replicas",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/CacheNodes.NodeGroups.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "shards",
+   "label": "Shards per cluster",
+   "kind": "quota",
+   "default": null,
+   "min": 1,
+   "max": 500,
+   "unit": "shards",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/CacheNodes.NodeGroups.html",
+   "checked": "2026-11-06",
+   "note": "Default 90 nodes per cluster; up to 500 by request on recent engines.",
+   "field": "shards"
+  }
+ ]
+}

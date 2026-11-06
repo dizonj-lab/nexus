@@ -1,0 +1,28 @@
+{
+ "id": "azure.obj",
+ "version": "1.0.0",
+ "title": "Azure Storage (general-purpose v2)",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "obj",
+  "provider": "azure"
+ },
+ "facts": [
+  {
+   "id": "rps",
+   "label": "Requests per second per storage account",
+   "kind": "quota",
+   "default": 20000,
+   "min": null,
+   "max": 40000,
+   "unit": "rps",
+   "adjustable": true,
+   "source": "https://learn.microsoft.com/en-us/azure/storage/common/scalability-targets-standard-account",
+   "checked": "2026-11-06",
+   "note": "40,000 in some Regions (for example East US, West Europe); higher through Azure Support.",
+   "sim": "rps"
+  }
+ ]
+}

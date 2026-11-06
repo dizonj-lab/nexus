@@ -1,0 +1,68 @@
+{
+ "id": "aws.gw",
+ "version": "1.0.0",
+ "title": "Amazon API Gateway (REST)",
+ "owner": "team-integration",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "gw",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "rps",
+   "label": "Account throttle per Region (steady state)",
+   "kind": "quota",
+   "default": 10000,
+   "min": null,
+   "max": null,
+   "unit": "rps",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html",
+   "checked": "2026-11-06",
+   "note": "Shared by every API in the account and Region. Some Regions start at 2,500 rps.",
+   "field": "rateLimit",
+   "sim": "rps"
+  },
+  {
+   "id": "burst",
+   "label": "Account burst per Region",
+   "kind": "limit",
+   "default": 5000,
+   "min": null,
+   "max": 5000,
+   "unit": "requests",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html",
+   "checked": "2026-11-06",
+   "note": "The burst cannot be raised."
+  },
+  {
+   "id": "timeout",
+   "label": "Integration timeout",
+   "kind": "setting",
+   "default": 29,
+   "min": 0.05,
+   "max": 29,
+   "unit": "s",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-execution-service-limits-table.html",
+   "checked": "2026-11-06",
+   "note": "Regional and private APIs can go above 29 s by quota request (may lower the throttle). Edge-optimized APIs are fixed."
+  },
+  {
+   "id": "payload",
+   "label": "Payload size",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 10,
+   "unit": "MB",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-execution-service-limits-table.html",
+   "checked": "2026-11-06",
+   "note": "Hard limit: upload large bodies to S3 with a pre-signed URL."
+  }
+ ]
+}

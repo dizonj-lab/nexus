@@ -1,0 +1,39 @@
+{
+ "id": "aws.waf",
+ "version": "1.0.0",
+ "title": "AWS WAF",
+ "owner": "team-security",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "waf",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "wcu",
+   "label": "Web ACL capacity units",
+   "kind": "limit",
+   "default": 1500,
+   "min": null,
+   "max": 5000,
+   "unit": "WCU",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/waf/latest/developerguide/limits.html",
+   "checked": "2026-11-06",
+   "note": "1,500 included in the base price; up to 5,000 at extra cost."
+  },
+  {
+   "id": "rate_min",
+   "label": "Rate-based rule minimum",
+   "kind": "limit",
+   "default": null,
+   "min": 10,
+   "max": null,
+   "unit": "requests per window",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/waf/latest/developerguide/limits.html",
+   "checked": "2026-11-06"
+  }
+ ]
+}

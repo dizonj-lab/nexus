@@ -279,3 +279,20 @@ requirement text, along with the change that set it. Values nobody set are
 shown as defaults. The Properties dialog shows this, so a reviewer can tell
 an assumption made by a model from a decision made by a person.
 
+## D45 — Knowledge lives in packs, first in the browser
+Provider limits, placement rules and component rules move out of the canvas
+code into versioned packs in `packs/`, each with an owner, a schema, tests and
+a source and check date for every fact. Until the governance MCP server exists
+(WP1), a small deterministic runtime evaluates them in the browser and
+`packs/build.mjs` inlines them into the canvas, refusing a build when a pack is
+invalid. Rules are declarative data plus named checks; OPA/Rego replaces the
+named checks when the server arrives. Facts we could not confirm against the
+source page are marked as such.
+
+## D46 — Placement follows the architect, except where it is impossible
+Dragging a component to another subnet, zone or region is the architect's
+decision. NEXUS refuses only what the platform cannot do, and says why;
+everything else goes ahead through the Action Guard with the placement pack's
+pros and cons. Risky is not impossible: a database in a public subnet is
+allowed (and flagged), a managed queue in a subnet is not.
+

@@ -1,0 +1,65 @@
+{
+ "id": "aws.queue",
+ "version": "1.0.0",
+ "title": "Amazon SQS",
+ "owner": "team-integration",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "queue",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "msg",
+   "label": "Maximum message size",
+   "kind": "setting",
+   "default": 1024,
+   "min": 1,
+   "max": 1024,
+   "unit": "KiB",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html",
+   "checked": "2026-11-06",
+   "note": "Raised from 256 KiB to 1 MiB."
+  },
+  {
+   "id": "visibility",
+   "label": "Visibility timeout",
+   "kind": "setting",
+   "default": 30,
+   "min": 0,
+   "max": 43200,
+   "unit": "s",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "retention",
+   "label": "Message retention",
+   "kind": "setting",
+   "default": 345600,
+   "min": 60,
+   "max": 1209600,
+   "unit": "s",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html",
+   "checked": "2026-11-06",
+   "note": "4 days by default, up to 14 days."
+  },
+  {
+   "id": "fifo",
+   "label": "FIFO throughput (standard mode)",
+   "kind": "limit",
+   "default": 300,
+   "min": null,
+   "max": 3000,
+   "unit": "msg/s per API action",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/high-throughput-fifo.html",
+   "checked": "2026-11-06",
+   "note": "3,000 with batching; high-throughput mode is much higher."
+  }
+ ]
+}

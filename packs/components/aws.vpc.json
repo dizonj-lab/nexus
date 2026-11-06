@@ -1,0 +1,77 @@
+{
+ "id": "aws.vpc",
+ "version": "1.0.0",
+ "title": "Amazon VPC",
+ "owner": "team-network",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "net",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "vpcs",
+   "label": "VPCs per Region",
+   "kind": "quota",
+   "default": 5,
+   "min": null,
+   "max": null,
+   "unit": "VPCs",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "subnets",
+   "label": "Subnets per VPC",
+   "kind": "quota",
+   "default": 200,
+   "min": null,
+   "max": null,
+   "unit": "subnets",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "sg_rules",
+   "label": "Inbound rules per security group",
+   "kind": "quota",
+   "default": 60,
+   "min": null,
+   "max": null,
+   "unit": "rules",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html",
+   "checked": "2026-11-06",
+   "note": "Rules × groups per interface must stay at or under 1,000."
+  },
+  {
+   "id": "sg_per_eni",
+   "label": "Security groups per network interface",
+   "kind": "quota",
+   "default": 5,
+   "min": null,
+   "max": 16,
+   "unit": "groups",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "reserved",
+   "label": "Reserved addresses per subnet",
+   "kind": "limit",
+   "default": 5,
+   "min": null,
+   "max": null,
+   "unit": "addresses",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/vpc/latest/userguide/subnet-sizing.html",
+   "checked": "2026-11-06",
+   "note": "The first four and the last address of every subnet. Not yet confirmed against the source page.",
+   "verified": false
+  }
+ ]
+}

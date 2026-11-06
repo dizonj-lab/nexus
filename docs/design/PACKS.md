@@ -1,8 +1,20 @@
 # Design: externalized knowledge packs and component intelligence
 
-Status: **proposed**, not built · Author: Joel Dizon, with Claude · November 2026
+Status: **P1 started in v0.3.4** (packs in `packs/`, evaluated in the browser; see below) · Author: Joel Dizon, with Claude · November 2026
 Related: [ROADMAP](../ROADMAP.md) (WP1 governance server, WP3 topology, WP6 provider packs),
 [DECISIONS](../DECISIONS.md) D37–D44
+
+## 0. What is built (v0.3.4)
+
+- `packs/`: 21 vendor packs (facts with default, minimum, maximum, adjustable,
+  source, date checked) and `core.placement` (subnets, zones, regions).
+  `aws.dns` carries the three Route 53 rules from section 4.6.
+- `packs/runtime.js`: facts, placement verdicts (best / ok / poor / no),
+  findings and "think" for one component. Deterministic; no model; no network.
+- `packs/build.mjs` validates and inlines the packs into the canvas;
+  `packs/tests/` and `backend/tests/test_packs.py` are the pack tests.
+- Not yet: the registry, signing, channels, OPA/Rego (named checks stand in),
+  the governance MCP server, layers above vendor. Those stay as phased below.
 
 ## 1. Summary
 

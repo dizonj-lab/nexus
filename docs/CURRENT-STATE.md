@@ -1,4 +1,12 @@
-# NEXUS — Current state (v0.3.2)
+# NEXUS — Current state (v0.3.4)
+
+- **Knowledge packs** (`packs/`): provider limits with sources, placement
+  rules and Route 53 failover rules, tested and inlined into the canvas.
+- Subnets in every zone; drag and drop between subnets, zones and regions
+  with live fit, pros and cons, and refusal with the reason; zones side by
+  side; reconnect a flow by dragging its end; compact, movable Properties
+  with Limits and Thinking; Singapore as the default region; a second
+  opinion that streams, stops on time and can be stopped.
 
 - Properties dialog with the source of every value (you, AI with confidence,
   rules, requirement, default); region layouts; zone and replication overlays;
