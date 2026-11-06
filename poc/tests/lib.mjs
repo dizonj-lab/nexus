@@ -1,4 +1,4 @@
-// Shared helpers for the browser checks. Serve the prototype first:  (cd poc && python3 -m http.server 18081)
+// Shared helpers for the browser checks. Serve the prototype first:  node poc/tests/serve.mjs 18081
 import { createRequire } from "node:module";
 export const { chromium } = createRequire(import.meta.url)("playwright");
 export const BASE = process.env.NEXUS_URL || "http://localhost:18081/prototype/index.html";

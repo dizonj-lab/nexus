@@ -40,7 +40,7 @@ cd backend && .venv/bin/python -m pytest -q   # 89 tests
 ```
 
 ```bash
-./poc/tests/run-all.sh                         # packs + canvas browser checks
+./poc/tests/run-all.sh                         # everything, in Docker: backend, packs, canvas browser checks
 ```
 
 ## Deploy on Buddy

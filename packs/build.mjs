@@ -1,5 +1,6 @@
 // Validates the packs and inlines them, with the runtime, into the canvas (poc/prototype/index.html)
 // between the NEXUS-PACKS markers. The canvas is generated from the packs: do not edit that block by hand.
+// Usage (Docker): docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/w -w /w node:22-slim node packs/build.mjs [--check]
 // Usage: node packs/build.mjs          build and inline
 //        node packs/build.mjs --check  fail if the canvas is out of date (used in CI and tests)
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
@@ -42,7 +43,7 @@ if (isMain) {
   if (!re.test(html)) { console.error("packs: markers not found in the canvas"); process.exit(1); }
   const next = html.replace(re, () => block());
   if (process.argv.includes("--check")) {
-    if (next !== html) { console.error("packs: the canvas is out of date. Run: node packs/build.mjs"); process.exit(1); }
+    if (next !== html) { console.error("packs: the canvas is out of date. Run: docker run --rm -u \"$(id -u):$(id -g)\" -v \"$PWD\":/w -w /w node:22-slim node packs/build.mjs"); process.exit(1); }
     console.log("packs: canvas is up to date");
   } else { writeFileSync(canvas, next); console.log(`packs: ${loadPacks().length} packs inlined into poc/prototype/index.html`); }
 }

@@ -17,8 +17,12 @@ reviewed like code. Design: [docs/design/PACKS.md](../docs/design/PACKS.md).
    `checked` (the date you read it). Mark anything you could not confirm with
    `"verified": false`.
 2. Add or update a test in `tests/runtime.test.mjs`.
-3. Run `node packs/build.mjs` to inline the packs into the canvas, then
-   `node --test packs/tests/*.test.mjs` and `pytest backend/tests/test_packs.py`.
+3. Inline the packs into the canvas, then run all checks (Docker only):
+
+   ```bash
+   docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/w -w /w node:22-slim node packs/build.mjs
+   ./poc/tests/run-all.sh
+   ```
 4. Bump the pack's `version` (patch for a corrected number, minor for a new fact
    or rule).
 

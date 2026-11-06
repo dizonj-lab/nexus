@@ -1,5 +1,5 @@
 // Browser check: the Action Guard's second opinion on a new design streams, stops on time, and can be stopped.
-// Needs: node poc/tests/mock-llm.mjs 18080  and  (cd poc && python3 -m http.server 18081)
+// Needs: node poc/tests/mock-llm.mjs 18080  and  node poc/tests/serve.mjs 18081  (run-all.sh starts both)
 // Run:   node poc/tests/second-opinion.e2e.mjs
 import { createRequire } from "node:module";
 const { chromium } = createRequire(import.meta.url)("playwright");

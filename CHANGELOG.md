@@ -43,7 +43,9 @@ Semantic Versioning.
   Attributes, **Limits and defaults** (from the packs, with sources) and
   **Thinking** (what the component knows, sees and concludes, with fixes).
 - **Browser checks** in `poc/tests/` with a simulated model server;
-  `./poc/tests/run-all.sh` runs everything. Test plan:
+  `./poc/tests/run-all.sh` runs everything in Docker (backend tests in
+  `python:3.11-slim`; packs and browser checks in the Playwright image), so
+  nothing needs installing on the host. Test plan:
   `docs/test-plans/v0.3.4.md`.
 
 ### Changed
