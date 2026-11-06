@@ -1,0 +1,65 @@
+{
+ "id": "azure.notify",
+ "version": "1.0.0",
+ "title": "Azure Event Grid",
+ "owner": "team-integration",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "notify",
+  "provider": "azure"
+ },
+ "facts": [
+  {
+   "id": "publish_rate",
+   "label": "Publish rate per custom topic",
+   "kind": "limit",
+   "default": 5000,
+   "min": null,
+   "max": null,
+   "unit": "events/s",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/event-grid/quotas-limits",
+   "checked": "2026-11-06",
+   "note": "Or 5 MB/s.",
+   "sim": "rps"
+  },
+  {
+   "id": "event_size",
+   "label": "Event size",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 1024,
+   "unit": "KB",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/event-grid/quotas-limits",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "subs",
+   "label": "Event subscriptions per topic",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 500,
+   "unit": "subscriptions",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/event-grid/quotas-limits",
+   "checked": "2026-11-06"
+  },
+  {
+   "id": "attempts",
+   "label": "Delivery attempts (default)",
+   "kind": "setting",
+   "default": 30,
+   "min": 1,
+   "max": 30,
+   "unit": "attempts",
+   "adjustable": true,
+   "source": "https://learn.microsoft.com/en-us/azure/event-grid/delivery-and-retry",
+   "checked": "2026-11-06",
+   "note": "Event time-to-live 24 h by default."
+  }
+ ]
+}

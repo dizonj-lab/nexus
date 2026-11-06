@@ -19,8 +19,13 @@ export async function newDesign(p, o = {}) {
     if (i === 1 && o.res) await p.click(`#ndDlg [data-nd="res"][data-k="${o.res}"]`);
     const n = p.locator('#ndDlg [data-nd="next"]'); if (await n.count()) await n.click();
   }
-  await p.click('#ndDlg [data-nd="create"]'); await p.waitForSelector("#guard:not([hidden])");
-  if (await p.isDisabled("#gApply")) await p.fill("#gJust", "Automated test design for load and quota checks.");
+  await p.click('#ndDlg [data-nd="create"]'); await afterCreate(p);
+}
+// After Create design: answer the unsaved-changes prompt (discard), then implement in the Action Guard.
+export async function afterCreate(p, unsaved = "discard") {
+  await p.waitForSelector("#unsDlg:not([hidden]), #guard:not([hidden])");
+  if (await p.isVisible("#unsDlg")) { await p.click(unsaved === "save" ? "#unsSave" : "#unsDiscard"); await p.waitForSelector("#guard:not([hidden])"); }
+  if (await p.isDisabled("#gApply") && await p.isVisible("#gJust")) await p.fill("#gJust", "Automated test design for load and quota checks.");
   await p.click("#gApply"); await p.waitForTimeout(500);
 }
 export const canvasBox = (p) => p.locator("canvas").first().boundingBox();

@@ -1,0 +1,29 @@
+{
+ "id": "aws.vm",
+ "version": "1.0.0",
+ "title": "Amazon EC2",
+ "owner": "team-platform",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "vm",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "resize",
+   "label": "Change the instance type",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/change-instance-type-of-ebs-backed-instance.html",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "The instance must be stopped and started: full downtime; the public IP changes unless it is an Elastic IP, and instance-store data is lost.",
+   "mitigation": "Run two or more instances behind a load balancer and replace them one at a time."
+  }
+ ]
+}

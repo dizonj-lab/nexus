@@ -5,6 +5,100 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.7] — 2026-11-06
+
+### Added
+- **Start from a blank canvas**: New design → "Start from a blank canvas"
+  (or type `blank canvas`). No components, flows, subnets or targets;
+  principles, ground truth, capabilities, settings and saved versions stay.
+  Ctrl+Z brings the previous design back.
+- **Unsaved work is confirmed first.** Before a blank canvas or a new design
+  replaces a design that differs from its last saved version, NEXUS asks:
+  Save as a version, then continue · Don't save · Cancel.
+- **Messaging, modelled the way teams run it.** The broker is the component;
+  its **channels** live inside it; producers and consumers are the
+  connections.
+  - Four kinds of channel: Kafka **topics** (partitions, replication factor,
+    min.insync.replicas, retention, compaction, key meaning, ordering), SQS
+    **queues** (FIFO, visibility timeout, retention), RabbitMQ **exchanges**
+    (type, quorum queues, one bound queue per consumer group) and the new
+    **Notifications / event bus** component: SNS, EventBridge, Event Grid,
+    Pub/Sub push or Eventarc, and RabbitMQ or Knative in a data centre.
+  - **Publish connections** carry the channel, key (or FIFO message group),
+    event and version, delivery (acks=all with the idempotent producer, or
+    confirmed), transactional outbox, and message attributes for filters.
+  - **Consume connections** carry the channel, consumer group, concurrency,
+    acknowledgement (at least once, at most once, transactional), idempotent
+    processing, retries, dead-letter queue and ordering; subscriptions also
+    carry protocol (SQS, Lambda, HTTPS, email, SMS, push, Firehose), filter
+    and the share of messages that match.
+  - Console: `add topic orders to Q1 partitions 12 key orderId ordered`,
+    `publish SVC1 to Q1/orders key orderId outbox`,
+    `subscribe SVC2 to Q1/orders group billing`,
+    `subscribe FN1 to NT1/orders protocol lambda`, `add sns`, `add eventbridge`.
+  - Connection labels show the channel, key and group or protocol.
+  - **Simulation:** a queue shares each message among its consumers; a topic
+    or exchange gives each group a copy, shared within the group; a
+    notification topic or bus pushes a copy to every matching subscription;
+    the provider's publish quota applies.
+  - **Rules** (`core.messaging`, 20 checks), each with a fix where one exists:
+    - Ordering and delivery: ordering without a key; parallel processing that
+      breaks ordering; at-least-once delivery without idempotent processing;
+      acknowledging before processing; fire-and-forget producers.
+    - Failure handling: no dead-letter queue; unlimited retries; writing a
+      database and publishing without an outbox.
+    - Kafka sizing: idle consumers (more than partitions); replication below
+      the MSK best practice; partitions per broker above the MSK
+      recommendation.
+    - Push delivery: SNS straight to Lambda at volume (fix: insert a queue);
+      plain-HTTP subscriptions; no filter; FIFO topics, which deliver only to
+      SQS (refused as a technical constraint); filters with more than 5
+      attributes (refused).
+    - Other: cross-region delivery; email or SMS to customers; channels with
+      no publisher or no consumer.
+  - Provider limits added to the packs (SNS, EventBridge, MSK, SQS FIFO, Event
+    Grid, Event Hubs, Pub/Sub), each with its source.
+  - Terraform: `kafka_topic`, `aws_sqs_queue` with its dead-letter queue,
+    `rabbitmq_exchange`/`_queue`/`_binding`, `aws_sns_topic` and subscriptions
+    with filter and redrive policies, EventBridge bus, rules and targets,
+    Event Hubs with consumer groups, Service Bus queues, Event Grid
+    subscriptions, Pub/Sub subscriptions with dead-letter policies.
+- **Changes that interrupt a service are announced before you apply them.**
+  The Action Guard shows **Expected disruption** with the documented outage,
+  how to avoid it and the source, proposes the maintenance window, and waits
+  for an acknowledgement when there is an outage. The decision is recorded.
+  The Advisor's scaling options show it too. From the packs:
+  - **Databases:**
+    - RDS Single-AZ resize: an outage of undocumented length.
+    - RDS Multi-AZ: a 60–120 s failover.
+    - RDS Multi-AZ DB cluster: under 35 s.
+    - Adding a read replica: about 1 s on a Single-AZ source.
+    - Storage growth: no outage.
+    - Azure PostgreSQL flexible: about 10–30 s.
+    - Cloud SQL: a restart of several minutes (Enterprise Plus: under a
+      second).
+  - **Caches:**
+    - ElastiCache node type changes and resharding: online.
+    - Azure Cache for Redis: blips (Basic loses its data).
+    - Memorystore: about 30 s.
+  - **Compute:**
+    - EC2 instance type: a stop and start.
+    - ECS/Fargate: a rolling deployment, with no outage if there are two or
+      more tasks.
+  - **Kafka:**
+    - MSK broker size: up to 2 minutes of client errors.
+    - Adding brokers: no outage, but partitions must be reassigned.
+    - More partitions: keys move, so ordering per key is not kept across the
+      change.
+
+### Fixed
+- **The Action Guard blocked a new design.** A new design replaces the old
+  one, so the Guard saw the old components (security controls included) as
+  removed and blocked the change or rated it high risk. A new design is now
+  reviewed, not blocked: its findings stay open in the Design Advisor.
+  Starting a blank canvas is not reviewed at all.
+- A new design reusing IDs such as DB1 was not mistaken for a resize.
+
 ## [0.3.6] — 2026-11-06
 
 ### Added

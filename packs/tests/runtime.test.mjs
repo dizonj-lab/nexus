@@ -109,3 +109,27 @@ test("build: the canvas carries the current packs (run node packs/build.mjs afte
   const html = readFileSync(new URL("../../poc/prototype/index.html", import.meta.url), "utf8");
   assert.ok(html.includes(block()), "canvas is out of date");
 });
+
+// ---------- messaging ----------
+const msgDesign = (over = {}) => ({ provider: "aws", nodes: { Q1: { id: "Q1", type: "queue", flavor: "kafka" }, NT1: { id: "NT1", type: "notify", flavor: "topic" } }, edges: [],
+  msg: { Q1: { id: "Q1", kind: "topic", flavor: "kafka", region: "A", brokers: 3, channels: [{ id: "orders", partitions: 6, rf: 3, minIsr: 2, ordered: true }],
+    pubs: [{ from: "SVC1", ch: "orders", key: "", delivery: "idempotent", outbox: false, writesDb: true }],
+    subs: [{ to: "SVC2", toType: "svc", ch: "orders", group: "billing", ack: "after", idem: false, dlq: true, retries: 3, order: "per-key", consumers: 8, rate: 100 }] },
+   NT1: { id: "NT1", kind: "notif", flavor: "topic", region: "A", channels: [{ id: "events", fifo: true }], pubs: [{ from: "SVC1", ch: "events" }],
+    subs: [{ to: "FN1", toType: "fn", ch: "events", protocol: "lambda", ack: "after", idem: true, dlq: true, retries: 3, rate: 50, filter: "a=1, b=2, c=3, d=4, e=5, f=6" }] } }, ...over });
+const ids = (d) => NP.evaluateMessaging(d).map((f) => f.id);
+test("messaging: ordering required but no key", () => assert.ok(ids(msgDesign()).includes("msg.order-without-key")));
+test("messaging: at-least-once without idempotency", () => assert.ok(ids(msgDesign()).includes("msg.no-idempotency")));
+test("messaging: database write and publish without an outbox", () => assert.ok(ids(msgDesign()).includes("msg.no-outbox")));
+test("messaging: 8 consumers in a group for 6 partitions leaves 2 idle", () => assert.match(NP.evaluateMessaging(msgDesign()).find((f) => f.id === "msg.idle-consumers").why, /2 consumer\(s\) sit idle/));
+test("messaging: an SNS FIFO topic cannot push to a function (technical constraint, cited)", () => { const f = NP.evaluateMessaging(msgDesign()).find((x) => x.id === "msg.fifo-protocol"); assert.equal(f.hard, true); assert.match(f.facts[0].source, /fifo-message-delivery/); });
+test("messaging: an SNS filter with more than 5 attributes cannot be created", () => assert.equal(NP.evaluateMessaging(msgDesign()).find((x) => x.id === "msg.filter-keys").hard, true));
+test("messaging: replication factor 2 is flagged with the MSK best practice", () => { const d = msgDesign(); d.msg.Q1.channels[0].rf = 2; const f = NP.evaluateMessaging(d).find((x) => x.id === "msg.replication"); assert.ok(f.facts.some((x) => x.id === "rf")); assert.deepEqual(f.fix.chan.set, { rf: 3, minIsr: 2 }); });
+test("messaging: SNS default publish quota is 300 messages/s (adjustable)", () => { const q = NP.simQuota("notify", "aws", "topic"); assert.equal(q.rps, 300); assert.equal(q.fact.adjustable, true); assert.equal(NP.simQuota("notify", "aws", "bus").rps, 400); });
+// ---------- disruption ----------
+test("disruption: RDS Multi-AZ resize is a 60–120 s failover; Single-AZ has no documented duration", () => {
+  const m = NP.disruption("db", "aws", "vertical", null, "multiaz"), s = NP.disruption("db", "aws", "vertical", null, "single");
+  assert.equal(m.min, 60); assert.equal(m.max, 120); assert.equal(s.max, null); assert.match(s.source, /ModifyDBInstance/); });
+test("disruption: adding MSK brokers has no outage; changing the broker size up to 2 minutes of client errors", () => {
+  assert.equal(NP.disruption("queue", "aws", "brokers", "kafka").max, 0); assert.equal(NP.disruption("queue", "aws", "vertical", "kafka").max, 120); });
+test("disruption: Azure PostgreSQL flexible scales with about 10–30 s at the cut-over", () => { const f = NP.disruption("db", "azure", "vertical"); assert.equal(f.min, 10); assert.equal(f.max, 30); });

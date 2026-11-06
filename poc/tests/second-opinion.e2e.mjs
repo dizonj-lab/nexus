@@ -15,7 +15,8 @@ async function setModel(model, timeoutS) {
 async function newDesign() {
   await p.click("#ndBtn"); await p.fill('[data-ndf="services"]', "claims, policies, payments").catch(() => {});
   for (let i = 0; i < 4; i++) { const n = p.locator('#ndDlg [data-nd="next"]'); if (await n.count()) await n.click(); }
-  await p.click('#ndDlg [data-nd="create"]'); await p.waitForSelector("#guard:not([hidden])");
+  await p.click('#ndDlg [data-nd="create"]'); await p.waitForSelector("#unsDlg:not([hidden]), #guard:not([hidden])");
+  if (await p.isVisible("#unsDlg")) { await p.click("#unsDiscard"); await p.waitForSelector("#guard:not([hidden])"); }
 }
 async function ask() { const t = Date.now(); await p.click("#gSecond"); return t; }
 await p.goto(BASE); await p.evaluate(() => localStorage.clear()); await p.reload();

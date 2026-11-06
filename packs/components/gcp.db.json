@@ -1,6 +1,6 @@
 {
  "id": "gcp.db",
- "version": "1.0.0",
+ "version": "1.1.0",
  "title": "Cloud SQL",
  "owner": "team-data",
  "layer": "vendor",
@@ -23,6 +23,37 @@
    "checked": "2026-11-06",
    "note": "Dedicated-core instances; shared-core is limited to 3 TB.",
    "field": "sizeGB"
+  },
+  {
+   "id": "resize",
+   "label": "Change the machine type (Enterprise)",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.cloud.google.com/sql/docs/mysql/instance-settings",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "The instance restarts and is offline for several minutes.",
+   "mitigation": "Schedule a window, or use Enterprise Plus."
+  },
+  {
+   "id": "resize_plus",
+   "label": "Change the machine type (Enterprise Plus)",
+   "kind": "behaviour",
+   "default": null,
+   "min": 0,
+   "max": 1,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.cloud.google.com/sql/docs/mysql/editions-intro",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "Scale-up with near-zero (under a second) downtime; only the first scale-down in any 3 hours gets it.",
+   "mitigation": "Enterprise Plus without read replicas.",
+   "when": "plus"
   }
  ]
 }

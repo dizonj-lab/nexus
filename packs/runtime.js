@@ -15,16 +15,18 @@
   api.version = () => B.built || "dev";
   const tag = (p) => `${p.id}@${p.version}`;
   const core = () => B.packs.find((p) => p.id === "core.placement") || { types: {}, families: {}, tiers: {}, zones: { default: { fit: "ok", pros: [], cons: [] }, rules: {} }, reserved_ips: {} };
-  const packsFor = (type, prov) => B.packs.filter((p) => p.applies_to && p.applies_to.type === type && p.applies_to.provider === prov);
+  const typeOk = (t, type) => Array.isArray(t) ? t.includes(type) : t === type;
+  const packsFor = (type, prov) => B.packs.filter((p) => p.applies_to && typeOk(p.applies_to.type, type) && (p.applies_to.provider === prov || p.applies_to.provider === "*") && p.id !== "core.placement");
   const isFlow = (e) => !e.kind || e.kind === "flow";
 
   /* ---------- 1. facts ---------- */
   api.packsFor = packsFor;
-  api.facts = (type, prov) => packsFor(type, prov).flatMap((p) => p.facts.map((f) => ({ ...f, pack: tag(p) })));
+  // Facts for a component; a fact with a "flavor" applies only to that product (for example SNS or EventBridge).
+  api.facts = (type, prov, flavor) => packsFor(type, prov).flatMap((p) => (p.facts || []).filter((f) => !f.flavor || !flavor || f.flavor === flavor).map((f) => ({ ...f, pack: tag(p) })));
   api.fact = (type, prov, id) => api.facts(type, prov).find((f) => f.id === id) || null;
   // The provider limit the simulator uses for a managed component (requests per second), when a pack states one.
-  api.simQuota = (type, prov) => {
-    const f = api.facts(type, prov).find((x) => x.sim === "rps" && x.default != null);
+  api.simQuota = (type, prov, flavor) => {
+    const f = api.facts(type, prov, flavor).find((x) => x.sim === "rps" && x.default != null && (!x.flavor || x.flavor === flavor));
     return f ? { rps: f.default * (f.rps_per_unit || 1), fact: f } : null;
   };
   // Is a value inside a fact's range? Returns null when it is, or why not.
@@ -112,6 +114,48 @@
       return priv.length ? { title: `${n.id} probes private endpoints (${priv.join(", ")})`, why: "Route 53 health checkers probe from the internet and cannot reach private addresses, so the check always fails. Use a CloudWatch alarm on a heartbeat metric as the health check instead.", fix: { set: { hcType: "alarm" }, label: "Use a CloudWatch alarm health check" } } : null;
     },
   };
+  /* ---------- disruption: what a change does to availability ---------- */
+  // change: vertical | replicas | storage | shards | brokers; when: single | multiaz | cluster | plus (optional)
+  api.disruption = (type, prov, change, flavor, when) => {
+    const fs = api.facts(type, prov, flavor).filter((f) => f.change === change);
+    return fs.find((f) => f.when && f.when === when) || fs.find((f) => !f.when) || (when ? null : fs[0]) || null;
+  };
+  /* ---------- messaging: channels, producers, consumers, subscriptions ---------- */
+  // d.msg[id] = {kind, flavor, region, brokers, channels:[...], pubs:[...], subs:[...]} (built by the canvas)
+  const fact = (p, id) => (p.facts || []).find((x) => x.id === id);
+  const MSG = {
+    "msg.order-without-key": (m) => m.pubs.filter((p) => { const c = m.channels.find((x) => x.id === p.ch); return c && c.ordered && !p.key; }).map((p) => ({ on: p.from, title: `${p.from} publishes to ${p.ch} without a key, but ${p.ch} needs ordering`, why: m.kind === "topic" ? `Without a key Kafka spreads messages over all partitions, so events for the same entity can be read out of order. Set a key such as the entity ID.` : `FIFO ordering holds per message group: set a message group ID (the key), such as the entity ID.`, edge: { from: p.from, to: m.id } })),
+    "msg.parallel-breaks-order": (m) => m.subs.filter((s) => { const c = m.channels.find((x) => x.id === s.ch); return c && c.ordered && s.order === "parallel"; }).map((s) => ({ on: s.to, title: `${s.to} processes ${s.ch} in parallel, which breaks its ordering`, why: "Ordering holds only if each key (or partition) is processed one message at a time. Process in order per key, or drop the ordering requirement.", edge: { from: m.id, to: s.to }, fix: { set: { order: "per-key" }, label: "Process in order per key" } })),
+    "msg.no-idempotency": (m) => m.subs.filter((s) => s.ack === "after" && !s.idem && s.toType !== "queue").map((s) => ({ on: s.to, title: `${s.to} can receive the same message twice but does not deduplicate`, why: `Acknowledging after processing gives at-least-once delivery: after a crash, a timeout or a rebalance, the message comes again. Without idempotent processing (dedup on the event ID) ${s.to} applies it twice.`, edge: { from: m.id, to: s.to }, fix: { set: { idem: true }, label: "Make processing idempotent (dedup on event ID)" } })),
+    "msg.at-most-once": (m) => m.subs.filter((s) => s.ack === "before").map((s) => ({ on: s.to, title: `${s.to} acknowledges before processing: messages are lost on a crash`, why: "At-most-once delivery: if the consumer fails after acknowledging, the message is gone. Acknowledge after processing and make processing idempotent.", edge: { from: m.id, to: s.to }, fix: { set: { ack: "after" }, label: "Acknowledge after processing" } })),
+    "msg.no-dlq": (m) => m.subs.filter((s) => !s.dlq && s.toType !== "queue").map((s) => ({ on: s.to, title: `${m.id} → ${s.to} has no dead-letter queue`, why: m.kind === "notif" || m.kind === "bus" ? "A push delivery that keeps failing is dropped after its retries. A dead-letter queue keeps it for inspection and redrive." : "A message that always fails is retried forever or blocks its partition. After a few attempts it should move to a dead-letter queue.", edge: { from: m.id, to: s.to }, fix: { set: { dlq: true }, label: "Add a dead-letter queue" } })),
+    "msg.unlimited-retries": (m) => m.subs.filter((s) => s.retries === "unlimited").map((s) => ({ on: s.to, title: `${s.to} retries forever`, why: "A poison message is retried without end: it blocks ordered processing and wastes capacity. Limit the retries and send failures to the dead-letter queue.", edge: { from: m.id, to: s.to }, fix: { set: { retries: 5, dlq: true }, label: "Retry 5 times, then dead-letter" } })),
+    "msg.fire-and-forget": (m) => m.pubs.filter((p) => ["acks0", "acks1", "unconfirmed"].includes(p.delivery)).map((p) => ({ on: p.from, title: `${p.from} does not wait for the broker to confirm`, why: p.delivery === "acks1" ? "acks=1 loses messages when the leader fails before the replicas copy them. Use acks=all with the idempotent producer." : "Unconfirmed sends are lost silently when the broker is busy or a connection drops.", edge: { from: p.from, to: m.id }, fix: { set: { delivery: m.kind === "topic" ? "idempotent" : "confirmed" }, label: m.kind === "topic" ? "acks=all, idempotent producer" : "Wait for the broker's confirmation" } })),
+    "msg.no-outbox": (m) => m.pubs.filter((p) => p.writesDb && !p.outbox).map((p) => ({ on: p.from, title: `${p.from} writes to its database and publishes, without an outbox`, why: `If ${p.from} saves and then fails before publishing (or publishes and then the save fails), the database and the events disagree. Write the event to an outbox table in the same transaction and publish from there.`, edge: { from: p.from, to: m.id }, fix: { set: { outbox: true }, label: "Use a transactional outbox" } })),
+    "msg.idle-consumers": (m) => m.kind !== "topic" ? [] : Object.values(m.subs.reduce((g, s) => { const k = s.ch + "|" + s.group; (g[k] = g[k] || { ch: s.ch, group: s.group, n: 0, to: s.to }).n += s.consumers; return g; }, {})).filter((g) => { const c = m.channels.find((x) => x.id === g.ch); return c && g.n > c.partitions; }).map((g) => { const c = m.channels.find((x) => x.id === g.ch); return { on: m.id, title: `Group ${g.group} has ${g.n} consumers for ${c.partitions} partitions of ${g.ch}`, why: `A partition is read by one consumer of a group at a time, so ${g.n - c.partitions} consumer(s) sit idle. Add partitions or run fewer consumers.`, sev: "info" }; }),
+    "msg.replication": (m, p) => m.kind !== "topic" ? [] : m.channels.filter((c) => c.rf < 3 || c.minIsr < 2 || c.minIsr >= c.rf).map((c) => ({ on: m.id, title: `Topic ${c.id}: replication factor ${c.rf}, min.insync.replicas ${c.minIsr}`, why: `With a replication factor below 3, a rolling update or one broker failure can take partitions offline or lose data; min.insync.replicas should be 2 (and below the replication factor) so acks=all survives one broker loss.`, chan: { id: c.id, set: { rf: 3, minIsr: 2 } }, fix: { chan: { id: c.id, set: { rf: 3, minIsr: 2 } }, label: "Replication factor 3, min.insync.replicas 2" }, facts: ["rf", "min_isr"].map((x) => fact(p, x)).filter(Boolean) })),
+    "msg.partitions-per-broker": (m, p) => { if (m.kind !== "topic" || !m.brokers) return []; const f = fact(p, "partitions_per_broker"); if (!f) return []; const per = m.channels.reduce((a, c) => a + c.partitions * c.rf, 0) / m.brokers; return per > f.default ? [{ on: m.id, title: `${m.id} carries about ${Math.round(per)} partition replicas per broker`, why: `The recommendation for this broker size is ${f.default} (incl. replicas); above ${f.max} configuration and broker-size updates are blocked. Add brokers or use fewer partitions.`, sev: per > f.max ? "crit" : "warn", facts: [f] }] : []; },
+    "msg.lambda-direct": (m) => m.kind !== "notif" ? [] : m.subs.filter((s) => s.protocol === "lambda" && s.rate > 100).map((s) => ({ on: s.to, title: `${m.id} pushes about ${Math.round(s.rate)} messages/s straight to ${s.to}`, why: "Each push is a function invocation: bursts hit the concurrency limit and throttled deliveries are retried or dropped. Put a queue between them (topic → queue → function) to buffer bursts and control concurrency.", edge: { from: m.id, to: s.to }, fix: { insertQueue: { from: m.id, to: s.to }, label: "Insert a queue (topic → queue → function)" } })),
+    "msg.insecure-http": (m) => m.subs.filter((s) => s.protocol === "http").map((s) => ({ on: s.to, title: `${m.id} delivers to ${s.to} over plain HTTP`, why: "Messages travel unencrypted and the endpoint cannot be verified. Use HTTPS and verify the message signature at the endpoint.", sev: "crit", edge: { from: m.id, to: s.to }, fix: { set: { protocol: "https" }, label: "Use HTTPS" } })),
+    "msg.no-filter": (m) => (m.kind === "notif" || m.kind === "bus") && m.subs.length >= 2 && !m.subs.some((s) => s.filter) ? [{ on: m.id, title: `${m.id}: every subscriber receives every message`, why: "With no filter policy, each subscriber gets all messages and must discard the ones it does not need: wasted invocations and cost. Add a filter on the message attributes (or an event pattern).", sev: "info" }] : [],
+    "msg.fifo-protocol": (m, p) => m.kind !== "notif" || !m.channels.some((c) => c.fifo) ? [] : m.subs.filter((s) => m.channels.find((c) => c.id === s.ch && c.fifo) && s.protocol !== "sqs").map((s) => ({ on: s.to, title: `FIFO topic ${s.ch} cannot deliver to ${s.to} over ${s.protocol}`, why: "FIFO topics deliver only to SQS queues (FIFO or standard). Put a FIFO queue between the topic and the consumer.", hard: true, sev: "crit", edge: { from: m.id, to: s.to }, facts: [fact(p, "fifo_protocols")].filter(Boolean) })),
+    "msg.fifo-standard-queue": (m) => m.kind !== "notif" ? [] : m.subs.filter((s) => m.channels.find((c) => c.id === s.ch && c.fifo) && s.toType === "queue" && !s.toFifo).map((s) => ({ on: s.to, title: `FIFO topic ${s.ch} delivers to a standard queue (${s.to}): ordering is lost`, why: "A standard queue does not keep order or deduplicate. Use a FIFO queue to keep the topic's ordering." })),
+    "msg.filter-keys": (m, p) => { const f = fact(p, "filter_keys"); if (!f || m.kind !== "notif") return []; return m.subs.filter((s) => s.filter && s.filter.split(/\s*,\s*/).filter(Boolean).length > f.max).map((s) => ({ on: s.to, title: `${s.to}'s filter uses more than ${f.max} attributes`, why: `A filter policy may use at most ${f.max} attribute names; this one cannot be created.`, hard: true, sev: "crit", edge: { from: m.id, to: s.to }, facts: [f] })); },
+    "msg.cross-region": (m) => m.subs.filter((s) => s.toRegion && m.region && s.toRegion !== m.region).map((s) => ({ on: s.to, title: `${m.id} (region ${m.region}) delivers to ${s.to} in region ${s.toRegion}`, why: "Topics and buses are regional: each delivery crosses regions (latency, data-transfer cost) and stops if region A fails. Give region B its own topic or bus.", sev: "info" })),
+    "msg.user-messaging": (m) => m.kind !== "notif" ? [] : m.subs.filter((s) => ["email", "sms"].includes(s.protocol)).map((s) => ({ on: s.to, title: `${m.id} sends ${s.protocol} to people`, why: "Topic email and SMS suit operators and alerts. For customer messages use a dedicated messaging service (for example Amazon SES or AWS End User Messaging): templates, opt-out, deliverability and sender identity.", sev: "info" })),
+    "msg.unused-channel": (m) => m.channels.flatMap((c) => { const pubs = m.pubs.filter((p) => p.ch === c.id).length, subs = m.subs.filter((s) => s.ch === c.id).length; return (m.pubs.length + m.subs.length) && (!pubs || !subs) ? [{ on: m.id, title: `${m.id}/${c.id} has ${!pubs ? "no publisher" : "no consumer"}`, why: !pubs ? "Nothing sends to it: connect a producer, or remove it." : "Messages pile up (or are dropped) with nobody reading them: connect a consumer, or remove it.", sev: "info" }] : []; }),
+  };
+  api.evaluateMessaging = (d) => {
+    const res = [], mp = B.packs.find((p) => p.id === "core.messaging");
+    if (!mp || !d.msg) return res;
+    Object.values(d.msg).forEach((m) => {
+      const vendor = packsFor(d.nodes[m.id] ? d.nodes[m.id].type : "", d.provider).filter((p) => p.applies_to.provider === d.provider);
+      const vp = { facts: vendor.flatMap((p) => (p.facts || []).filter((f) => !f.flavor || f.flavor === m.flavor)).map((f) => ({ ...f })), id: vendor.map(tag).join(", ") };
+      (mp.rules || []).forEach((r) => { const c = MSG[r.check]; if (!c) return;
+        (c(m, vp) || []).forEach((f) => res.push({ id: r.id, sev: f.sev || r.severity, on: f.on || m.id, via: m.id, title: f.title, why: f.why, pack: tag(mp) + (vp.id ? " + " + vp.id : ""), facts: f.facts || [], fix: f.fix ? { ...f.fix, on: f.on || m.id, edge: f.fix.set ? f.edge : undefined } : null, hard: !!f.hard })); });
+    });
+    return res;
+  };
   api.evaluate = (d) => {
     const res = [];
     Object.values(d.nodes).forEach((n) => {
@@ -128,7 +172,7 @@
         });
       });
     });
-    return res;
+    return res.concat(api.evaluateMessaging(d));
   };
 
   /* ---------- what a component knows, senses and concludes ---------- */

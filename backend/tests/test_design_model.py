@@ -31,3 +31,16 @@ def test_subnets_per_zone_and_pinned_zones_are_valid():
                           "health": True, "hcInterval": 10, "hcThreshold": 3, "ttl": 10, "hcType": "alarm"}
     d["settings"] = {**d.get("settings", {}), "view": {"azLayout": "side", "propPos": {"l": "100px", "t": "80px"}}}
     assert dm.validate(d) == []
+
+
+def test_messaging_channels_and_connections_are_valid():
+    d = dm.sample_design()
+    d["nodes"]["NT1"] = {"id": "NT1", "type": "notify", "name": "Order events", "parent": "root", "flavor": "topic",
+                         "channels": [{"id": "orders", "fifo": False}]}
+    d["nodes"]["Q9"] = {"id": "Q9", "type": "queue", "name": "Stream", "parent": "root", "flavor": "kafka",
+                        "channels": [{"id": "orders", "partitions": 12, "rf": 3, "minIsr": 2, "key": "orderId", "ordered": True}]}
+    d["edges"] += [{"from": "SVC1", "to": "Q9", "proto": "Kafka/TLS", "via": "net", "ch": "orders", "key": "orderId", "outbox": True},
+                   {"from": "Q9", "to": "SVC1", "proto": "Kafka/TLS", "via": "net", "ch": "orders", "group": "billing", "idem": True, "retries": 5},
+                   {"from": "NT1", "to": "SVC1", "proto": "HTTPS", "via": "net", "ch": "orders", "protocol": "https", "filter": "type = order"}]
+    d["nodes"]["SVC1"]["cfgReview"] = {"model": "x", "items": {}}
+    assert dm.validate(d) == []

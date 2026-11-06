@@ -1,0 +1,29 @@
+{
+ "id": "gcp.cache",
+ "version": "1.0.0",
+ "title": "Memorystore for Redis",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "cache",
+  "provider": "gcp"
+ },
+ "facts": [
+  {
+   "id": "resize",
+   "label": "Scale the instance",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": 30,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.cloud.google.com/memorystore/docs/redis/faq",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "Standard tier fails over to its replica (about 30 s) and keeps the data.",
+   "mitigation": "Standard tier; client reconnect; memory headroom."
+  }
+ ]
+}

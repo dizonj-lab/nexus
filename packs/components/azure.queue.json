@@ -1,7 +1,7 @@
 {
  "id": "azure.queue",
- "version": "1.0.0",
- "title": "Azure Service Bus",
+ "version": "1.1.0",
+ "title": "Azure Service Bus and Event Hubs",
  "owner": "team-integration",
  "layer": "vendor",
  "schema": "nexus-pack/1",
@@ -21,7 +21,49 @@
    "adjustable": false,
    "source": "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-premium-messaging",
    "checked": "2026-11-06",
-   "note": "Premium allows 100 MB over AMQP."
+   "note": "Premium allows 100 MB over AMQP.",
+   "flavor": "native"
+  },
+  {
+   "id": "subs",
+   "label": "Subscriptions per Service Bus topic",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 2000,
+   "unit": "subscriptions",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas",
+   "checked": "2026-11-06",
+   "flavor": "native"
+  },
+  {
+   "id": "partitions",
+   "label": "Partitions per event hub (Premium)",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 100,
+   "unit": "partitions",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas",
+   "checked": "2026-11-06",
+   "note": "Basic and Standard: 32, fixed after creation.",
+   "flavor": "kafka"
+  },
+  {
+   "id": "tu",
+   "label": "Ingress per throughput unit (Standard)",
+   "kind": "limit",
+   "default": 1,
+   "min": null,
+   "max": null,
+   "unit": "MB/s",
+   "adjustable": false,
+   "source": "https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-scalability",
+   "checked": "2026-11-06",
+   "note": "Or 1,000 events/s.",
+   "flavor": "kafka"
   }
  ]
 }

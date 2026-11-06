@@ -1,0 +1,29 @@
+{
+ "id": "azure.db",
+ "version": "1.0.0",
+ "title": "Azure Database for PostgreSQL flexible server",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "db",
+  "provider": "azure"
+ },
+ "facts": [
+  {
+   "id": "resize",
+   "label": "Scale compute",
+   "kind": "behaviour",
+   "default": null,
+   "min": 10,
+   "max": 30,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://learn.microsoft.com/en-us/azure/postgresql/scale/concepts-scaling-resources",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "Near-zero-downtime scaling: about 10–30 s at the cut-over (40–60 s as seen by the application with DNS); falls back to a restart of 2–10 minutes in some cases.",
+   "mitigation": "Client retries; scale off-peak; free addresses in the subnet."
+  }
+ ]
+}

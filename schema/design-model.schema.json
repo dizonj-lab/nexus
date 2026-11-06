@@ -129,7 +129,8 @@
         "art",
         "kms",
         "sec",
-        "mon"
+        "mon",
+        "notify"
       ]
     },
     "node": {

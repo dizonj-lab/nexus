@@ -1,4 +1,9 @@
-# NEXUS — Current state (v0.3.6)
+# NEXUS — Current state (v0.3.7)
+
+- Messaging: channels on queues, streams and the new notifications/event-bus
+  component; producers and consumers on connections; 20 messaging rules;
+  Terraform per channel. Disruption from scaling changes is shown before applying.
+
 
 - Critical settings offer recommendation 1 (rules) and 2 (second opinion);
   3D flows follow the flat view's line rules.

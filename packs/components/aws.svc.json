@@ -1,0 +1,29 @@
+{
+ "id": "aws.svc",
+ "version": "1.0.0",
+ "title": "Amazon ECS on Fargate",
+ "owner": "team-platform",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "svc",
+  "provider": "aws"
+ },
+ "facts": [
+  {
+   "id": "resize",
+   "label": "Change task CPU or memory",
+   "kind": "behaviour",
+   "default": null,
+   "min": 0,
+   "max": 0,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service_definition_parameters.html",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "A new task definition and a rolling deployment; no downtime with two or more tasks, 100 % minimum healthy and spare capacity.",
+   "mitigation": "Keep minimum healthy at 100 % and the deployment circuit breaker on."
+  }
+ ]
+}

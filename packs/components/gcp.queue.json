@@ -1,6 +1,6 @@
 {
  "id": "gcp.queue",
- "version": "1.0.0",
+ "version": "1.1.0",
  "title": "Pub/Sub",
  "owner": "team-integration",
  "layer": "vendor",
@@ -20,7 +20,61 @@
    "unit": "MB",
    "adjustable": false,
    "source": "https://docs.cloud.google.com/pubsub/quotas",
-   "checked": "2026-11-06"
+   "checked": "2026-11-06",
+   "flavor": "native"
+  },
+  {
+   "id": "subs",
+   "label": "Subscriptions per topic",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 10000,
+   "unit": "subscriptions",
+   "adjustable": false,
+   "source": "https://docs.cloud.google.com/pubsub/quotas",
+   "checked": "2026-11-06",
+   "flavor": "native"
+  },
+  {
+   "id": "retention",
+   "label": "Subscription retention",
+   "kind": "setting",
+   "default": 10080,
+   "min": 10,
+   "max": 44640,
+   "unit": "minutes",
+   "adjustable": true,
+   "source": "https://docs.cloud.google.com/pubsub/docs/subscription-properties",
+   "checked": "2026-11-06",
+   "note": "7 days by default.",
+   "flavor": "native"
+  },
+  {
+   "id": "ack",
+   "label": "Acknowledgement deadline",
+   "kind": "setting",
+   "default": 10,
+   "min": 10,
+   "max": 600,
+   "unit": "s",
+   "adjustable": true,
+   "source": "https://docs.cloud.google.com/pubsub/docs/subscription-properties",
+   "checked": "2026-11-06",
+   "flavor": "native"
+  },
+  {
+   "id": "ordering_key",
+   "label": "Publish throughput per ordering key",
+   "kind": "limit",
+   "default": 1,
+   "min": null,
+   "max": 1,
+   "unit": "MBps",
+   "adjustable": false,
+   "source": "https://docs.cloud.google.com/pubsub/quotas",
+   "checked": "2026-11-06",
+   "flavor": "native"
   }
  ]
 }

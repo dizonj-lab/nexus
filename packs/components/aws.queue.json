@@ -1,7 +1,7 @@
 {
  "id": "aws.queue",
- "version": "1.0.0",
- "title": "Amazon SQS",
+ "version": "1.2.0",
+ "title": "Amazon SQS, Amazon MQ and Amazon MSK",
  "owner": "team-integration",
  "layer": "vendor",
  "schema": "nexus-pack/1",
@@ -21,7 +21,8 @@
    "adjustable": false,
    "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html",
    "checked": "2026-11-06",
-   "note": "Raised from 256 KiB to 1 MiB."
+   "note": "Raised from 256 KiB to 1 MiB.",
+   "flavor": "native"
   },
   {
    "id": "visibility",
@@ -33,7 +34,8 @@
    "unit": "s",
    "adjustable": false,
    "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html",
-   "checked": "2026-11-06"
+   "checked": "2026-11-06",
+   "flavor": "native"
   },
   {
    "id": "retention",
@@ -46,7 +48,8 @@
    "adjustable": false,
    "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html",
    "checked": "2026-11-06",
-   "note": "4 days by default, up to 14 days."
+   "note": "4 days by default, up to 14 days.",
+   "flavor": "native"
   },
   {
    "id": "fifo",
@@ -59,7 +62,167 @@
    "adjustable": false,
    "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/high-throughput-fifo.html",
    "checked": "2026-11-06",
-   "note": "3,000 with batching; high-throughput mode is much higher."
+   "note": "3,000 with batching; high-throughput mode is much higher.",
+   "flavor": "native"
+  },
+  {
+   "id": "fifo_htm",
+   "label": "FIFO high-throughput mode (ap-southeast-1 and most Regions)",
+   "kind": "quota",
+   "default": 2400,
+   "min": null,
+   "max": null,
+   "unit": "transactions/s per API action",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/general/latest/gr/sqs-service.html",
+   "checked": "2026-11-06",
+   "note": "70,000 in us-east-1, us-west-2 and eu-west-1. Needs deduplication per message group.",
+   "flavor": "native"
+  },
+  {
+   "id": "fifo_partition",
+   "label": "FIFO throughput per partition",
+   "kind": "limit",
+   "default": 300,
+   "min": null,
+   "max": null,
+   "unit": "transactions/s per API action",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/partitions-and-data-distribution.html",
+   "checked": "2026-11-06",
+   "note": "The message group ID is hashed to a partition.",
+   "flavor": "native"
+  },
+  {
+   "id": "fifo_inflight",
+   "label": "FIFO messages in flight",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 120000,
+   "unit": "messages",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html",
+   "checked": "2026-11-06",
+   "flavor": "native"
+  },
+  {
+   "id": "partitions_per_broker",
+   "label": "Partitions per broker, kafka.m7g.large (incl. replicas)",
+   "kind": "limit",
+   "default": 1000,
+   "min": null,
+   "max": 1500,
+   "unit": "partitions",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-06",
+   "note": "1,000 recommended. Above 1,500, configuration and broker-size updates are blocked. kafka.t3.small: 300.",
+   "flavor": "kafka"
+  },
+  {
+   "id": "brokers",
+   "label": "Brokers per cluster",
+   "kind": "quota",
+   "default": 30,
+   "min": null,
+   "max": null,
+   "unit": "brokers",
+   "adjustable": true,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/limits.html",
+   "checked": "2026-11-06",
+   "note": "60 for KRaft-based clusters.",
+   "flavor": "kafka"
+  },
+  {
+   "id": "rf",
+   "label": "Replication factor (best practice)",
+   "kind": "setting",
+   "default": 3,
+   "min": 3,
+   "max": null,
+   "unit": "replicas",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-06",
+   "note": "1 risks offline partitions during rolling updates, 2 risks data loss.",
+   "flavor": "kafka"
+  },
+  {
+   "id": "min_isr",
+   "label": "min.insync.replicas (best practice)",
+   "kind": "setting",
+   "default": 2,
+   "min": null,
+   "max": null,
+   "unit": "replicas",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-06",
+   "note": "At most the replication factor minus one.",
+   "flavor": "kafka"
+  },
+  {
+   "id": "serverless_partition_ingress",
+   "label": "MSK Serverless ingress per partition",
+   "kind": "limit",
+   "default": 5,
+   "min": null,
+   "max": 5,
+   "unit": "MBps",
+   "adjustable": false,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/limits.html",
+   "checked": "2026-11-06",
+   "note": "Egress 10 MBps per partition.",
+   "flavor": "kafka"
+  },
+  {
+   "id": "broker_size",
+   "label": "Change the broker size",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": 120,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-update-broker-type.html",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "Rolling, one broker at a time: clients see brief disconnects and latency spikes for up to 2 minutes while leaders move.",
+   "mitigation": "Replication factor 3, min.insync.replicas 2, client retries.",
+   "flavor": "kafka"
+  },
+  {
+   "id": "broker_add",
+   "label": "Add brokers",
+   "kind": "behaviour",
+   "default": null,
+   "min": 0,
+   "max": 0,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-update-broker-count.html",
+   "checked": "2026-11-06",
+   "change": "brokers",
+   "note": "No downtime, but existing partitions stay where they are: reassign them, in small batches, to use the new brokers.",
+   "mitigation": "Reassign at low CPU (under 70 %).",
+   "flavor": "kafka"
+  },
+  {
+   "id": "storage",
+   "label": "Increase broker storage",
+   "kind": "behaviour",
+   "default": null,
+   "min": 0,
+   "max": 0,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-update-storage.html",
+   "checked": "2026-11-06",
+   "change": "storage",
+   "note": "No disruption; at least 6 hours between storage increases, and storage cannot shrink.",
+   "mitigation": "Storage auto scaling.",
+   "flavor": "kafka"
   }
  ]
 }

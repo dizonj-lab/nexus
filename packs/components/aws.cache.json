@@ -1,6 +1,6 @@
 {
  "id": "aws.cache",
- "version": "1.0.0",
+ "version": "1.1.0",
  "title": "Amazon ElastiCache (Valkey / Redis OSS)",
  "owner": "team-data",
  "layer": "vendor",
@@ -35,6 +35,36 @@
    "checked": "2026-11-06",
    "note": "Default 90 nodes per cluster; up to 500 by request on recent engines.",
    "field": "shards"
+  },
+  {
+   "id": "resize",
+   "label": "Change the node type (online)",
+   "kind": "behaviour",
+   "default": null,
+   "min": 0,
+   "max": null,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/redis-cluster-vertical-scaling.html",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "Online with automatic failover on Valkey 7.2+ and Redis OSS 5.0.5+; older Redis versions may pause reads and writes briefly during the DNS update.",
+   "mitigation": "Keep replicas with automatic failover on."
+  },
+  {
+   "id": "reshard",
+   "label": "Add or remove shards (cluster mode)",
+   "kind": "behaviour",
+   "default": null,
+   "min": 0,
+   "max": 0,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/scaling-redis-cluster-mode-enabled.html",
+   "checked": "2026-11-06",
+   "change": "shards",
+   "note": "Online resharding: the cluster keeps serving requests.",
+   "mitigation": "Not available with cluster mode disabled."
   }
  ]
 }

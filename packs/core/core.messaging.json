@@ -1,0 +1,118 @@
+{
+ "id": "core.messaging",
+ "version": "1.0.0",
+ "title": "Queues, streams, notifications and event buses: producers and consumers",
+ "owner": "team-integration",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": [
+   "queue",
+   "notify"
+  ],
+  "provider": "*"
+ },
+ "facts": [],
+ "rules": [
+  {
+   "id": "msg.order-without-key",
+   "check": "msg.order-without-key",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.parallel-breaks-order",
+   "check": "msg.parallel-breaks-order",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.no-idempotency",
+   "check": "msg.no-idempotency",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.at-most-once",
+   "check": "msg.at-most-once",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.no-dlq",
+   "check": "msg.no-dlq",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.unlimited-retries",
+   "check": "msg.unlimited-retries",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.fire-and-forget",
+   "check": "msg.fire-and-forget",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.no-outbox",
+   "check": "msg.no-outbox",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.idle-consumers",
+   "check": "msg.idle-consumers",
+   "severity": "info"
+  },
+  {
+   "id": "msg.replication",
+   "check": "msg.replication",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.partitions-per-broker",
+   "check": "msg.partitions-per-broker",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.lambda-direct",
+   "check": "msg.lambda-direct",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.insecure-http",
+   "check": "msg.insecure-http",
+   "severity": "crit"
+  },
+  {
+   "id": "msg.no-filter",
+   "check": "msg.no-filter",
+   "severity": "info"
+  },
+  {
+   "id": "msg.fifo-protocol",
+   "check": "msg.fifo-protocol",
+   "severity": "crit"
+  },
+  {
+   "id": "msg.fifo-standard-queue",
+   "check": "msg.fifo-standard-queue",
+   "severity": "warn"
+  },
+  {
+   "id": "msg.filter-keys",
+   "check": "msg.filter-keys",
+   "severity": "crit"
+  },
+  {
+   "id": "msg.cross-region",
+   "check": "msg.cross-region",
+   "severity": "info"
+  },
+  {
+   "id": "msg.user-messaging",
+   "check": "msg.user-messaging",
+   "severity": "info"
+  },
+  {
+   "id": "msg.unused-channel",
+   "check": "msg.unused-channel",
+   "severity": "info"
+  }
+ ]
+}

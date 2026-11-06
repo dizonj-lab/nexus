@@ -1,6 +1,6 @@
 {
  "id": "core.placement",
- "version": "1.0.0",
+ "version": "1.1.0",
  "title": "Where components can run: subnets, zones and regions",
  "owner": "team-network",
  "layer": "vendor",
@@ -283,6 +283,13 @@
      ]
     }
    }
+  },
+  "notify": {
+   "subnet": false,
+   "az": false,
+   "managed_only": true,
+   "why": "A managed notification service or event bus is regional and runs outside your VPC. Publish to it through an interface endpoint.",
+   "self_hosted": "tiers"
   }
  },
  "families": {
@@ -295,7 +302,8 @@
   "db": "_data",
   "cache": "_data",
   "queue": "_data",
-  "gw": "_compute"
+  "gw": "_compute",
+  "notify": "_data"
  },
  "zones": {
   "default": {

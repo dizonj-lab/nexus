@@ -1,0 +1,29 @@
+{
+ "id": "azure.cache",
+ "version": "1.0.0",
+ "title": "Azure Cache for Redis",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "cache",
+  "provider": "azure"
+ },
+ "facts": [
+  {
+   "id": "resize",
+   "label": "Scale the cache",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "s",
+   "adjustable": null,
+   "source": "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-scale",
+   "checked": "2026-11-06",
+   "change": "vertical",
+   "note": "Standard and Premium keep the data with short connection blips; resizing a Basic cache takes it offline and loses all data.",
+   "mitigation": "Use Standard or higher; client reconnect."
+  }
+ ]
+}

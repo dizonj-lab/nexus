@@ -296,3 +296,20 @@ everything else goes ahead through the Action Guard with the placement pack's
 pros and cons. Risky is not impossible: a database in a public subnet is
 allowed (and flagged), a managed queue in a subnet is not.
 
+## D47 — Messaging: broker as the component, channels inside, keys and groups on connections
+A queue, stream or notification service is one component (it is deployed,
+scaled and paid for as one); its topics, queues, exchanges or event types are
+channels inside it. The producer chooses the key, so the key belongs to the
+publish connection; the channel records what the key means (ordering scope).
+Consumer groups, acknowledgement, retries, dead-letter queues and filters
+belong to the consume connection. A separate component per topic was
+rejected (wrong scaling and cost), and so was a property list on the broker
+(connections could not point at a channel).
+
+## D48 — Disruption is shown before a change, from documented behaviour
+Every change is compared before and after; where the provider documents what
+a change does to availability (resizing, replicas, storage, shards, brokers),
+the Action Guard shows it with the source and asks for an acknowledgement
+when there is an outage. Where the provider gives no duration, NEXUS says so
+instead of guessing.
+
