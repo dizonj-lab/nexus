@@ -1,6 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef } from "react";
 import { api, ApiError, ROLE_LABEL, type Project } from "@/lib/api";
+import pkg from "../../package.json";
+
+// The release in the address makes the browser fetch the new canvas after an upgrade.
+const CANVAS = `/workbench/index.html?embed=1&v=${pkg.version}`;
 
 export type SaveState = "loading" | "saved" | "saving" | "readonly" | "conflict" | "error";
 
@@ -66,5 +70,5 @@ export function Workbench({ project, userName, stamp, onState, onSaved }: Props)
   // Reload the design after a changeset is applied elsewhere in the app.
   useEffect(() => { if (stamp > 0 && ready.current) void send(); }, [stamp, send]);
 
-  return <iframe ref={frame} className="wb" src="/workbench/index.html?embed=1" title={`${project.name} workbench`} />;
+  return <iframe ref={frame} className="wb" src={CANVAS} title={`${project.name} workbench`} />;
 }

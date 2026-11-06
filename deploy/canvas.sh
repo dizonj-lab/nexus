@@ -10,4 +10,5 @@ port="$(grep -E '^NEXUS_CANVAS_PORT=' "$ENV" | tail -1 | cut -d= -f2)"; port="${
 docker compose --env-file "$ENV" -f deploy/canvas.compose.yml up -d --force-recreate --remove-orphans
 for i in $(seq 1 20); do curl -fsS "http://127.0.0.1:$port/healthz" >/dev/null 2>&1 && break; sleep 1; done
 ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
-echo "NEXUS canvas (no sign-in)  →  http://$ip:$port/   ·   Strategy  →  http://$ip:$port/strategy/"
+ver="$(curl -fsS "http://127.0.0.1:$port/prototype/index.html" 2>/dev/null | grep -o 'Architecture Workbench · v[0-9.]*' | head -1 | sed 's/.*· //')"
+echo "NEXUS canvas ${ver:-?} (no sign-in)  →  http://$ip:$port/   ·   Strategy  →  http://$ip:$port/strategy/"

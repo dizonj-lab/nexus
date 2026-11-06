@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import pkg from "../../../package.json";
 
 export const metadata: Metadata = { title: "Strategy" };
 
@@ -9,7 +10,7 @@ export default function StrategyPage() {
   return (
     <iframe
       className="strategy-frame"
-      src="/strategy-module/index.html?embed"
+      src={`/strategy-module/index.html?embed&v=${pkg.version}`}
       title="NEXUS Strategy: the Chief Technology Architect's workbench"
       style={{ display: "block", width: "100%", height: "calc(100vh - 55px)", border: 0 }}
     />
