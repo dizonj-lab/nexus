@@ -385,6 +385,8 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 .lim .k{font-size:10.5px;padding:1px 5px;border-radius:8px;border:1px solid var(--line);white-space:nowrap}.lim .k.quota{color:var(--warn);border-color:var(--warn)}.lim .k.limit{color:var(--crit);border-color:var(--crit)}.lim .k.setting{color:var(--accent);border-color:var(--accent)}
 .lim a{color:var(--accent)}.limlist{list-style:none;margin:6px 0;padding:0}.limlist li{border-bottom:1px solid var(--line);padding:7px 0}.limlist .lh{display:flex;gap:8px;align-items:baseline;justify-content:space-between}.limlist .lv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;margin:3px 0}.limlist .lv span{color:var(--muted)}.limlist .lv b{color:var(--ink);font-weight:600;white-space:nowrap}.limlist .src{font-size:11px;color:var(--muted)}.limlist .lv b .over{color:var(--crit)}
 .cslist{list-style:none;margin:6px 0;padding:0}.cslist li{border-bottom:1px solid var(--line);padding:7px 0}.cslist li.met{opacity:.72}.cslist .lh{display:flex;gap:8px;justify-content:space-between;align-items:baseline}.cslist .lv{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:12.5px;margin:3px 0}.cslist .lv span{color:var(--muted)}.cslist .lv b{color:var(--ink);font-weight:600}.cslist .lv b.crit{color:var(--crit)}
+.csopts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px}.cso{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px;display:flex;flex-direction:column;gap:3px;align-items:flex-start}.cso header{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}.cso.o1{border-left:3px solid var(--accent)}.cso.o2{border-left:3px dashed var(--warn)}.cso.none{opacity:.7}.cso .btn{font-size:12px;padding:3px 9px;margin-top:2px}
+@media (max-width:420px){.csopts{grid-template-columns:1fr}}
 .csact{margin-top:4px}.csact .btn{font-size:12px;padding:3px 9px}.csbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}.csrev{font-size:12px;margin:3px 0;padding:3px 7px;border-left:3px solid var(--line);background:var(--surface-2)}.csrev.ok{border-color:var(--ok)}.csrev.warn{border-color:var(--warn)}.lim .over{color:var(--crit);font-weight:600}.thk ul{margin:2px 0 8px;padding-left:18px}.thk li{margin:2px 0}.thk .src{font-size:11px;color:var(--muted)}
 @media (max-width:640px){.pwin{left:8px!important;top:64px!important;width:calc(100vw - 16px)!important;height:70vh!important}}
 .ptab{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:6px}.ptab th,.ptab td{border-bottom:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}.ptab th{font-size:11px;color:var(--muted);font-weight:500}
@@ -407,7 +409,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.5">NEXUS<small>Architecture Workbench · v0.3.5</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.6">NEXUS<small>Architecture Workbench · v0.3.6</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -1690,13 +1692,24 @@ const CS_LIVE={
 BP_DERIVED.perzone=n=>!!n.perAz;BP_HINT.perzone='one per zone';
 // Everything about one critical item: setting, current value, recommendation, whether it is met, how to fix it.
 function csItem(n,x){const c=csOf(n,x.k),live=x.der&&CS_LIVE[x.k],v=(n.cfgv||{})[x.k];
- const cur=live?live.cur(n):v!=null?v:x.on?c[2]:c[1],rec=live?live.rec:c[2],proc=c[3]==='p';
+ const na=(n.cfgna||{})[x.k],cur=na?`not needed (accepted: ${na.note||'second opinion'})`:live?live.cur(n):v!=null?v:x.on?c[2]:c[1],rec=live?live.rec:c[2],proc=c[3]==='p';
  const rev=(n.cfgReview&&n.cfgReview.items||{})[x.k];
- return {...x,setting:c[0],cur,rec,proc,met:x.on||(!live&&c[1]===c[2]),fix:live?live.fix:(m=>{m.cfg={...(m.cfg||{}),[x.k]:true};m.cfgv={...(m.cfgv||{}),[x.k]:c[2]}}),rev}}
+ return {...x,setting:c[0],cur,rec,proc,na:!!na,met:x.on||!!na||(!live&&c[1]===c[2]),fix:live?live.fix:(m=>{m.cfg={...(m.cfg||{}),[x.k]:true};m.cfgv={...(m.cfgv||{}),[x.k]:c[2]}}),rev}}
 function fixSetting(id,k,quiet){const n=S.nodes[id];if(!n)return;const it=bpItems(n).find(x=>x.k===k);if(!it)return;const c=csItem(n,it);
- act(`${id}: ${c.setting} → ${c.rec}`,()=>c.fix(S.nodes[id]),{src:{by:'rules',note:'critical setting, Well-Architected recommendation'},tradeoffs:quiet?null:[`+ ${c.l} (${PILLARS[c.p].l})`,`  was: ${c.cur}`],after:()=>{if(!$('#propDlg').hidden&&PTAB==='crit')openProps($('#propBody').dataset.id)}})}
+ const differ=c.rev&&c.rev.v&&c.rev.v!=='agree',R=n.cfgReview||{};
+ act(`${id}: ${c.setting} → ${c.rec}`,()=>c.fix(S.nodes[id]),{src:{by:'rules',note:'critical setting, Well-Architected recommendation'},adr:differ?{title:`${id}: chose recommendation 1 for ${c.setting}`,context:`Recommendation 1 (NEXUS rules, Well-Architected): ${c.rec}.\nRecommendation 2 (${R.model||'second opinion'}): ${c.rev.v}${c.rev.value?' → '+c.rev.value:''}. ${c.rev.note||''}`,decision:`Use recommendation 1: ${c.rec}.`,tradeoffs:'',basis:['WAF-'+c.p]}:null,tradeoffs:quiet?null:[`+ ${c.l} (${PILLARS[c.p].l})`,`  was: ${c.cur}`],after:()=>{if(!$('#propDlg').hidden&&PTAB==='crit')openProps($('#propBody').dataset.id)}})}
 function fixAllSettings(id,critOnly){const n=S.nodes[id];if(!n)return;const open=bpItems(n).map(x=>csItem(n,x)).filter(c=>!c.met&&(!critOnly||c.c)&&!c.proc);if(!open.length){say(`${id}: nothing to fix.`,'s');return}
  act(`${id}: apply ${open.length} recommended setting${open.length>1?'s':''}`,()=>{const m=S.nodes[id];open.forEach(c=>c.fix(m))},{src:{by:'rules',note:'critical settings, Well-Architected recommendations'},tradeoffs:open.map(c=>`+ ${c.setting}: ${c.cur} → ${c.rec}`),after:()=>{if(!$('#propDlg').hidden&&PTAB==='crit')openProps($('#propBody').dataset.id)}})}
+// Apply recommendation 2 (the second opinion) instead of 1: a better value, or "not needed" for this component.
+function applySecond(id,k){const n=S.nodes[id];if(!n||!n.cfgReview)return;const it=bpItems(n).find(x=>x.k===k);if(!it)return;const c=csItem(n,it),r=c.rev,R=n.cfgReview;if(!r||r.v==='agree')return;
+ const adr={title:`${id}: chose recommendation 2 for ${c.setting}`,context:`Recommendation 1 (NEXUS rules, Well-Architected): ${c.rec}.\nRecommendation 2 (${R.model}): ${r.v}${r.value?' → '+r.value:''}. ${r.note||''}`,decision:r.v==='change'?`Use recommendation 2: ${r.value}.`:`Not needed for ${id}: ${r.note||''}`,tradeoffs:`Advisory model opinion accepted by ${who().name}.`,basis:['WAF-'+c.p,'Second opinion']};
+ const src={by:'ai',model:R.model,conf:.7,note:'second-opinion recommendation, chosen by the architect'};
+ if(r.v==='change'&&r.value)act(`${id}: ${c.setting} → ${r.value} (recommendation 2)`,()=>{const m=S.nodes[id];m.cfg={...(m.cfg||{}),[k]:true};m.cfgv={...(m.cfgv||{}),[k]:r.value};if(m.cfgna)delete m.cfgna[k]},{src,adr,tradeoffs:[`+ ${r.note||'second opinion'}`,`  recommendation 1 was: ${c.rec}`],after:csRefresh});
+ else act(`${id}: ${c.setting} not needed (recommendation 2)`,()=>{const m=S.nodes[id];m.cfgna={...(m.cfgna||{}),[k]:{note:r.note||'',model:R.model}}},{src,adr,tradeoffs:[`+ ${r.note||'not needed here'}`,`− The Well-Architected recommendation (${c.rec}) is not applied`],after:csRefresh})}
+function applyAllSecond(id){const n=S.nodes[id];if(!n||!n.cfgReview)return;const R=n.cfgReview,list=bpItems(n).map(x=>csItem(n,x)).filter(c=>c.rev&&c.rev.v==='change'&&c.rev.value);if(!list.length){say(`${id}: the second opinion has no different values to apply.`,'s');return}
+ act(`${id}: apply ${list.length} recommendation${list.length>1?'s':''} 2 (${R.model})`,()=>{const m=S.nodes[id];list.forEach(c=>{m.cfg={...(m.cfg||{}),[c.k]:true};m.cfgv={...(m.cfgv||{}),[c.k]:c.rev.value}})},{src:{by:'ai',model:R.model,conf:.7,note:'second-opinion recommendations, chosen by the architect'},tradeoffs:list.map(c=>`+ ${c.setting}: ${c.rev.value} (instead of ${c.rec})`),
+  adr:{title:`${id}: chose recommendation 2 for ${list.length} setting${list.length>1?'s':''}`,context:list.map(c=>`${c.setting}: 1 = ${c.rec}; 2 = ${c.rev.value} (${c.rev.note||''})`).join('\n'),decision:'Use the second opinion for these settings.',tradeoffs:'',basis:['Second opinion']},after:csRefresh})}
+function csRefresh(){if(!$('#propDlg').hidden&&PTAB==='crit')openProps($('#propBody').dataset.id)}
 // Second opinion: the escalation model checks the recommendations for this component. Advisory; it changes nothing.
 let CSCTRL=null;
 async function reviewSettings(id){const n=S.nodes[id];if(!n)return;if(CSCTRL){CSCTRL.abort();return}const L=escCfg(),items=bpItems(n).map(x=>csItem(n,x));
@@ -1718,12 +1731,20 @@ Respond with JSON only: {"summary":"one sentence","items":[{"key":"...","verdict
 function csRows(n){const items=bpItems(n).map(x=>csItem(n,x));if(!items.length)return '<p class="why">No critical settings for this kind of component.</p>';
  const R=n.cfgReview,badge=c=>{const r=c.rev;if(!r)return '';const cls=r.v==='agree'?'ok':r.v==='change'?'warn':'muted';return `<div class="csrev ${cls}"><b>2nd opinion: ${esc(r.v||'?')}</b>${r.value?` → ${esc(r.value)}`:''}${r.note?` · ${esc(r.note)}`:''}</div>`};
  const open=items.filter(c=>!c.met),crit=open.filter(c=>c.c).length;
- return `<p class="why">${items.length-open.length}/${items.length} as recommended${crit?` · <b class="crit">${crit} critical open</b>`:''}. Recommendations follow the AWS, Azure and Google Cloud Well-Architected frameworks; Fix applies the recommended value through the Action Guard (undo with Ctrl+Z).</p>
-  <div class="csbar"><button type="button" class="btn primary" data-csall="${esc(n.id)}" ${open.some(c=>!c.proc)?'':'disabled'}>Fix all open</button><button type="button" class="btn" data-csrev="${esc(n.id)}">${R?'Ask again':'Get second opinion'}</button><span id="csRev">${R?`<span class="why">${esc(R.model)} · ${esc((R.at||'').slice(0,16).replace('T',' '))}: ${esc(R.summary||'')}</span>`:''}</span></div>
+ const two=c=>{const r=c.rev,mdl=R?esc(R.model):'';
+   const o1=`<div class="cso o1"><header>Recommendation 1 · NEXUS rules</header><div><b>${esc(c.rec)}</b></div><div class="why">Well-Architected · ${esc(PILLARS[c.p].l)} · deterministic</div>${c.met&&!c.na?'<span class="pill ok">applied</span>':`<button type="button" class="btn ${!r||r.v==='agree'?'primary':''}" data-csfix="${esc(n.id)}" data-k="${c.k}">${c.proc?'Mark done':'Apply 1'}</button>`}</div>`;
+   const o2=!r?`<div class="cso o2 none"><header>Recommendation 2 · second opinion</header><div class="why">Not asked yet: use Get second opinion above.</div></div>`
+    :r.v==='agree'?`<div class="cso o2"><header>Recommendation 2 · ${mdl}</header><div><span class="pill ok">agrees with 1</span></div>${r.note?`<div class="why">${esc(r.note)}</div>`:''}</div>`
+    :`<div class="cso o2"><header>Recommendation 2 · ${mdl}</header><div><span class="pill warn">${esc(r.v)}</span>${r.value?` <b>${esc(r.value)}</b>`:''}</div>${r.note?`<div class="why">${esc(r.note)}</div>`:''}<div class="why">model · advisory</div>${(c.na||(n.cfgv||{})[c.k]===r.value)?'<span class="pill ok">applied</span>':`<button type="button" class="btn" data-cs2="${esc(n.id)}" data-k="${c.k}">${r.v==='change'?'Apply 2':'Accept: not needed'}</button>`}</div>`;
+   return `<div class="csopts">${o1}${o2}</div>`};
+ const changes=items.filter(c=>c.rev&&c.rev.v==='change'&&c.rev.value&&(n.cfgv||{})[c.k]!==c.rev.value).length;
+ return `<p class="why">${items.length-open.length}/${items.length} as recommended${crit?` · <b class="crit">${crit} critical open</b>`:''}. Recommendation 1 comes from the rules (AWS, Azure and Google Cloud Well-Architected frameworks); recommendation 2 from the second-opinion model. You choose; every change goes through the Action Guard (undo with Ctrl+Z).</p>
+  <div class="csbar"><button type="button" class="btn primary" data-csall="${esc(n.id)}" ${open.some(c=>!c.proc)?'':'disabled'}>Apply all 1</button>${changes?`<button type="button" class="btn" data-cs2all="${esc(n.id)}">Apply all 2 (${changes})</button>`:''}<button type="button" class="btn" data-csrev="${esc(n.id)}">${R?'Ask again':'Get second opinion'}</button><span id="csRev">${R?`<span class="why">${esc(R.model)} · ${esc((R.at||'').slice(0,16).replace('T',' '))}: ${esc(R.summary||'')}</span>`:''}</span></div>
   <ul class="cslist">${items.map(c=>`<li class="${c.met?'met':c.c?'open crit-row':'open'}"><div class="lh"><b>${c.met?'✓':c.c?'!':'·'} ${esc(c.l)}</b><span><span class="pchip">${esc(PILLARS[c.p].l)}</span>${c.c?' <b class="crit bpc">critical</b>':''}</span></div>
-   <div class="lv"><span>${esc(c.setting)}: <b class="${c.met?'':'crit'}">${esc(c.cur)}</b></span>${c.met?'':`<span>Recommended: <b>${esc(c.rec)}</b></span>`}${c.hint?`<span class="why">${esc(c.hint)}</span>`:''}</div>
-   ${badge(c)}${c.met?'':`<div class="csact">${c.proc?`<button type="button" class="btn" data-csfix="${esc(n.id)}" data-k="${c.k}">Mark done</button>`:`<button type="button" class="btn" data-csfix="${esc(n.id)}" data-k="${c.k}">Fix: ${esc(c.rec)}</button>`}</div>`}</li>`).join('')}</ul>`}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-csfix],[data-csall],[data-csrev],#csStop');if(!t)return;
+   <div class="lv"><span>${esc(c.setting)}: <b class="${c.met?'':'crit'}">${esc(c.cur)}</b></span>${c.hint?`<span class="why">${esc(c.hint)}</span>`:''}</div>
+   ${c.met&&(!c.rev||c.rev.v==='agree'||c.na||(n.cfgv||{})[c.k]===c.rev.value)?'':two(c)}</li>`).join('')}</ul>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-csfix],[data-csall],[data-csrev],[data-cs2],[data-cs2all],#csStop');if(!t)return;
+ if(t.dataset.cs2){applySecond(t.dataset.cs2,t.dataset.k);return}if(t.dataset.cs2all){applyAllSecond(t.dataset.cs2all);return}
  if(t.id==='csStop'){if(CSCTRL)CSCTRL.abort();return}if(t.dataset.csfix)fixSetting(t.dataset.csfix,t.dataset.k);else if(t.dataset.csall)fixAllSettings(t.dataset.csall);else if(t.dataset.csrev)reviewSettings(t.dataset.csrev)});
 function bpItems(n){const key=n.type==='user'?(n.origin==='corp'?'corp':''):n.type==='db'&&n.multi==='aa'?'dsql':n.type;return (BP[key]||[]).map(([k,l,p,c,pv])=>{const der=BP_DERIVED[k]&&(k!=='rate'||['waf','gw'].includes(n.type));const on=der?!!BP_DERIVED[k](n):!!(n.cfg&&n.cfg[k]);if(mr()&&(k==='repl'||k==='dxgw'))c=1;return {k,l,p,c,hint:pv?(pv[prov()]||''):'',der,on}})}
 function bpHTML(n){const it=bpItems(n);if(!it.length)return '';
@@ -2257,7 +2278,13 @@ function pointAt(p,t){const L=polyLen(p)*t;let acc=0;for(let i=0;i<p.length-1;i+
 /* ---------- flow lines never lie on top of each other ---------- */
 // 1) the ends that share a side of a component are spread along that side;
 // 2) middle runs that share a corridor are moved apart. Works on the screen route of each flow, every frame.
-function separateRoutes(list){const k=V.k,sp=Math.max(8,12*k);
+const ISO_HW=56,ISO_HH=24;
+// Elbowed route on the 3D floor: the flat route, with its ends moved to the edge of the 3D box.
+function isoWorldRoute(a,b){const key='iso:'+a.id+'>'+b.id;let w=RC.m.get(key);
+ if(!w){w=routeWorld(a,b,Math.abs(b.x-a.x)>=NW+14).map(q=>({...q}));const fix=(i,j,n,gap)=>{const P0=w[i],P1=w[j];if(Math.abs(P0.y-P1.y)<.5)P0.x=n.x+Math.sign(P1.x-n.x||1)*(ISO_HW+gap);else P0.y=n.y+Math.sign(P1.y-n.y||1)*(ISO_HH+gap)};
+  if(w.length>=2){fix(0,1,a,0);fix(w.length-1,w.length-2,b,3)}RC.m.set(key,w)}
+ return w.map(q=>({x:q.x,y:q.y}))}
+function separateRoutes(list,kk,half){const k=kk||V.k,sp=Math.max(kk?12:8,12*k),HW=half?half.w:NW/2,HH=half?half.h:NH/2;
  const side=(p,q)=>Math.abs(p.y-q.y)<.5?(q.x>p.x?'R':'L'):(q.y>p.y?'B':'T');
  list.forEach(e=>{let p=e._pts;if(!p||p.length<2)return;
   if(p.length===2){const a=p[0],b=p[1];if(Math.abs(a.y-b.y)<.5){const m=(a.x+b.x)/2;p=[a,{x:m,y:a.y},{x:m,y:b.y},b]}else if(Math.abs(a.x-b.x)<.5){const m=(a.y+b.y)/2;p=[a,{x:a.x,y:m},{x:b.x,y:m},b]}}
@@ -2265,7 +2292,7 @@ function separateRoutes(list){const k=V.k,sp=Math.max(8,12*k);
  const G={};list.forEach(e=>{const p=e._pts;if(!p||p.length<3)return;const s0=side(p[0],p[1]),s1=side(p[p.length-1],p[p.length-2]);
   (G[e.from+s0]=G[e.from+s0]||[]).push({e,end:0,s:s0,o:p[p.length-1]});(G[e.to+s1]=G[e.to+s1]||[]).push({e,end:1,s:s1,o:p[0]})});
  Object.values(G).forEach(g=>{if(g.length<2)return;const vert=g[0].s==='L'||g[0].s==='R';g.sort((a,b)=>vert?a.o.y-b.o.y||a.o.x-b.o.x:a.o.x-b.o.x||a.o.y-b.o.y);
-  const lim=(vert?NH/2-6:NW/2-14)*k,step=Math.min(sp,2*lim/(g.length-1));
+  const lim=(vert?HH-6:HW-14)*k,step=Math.min(sp,2*lim/(g.length-1));
   g.forEach((m,i)=>{const off=(i-(g.length-1)/2)*step,p=m.e._pts,a=m.end?p.length-1:0,b=m.end?p.length-2:1;if(vert){p[a].y+=off;p[b].y+=off}else{p[a].x+=off;p[b].x+=off}})});
  // corridors: middle segments (not touching a component) that run on the same line and overlap
  ['v','h'].forEach(dir=>{const segs=[];list.forEach(e=>{const p=e._pts;if(!p)return;for(let i=1;i<p.length-2;i++){const A=p[i],B=p[i+1];
@@ -2367,8 +2394,11 @@ function frame(now){
  const VW=S.settings.view,focus=id=>V.sel===id||V.hover===id;
  const drawn=es.filter(e=>isFlow(e)||e.kind==='repl'||VW.deps||focus(e.from)||focus(e.to));
  es.forEach(e=>{e._drawn=false});
- drawn.forEach(e=>{e._pts=routeEdge(S.nodes[e.from],S.nodes[e.to]);e._drawn=true});
- separateRoutes(drawn.filter(isFlow));
+ const iso3d=V.mode==='iso'&&S.settings.view.lines!=='straight';
+ drawn.forEach(e=>{if(iso3d){e._wsep=isoWorldRoute(S.nodes[e.from],S.nodes[e.to]);e._pts=e._wsep}else{e._wsep=null;e._pts=routeEdge(S.nodes[e.from],S.nodes[e.to])}e._drawn=true});
+ // In 3D the same rules apply on the floor plan: route and separate in design coordinates, then project.
+ if(iso3d){separateRoutes(drawn.filter(isFlow),1,{w:ISO_HW,h:ISO_HH});drawn.forEach(e=>{e._wsep=e._pts;e._pts=e._pts.map(q=>P(q.x,q.y))})}
+ else separateRoutes(drawn.filter(isFlow));
  const vsegs=[];drawn.filter(isFlow).forEach(e=>{const p=e._pts;for(let i=0;i<p.length-1;i++)if(Math.abs(p[i].x-p[i+1].x)<.5&&Math.abs(p[i].y-p[i+1].y)>1)vsegs.push({e,x:p[i].x,y1:Math.min(p[i].y,p[i+1].y),y2:Math.max(p[i].y,p[i+1].y)})});
  const labels=[];
  drawn.forEach(e=>{
@@ -2388,7 +2418,7 @@ function frame(now){
   if(e.proto==='HTTP'||e.via==='internet')ctx.setLineDash([5,4]);else if(['privatelink','vpn','dedicated'].includes(e.via))ctx.setLineDash([10,3,2,3]);
   tracePath(e,vsegs);ctx.stroke();ctx.setLineDash([]);
   const an=Math.atan2(e0.y-pe.y,e0.x-pe.x),ah=Math.max(7,w*1.3)*Math.min(1.2,V.k+.2);ctx.fillStyle=hexA(c,Math.min(1,a0+.25));ctx.beginPath();ctx.moveTo(e0.x,e0.y);ctx.lineTo(e0.x-ah*Math.cos(an-.45),e0.y-ah*Math.sin(an-.45));ctx.lineTo(e0.x-ah*Math.cos(an+.45),e0.y-ah*Math.sin(an+.45));ctx.closePath();ctx.fill();
-  if(hasResponse(a,b)){const rp=offsetRoute(p,-(w/2+3.5*Math.min(1.2,V.k+.2)));e._rpts=rp;ctx.globalAlpha=dim?.12:.75;ctx.strokeStyle=hexA(c,.7);ctx.lineWidth=Math.max(1,Math.min(2,w*.4));ctx.setLineDash([3,3]);ctx.beginPath();rp.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.stroke();ctx.setLineDash([]);
+  if(hasResponse(a,b)){const rp=e._wsep?offsetRoute(e._wsep,-Math.max(5,(w/2+3.5)/(V.k*.62))).map(q=>P(q.x,q.y)):offsetRoute(p,-(w/2+3.5*Math.min(1.2,V.k+.2)));e._rpts=rp;ctx.globalAlpha=dim?.12:.75;ctx.strokeStyle=hexA(c,.7);ctx.lineWidth=Math.max(1,Math.min(2,w*.4));ctx.setLineDash([3,3]);ctx.beginPath();rp.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.stroke();ctx.setLineDash([]);
    const r0=rp[0],r1=rp[1],an2=Math.atan2(r0.y-r1.y,r0.x-r1.x),ah2=5*Math.min(1.2,V.k+.2);ctx.fillStyle=hexA(c,.85);ctx.beginPath();ctx.moveTo(r0.x,r0.y);ctx.lineTo(r0.x-ah2*Math.cos(an2-.5),r0.y-ah2*Math.sin(an2-.5));ctx.lineTo(r0.x-ah2*Math.cos(an2+.5),r0.y-ah2*Math.sin(an2+.5));ctx.closePath();ctx.fill()}else e._rpts=null;
   ctx.globalAlpha=1;
   labels.push({e,f,dim,sel:sel||hovE,bad:e.proto==='HTTP'||(e.via==='internet'&&EXTERNAL.includes(b.type)&&a.type!=='egw')});

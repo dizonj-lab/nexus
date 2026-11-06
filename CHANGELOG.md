@@ -5,6 +5,23 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.6] — 2026-11-06
+
+### Added
+- **Critical settings: recommendation 1 and 2**, like opinion 1 and 2 in the
+  Action Guard. For each open setting, **Recommendation 1** comes from the
+  NEXUS rules (Well-Architected, deterministic) and **Recommendation 2** from
+  the second-opinion model: "agrees with 1", a different value, or "not
+  needed" with its reason. **Apply 1** or **Apply 2** (or **Accept: not
+  needed**), or **Apply all 1** / **Apply all 2**. Choosing one when they
+  differ records a decision (ADR) with both; values from recommendation 2
+  are marked as set by the model, chosen by the architect.
+
+### Changed
+- **3D view uses the same flow-line rules**: flows are routed along the floor
+  grid instead of diagonals, kept apart, and show their responses back to
+  the caller.
+
 ## [0.3.5] — 2026-11-06
 
 ### Added

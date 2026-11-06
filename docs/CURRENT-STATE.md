@@ -1,4 +1,8 @@
-# NEXUS — Current state (v0.3.5)
+# NEXUS — Current state (v0.3.6)
+
+- Critical settings offer recommendation 1 (rules) and 2 (second opinion);
+  3D flows follow the flat view's line rules.
+
 
 - Flow lines kept apart; responses drawn back to the caller; critical
   settings with the real value, recommendation, Fix and a second opinion.
