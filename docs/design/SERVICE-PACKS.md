@@ -270,9 +270,49 @@ topics, groups, publish, subscribe, `fail broker`, `stop group … for …`, `re
 
 Each starts at level 0 and moves up only through the gate in section 5.
 
-## 10. Open questions
+## 10. Decisions (November 2026)
 
-1. Who reviews each pack besides its owner?
-2. Is a recorded demo enough for level 2, or does each pack need a pilot user?
-3. For level 3: which real system provides the metrics to calibrate SP-Kafka?
-4. Does the existing breadth (legacy level 1) stay visible by default, or move behind Preview until its pack is done?
+### 10.1 Review: the local model, the cloud model and Claude, with you as the approver
+
+Every pack goes through three reviews before it moves up a level. They advise; the gate's automated
+checks and your approval decide.
+
+| Reviewer | Checks | Output |
+|---|---|---|
+| Automated gate (CI) | Schema, tests both ways, `terraform validate`, LikeC4 validation, performance budget, migration test | Pass or fail; nothing moves up on a fail |
+| Local model (SLM) | Plain language of labels, help and findings; each rule has a rationale, a fix or "no automatic fix"; nothing contradicts the facts in the pack | A review file in the pack's folder, each point tied to a file and line |
+| Cloud model (second opinion) | Rules and policy against the Well-Architected pillars; missing failure modes; integrations that should be refused | Same format, marked advisory |
+| Claude (development) | Code, contracts, tests, and every fact against its source page | Review notes in the pull request |
+| **You** | The demo and the review files | **Approve or send back** |
+
+A model cannot confirm a fact. Facts are checked against the official page; a fact that cannot be
+opened stays "not yet confirmed" whatever a model says.
+
+### 10.2 Demo: recorded automatically
+
+The demo is a scripted browser run per pack (Playwright, in Docker), recorded to video with captions,
+the same way the NEXUS product demo was made. It runs with the tests, so every version of a pack
+comes with an up-to-date demo at no extra effort. A narrated version is made only for releases you
+choose.
+
+### 10.3 Calibration: requests per second
+
+NEXUS calibrates on requests (messages) per second, the measure it already simulates. Where a limit is
+in bytes (Kafka broker throughput, storage), the pack converts with the average message size, a stated
+input on the design, shown wherever it is used. Level 3 then means: for a real system, the observed
+requests per second at a known utilisation, compared with what NEXUS predicts, and the capacity per
+component adjusted until they agree within a stated margin.
+
+### 10.4 Existing services run in parallel, behind a stable interface
+
+The services that ship today keep working, on by default, behind the core's contracts (section 3), the
+way a core banking system stays behind an API gateway while modern services grow beside it. Each new
+pack replaces its legacy service one service at a time (the strangler-fig pattern): when SP-Kafka reaches
+Standard, the Kafka part of today's queue component is routed to it, and the old code is removed only
+after designs have migrated. Until then both live side by side, and the canvas labels which one a
+component uses.
+
+## 11. Open questions
+
+1. Average message size: one value per design, or per topic?
+2. Which design, if any, should be the reference for the SP-Kafka demo (the resort ticketing stream, or a generic order flow)?
