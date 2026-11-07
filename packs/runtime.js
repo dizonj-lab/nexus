@@ -151,11 +151,139 @@
     Object.values(d.msg).forEach((m) => {
       const vendor = packsFor(d.nodes[m.id] ? d.nodes[m.id].type : "", d.provider).filter((p) => p.applies_to.provider === d.provider);
       const vp = { facts: vendor.flatMap((p) => (p.facts || []).filter((f) => !f.flavor || f.flavor === m.flavor)).map((f) => ({ ...f })), id: vendor.map(tag).join(", ") };
-      (mp.rules || []).forEach((r) => { const c = MSG[r.check]; if (!c) return;
+      const repl = m.kind === "topic" && api.spOn(d, "sp.kafka") ? (api.sp("sp.kafka").sp.replaces || []) : [];
+      (mp.rules || []).forEach((r) => { const c = MSG[r.check]; if (!c || repl.includes(r.id)) return;
         (c(m, vp) || []).forEach((f) => res.push({ id: r.id, sev: f.sev || r.severity, on: f.on || m.id, via: m.id, title: f.title, why: f.why, pack: tag(mp) + (vp.id ? " + " + vp.id : ""), facts: f.facts || [], fix: f.fix ? { ...f.fix, on: f.on || m.id, edge: f.fix.set ? f.edge : undefined } : null, hard: !!f.hard })); });
     });
     return res;
   };
+  /* ---------- Service Packs (SP-Microservice, SP-Kafka): rules on blocks, connectors and children ---------- */
+  // A Service Pack is one pack file in packs/services with: sp (level, covers), policy (organisation defaults),
+  // integration, facts and rules. Its checks live here, keyed by the rule's "check". d.sp = {on: {id: true}, policy: {}}.
+  const COMPUTE = ["svc", "vm", "fn", "adp", "api"];
+  api.sps = () => B.packs.filter((p) => p.sp);
+  api.sp = (id) => B.packs.find((p) => p.id === id && p.sp) || null;
+  api.spOn = (d, id) => !!(d.sp && d.sp.on && d.sp.on[id] && api.sp(id));
+  api.policy = (d, id) => ({ ...((api.sp(id) || {}).policy || {}), ...((d.sp && d.sp.policy && d.sp.policy[id]) || {}) });
+  // synchronous calls between compute blocks (the call graph)
+  const isCall = (d, e) => isFlow(e) && d.nodes[e.from] && d.nodes[e.to] && COMPUTE.includes(d.nodes[e.from].type) && COMPUTE.includes(d.nodes[e.to].type) && d.nodes[e.from].parent === d.nodes[e.to].parent;
+  api.calls = (d) => d.edges.filter((e) => isCall(d, e));
+  const callDef = (d, e, P) => ({ deadline: e.deadline === undefined || e.deadline === null || e.deadline === "" ? P.defaultDeadlineMs : +e.deadline, retries: e.retries === undefined || e.retries === null || e.retries === "" ? P.defaultRetries : +e.retries, op: e.op || "read", idem: !!e.idem, contract: e.contract === undefined ? null : e.contract, proto: e.proto });
+  api.callDef = callDef;
+  const copies = (n) => n.auto ? +n.auto.min || 1 : +n.rep || 1, maxCopies = (n) => n.auto ? +n.auto.max || 1 : +n.rep || 1;
+  // simple cycles in the call graph (each reported once, starting at its smallest id)
+  api.callLoops = (d) => {
+    const out = new Map(), adj = {};
+    api.calls(d).forEach((e) => (adj[e.from] = adj[e.from] || []).push(e.to));
+    const walk = (start, at, path) => {
+      if (path.length > 8) return;
+      (adj[at] || []).forEach((nx) => {
+        if (nx === start) { const min = path.reduce((a, b) => (a < b ? a : b)); const i = path.indexOf(min); const rot = [...path.slice(i), ...path.slice(0, i)]; out.set(rot.join(">"), rot); return; }
+        if (!path.includes(nx)) walk(start, nx, [...path, nx]);
+      });
+    };
+    Object.keys(adj).forEach((s) => walk(s, s, [s]));
+    return [...out.values()];
+  };
+  // longest simple synchronous paths, from each block that no other block calls
+  api.callChains = (d) => {
+    const cs = api.calls(d), adj = {}, called = new Set(cs.map((e) => e.to));
+    cs.forEach((e) => (adj[e.from] = adj[e.from] || []).push(e.to));
+    const starts = Object.keys(adj).filter((id) => !called.has(id));
+    const best = [];
+    const walk = (path) => { const at = path[path.length - 1], nx = (adj[at] || []).filter((x) => !path.includes(x)); if (!nx.length) { best.push(path); return; } nx.forEach((x) => walk([...path, x])); };
+    (starts.length ? starts : Object.keys(adj)).forEach((s) => walk([s]));
+    return best;
+  };
+  const edgeOf = (d, a, b) => d.edges.find((e) => e.from === a && e.to === b && isFlow(e));
+  const MS = {
+    "ms.call-loop": (d, P) => api.callLoops(d).map((loop) => { const a = loop[loop.length - 1], b = loop[0];
+      return { on: loop[0], key: loop.join(">"), title: `Call loop: ${[...loop, loop[0]].join(" → ")}`, why: `These services call each other synchronously in a circle. One slow service stalls the whole loop, retries multiply around it, and none of them can be deployed or fail on its own. Break the loop: make one call an event (the callee publishes, the caller subscribes), or move the shared logic into one service.`, edge: { from: a, to: b }, fix: { insertQueue: { from: a, to: b }, label: `Make ${a} → ${b} asynchronous (queue between them)` } }; }),
+    "ms.sync-chain": (d, P) => { const seen = new Set(); return api.callChains(d).filter((p) => p.length - 1 > P.maxSyncHops).filter((p) => { const k = p.join(">"); if (seen.has(k)) return false; seen.add(k); return true; }).map((p) => ({ on: p[1] || p[0], key: p.join(">"), title: `Synchronous chain of ${p.length - 1} service hops: ${p.join(" → ")}`, why: `Every request waits for each service in turn: latency adds up, and the chain is only as available as all of them together. Each hop also needs a shorter deadline than its caller. Policy allows ${P.maxSyncHops} hops. Options: let ${p[p.length - 1]} be called asynchronously (an event), let an earlier service call it directly, or keep a local copy of the data from events.` })); },
+    "ms.deadline-order": (d, P) => api.calls(d).flatMap((e) => { const me = callDef(d, e, P); if (!me.deadline) return [];
+      const callers = api.calls(d).filter((x) => x.to === e.from).map((x) => ({ x, dl: callDef(d, x, P).deadline })).filter((c) => c.dl);
+      const tight = callers.filter((c) => me.deadline >= c.dl);
+      return tight.length ? [{ on: e.from, key: `${e.from}>${e.to}`, title: `${e.from} → ${e.to} waits up to ${me.deadline} ms, but ${tight[0].x.from} gives ${e.from} only ${tight[0].dl} ms`, why: `A callee's deadline must be shorter than its caller's, or ${e.from} keeps waiting for ${e.to} after ${tight[0].x.from} has already given up: wasted work and retries piling up. Shrink deadlines along the chain.`, edge: { from: e.from, to: e.to }, fix: { set: { deadline: Math.max(50, Math.floor(Math.min(...tight.map((c) => c.dl)) * 0.6)) }, label: `Set the deadline to ${Math.max(50, Math.floor(Math.min(...tight.map((c) => c.dl)) * 0.6))} ms` } }] : []; }),
+    "ms.no-deadline": (d, P) => api.calls(d).filter((e) => callDef(d, e, P).deadline === 0).map((e) => ({ on: e.from, key: `${e.from}>${e.to}`, title: `${e.from} → ${e.to} has no deadline`, why: `Without a deadline a slow ${e.to} holds ${e.from}'s threads and connections until they run out: one slow service becomes an outage upstream.`, edge: { from: e.from, to: e.to }, fix: { set: { deadline: P.defaultDeadlineMs }, label: `Set a ${P.defaultDeadlineMs} ms deadline` } })),
+    "ms.retry-unsafe": (d, P) => api.calls(d).filter((e) => { const c = callDef(d, e, P); return c.op === "write" && c.retries > 0 && !c.idem; }).map((e) => ({ on: e.from, key: `${e.from}>${e.to}`, title: `${e.from} retries a write to ${e.to} without an idempotency key`, why: `A retry after a timeout can apply the write twice (for example, two orders or two payments): the first attempt may have succeeded. Send an idempotency key that ${e.to} checks, or do not retry writes.`, edge: { from: e.from, to: e.to }, fix: { set: { idem: true }, label: "Send an idempotency key" } })),
+    "ms.retry-amplification": (d, P) => { const seen = new Set(); return api.callChains(d).flatMap((p) => { let f = 1; const es = []; for (let i = 0; i < p.length - 1; i++) { const e = edgeOf(d, p[i], p[i + 1]); if (!e) continue; es.push(e); f *= 1 + callDef(d, e, P).retries; }
+      if (f <= P.maxRetryAmplification) return []; const k = p.join(">"); if (seen.has(k)) return []; seen.add(k);
+      return [{ on: p[p.length - 1], key: k, title: `Retries multiply ${f}× along ${p.join(" → ")}`, why: `Each layer retries on its own, so one failing request to ${p[p.length - 1]} can become ${f} requests: a retry storm exactly when it is struggling. Retry at one layer only (usually the one closest to the user) and fail fast below it. Policy allows ${P.maxRetryAmplification}×.`, fix: { edges: es.slice(1).map((e) => ({ from: e.from, to: e.to, set: { retries: 0 } })), label: "Retry only at the first hop" } }]; }); },
+    "ms.shared-db": (d) => Object.values(d.nodes).filter((n) => n.type === "db").flatMap((db) => { const o = [...new Set(d.edges.filter((e) => e.to === db.id && isFlow(e) && d.nodes[e.from] && ["svc", "vm", "fn"].includes(d.nodes[e.from].type)).map((e) => e.from))].sort();
+      return o.length > 1 ? [{ on: db.id, key: o.join(","), title: `${db.id} is shared by ${o.join(", ")}`, why: `A database per service: a schema change for one breaks the others, and they cannot deploy or scale on their own. ${o.slice(1).join(", ")} should use ${o[0]}'s API or events instead.` }] : []; }),
+    "ms.min-copies": (d, P) => Object.values(d.nodes).filter((n) => n.type === "svc" && n.parent === "root" && copies(n) < P.minCopies).map((n) => ({ on: n.id, title: `${n.id} runs ${copies(n)} cop${copies(n) === 1 ? "y" : "ies"}; policy needs ${P.minCopies} across zones`, why: `With one copy, a deployment, a crash or a zone failure stops the service. Run at least ${P.minCopies}, spread over zones.`, fix: { set: n.auto ? { auto: { ...n.auto, min: Math.max(P.minCopies, +n.auto.min || 1), max: Math.max(P.minCopies, +n.auto.max || 1) } } : { rep: P.minCopies }, label: `Run ${P.minCopies} copies` } })),
+    "ms.stateful-scale": (d) => Object.values(d.nodes).filter((n) => n.type === "svc" && n.stateless === false && maxCopies(n) > 1).map((n) => ({ on: n.id, title: `${n.id} keeps state in memory but runs up to ${maxCopies(n)} copies`, why: "Copies that keep sessions or caches in memory disagree with each other, and scaling in loses that state. Keep state in a database or cache so any copy can serve any request." })),
+    "ms.singleton-work": (d) => Object.values(d.nodes).filter((n) => n.type === "svc" && n.jobs === "in-process" && maxCopies(n) > 1).map((n) => ({ on: n.id, title: `${n.id} runs scheduled work inside every copy`, why: `With ${maxCopies(n)} copies, each runs the job: duplicate emails, double charges, conflicting updates. Trigger it once from an external scheduler, and claim each job with a unique row (or SELECT … FOR UPDATE SKIP LOCKED).`, fix: { set: { jobs: "scheduler" }, label: "Trigger from an external scheduler" } })),
+    "ms.contract": (d, P) => api.calls(d).filter((e) => callDef(d, e, P).contract === "").map((e) => ({ on: e.to, key: `${e.from}>${e.to}`, title: `${e.from} → ${e.to} has no contract`, why: `Without a versioned contract (gRPC .proto or OpenAPI), a change in ${e.to} breaks ${e.from} at run time instead of in a contract test.`, edge: { from: e.from, to: e.to } })),
+    "ms.grpc-edge": (d) => d.edges.filter((e) => isFlow(e) && e.proto === "gRPC" && d.nodes[e.from] && ["user", "ext", "saas", "cdn", "waf"].includes(d.nodes[e.from].type)).map((e) => ({ on: e.to, key: `${e.from}>${e.to}`, title: `${e.from} → ${e.to} uses gRPC from outside`, why: "Browsers cannot call gRPC directly, and partners rarely can. Use REST (HTTPS + JSON) at the edge, or gRPC-Web through a proxy such as Envoy, and gRPC inside.", edge: { from: e.from, to: e.to }, fix: { set: { proto: "HTTPS" }, label: "Use REST (HTTPS) at the edge" } })),
+    "ms.slo-chain": (d, P) => Object.values(d.nodes).filter((n) => n.type === "svc").flatMap((n) => { const own = +((n.slo && n.slo.avail) || P.defaultSlo); const deps = api.calls(d).filter((e) => e.from === n.id).map((e) => d.nodes[e.to]).filter((m) => m.type === "svc");
+      if (deps.length < 2) return []; const comp = deps.reduce((a, m) => a * (+((m.slo && m.slo.avail) || P.defaultSlo) / 100), 1) * 100;
+      return comp < own - 1e-9 ? [{ on: n.id, title: `${n.id} targets ${own}% but its ${deps.length} synchronous dependencies together give about ${comp.toFixed(2)}%`, why: `If ${n.id} needs every one of ${deps.map((m) => m.id).join(", ")} to answer, it cannot be more available than all of them together. Raise their targets, or degrade gracefully (cached or default answers) when one is down.` }] : []; }),
+  };
+  const KF = {};
+  api.evaluateSP = (d) => {
+    const res = [];
+    api.sps().forEach((p) => { if (!api.spOn(d, p.id)) return; const P = api.policy(d, p.id);
+      (p.rules || []).forEach((r) => { const c = MS[r.check] || KF[r.check]; if (!c) return;
+        (c(d, P, p) || []).forEach((f) => { const tgt = f.edge ? d.edges.find((e) => e.from === f.edge.from && e.to === f.edge.to) : d.nodes[f.on];
+          const ex = (tgt && tgt.spEx && tgt.spEx[r.id]) || (d.nodes[f.on] && d.nodes[f.on].spEx && d.nodes[f.on].spEx[r.id + (f.key ? "|" + f.key : "")]);
+          res.push({ id: r.id, sev: f.sev || r.severity, on: f.on, edge: f.edge, key: f.key || "", title: f.title, why: f.why, rationale: r.rationale, basis: r.basis || [], refs: r.refs || [], pack: tag(p), sp: p.sp.name, facts: (r.facts || []).map((id) => (p.facts || []).find((x) => x.id === id)).filter(Boolean).concat(f.facts || []), fix: f.fix ? { ...f.fix, on: f.on, edge: f.fix.set ? f.edge : undefined } : null, accepted: ex || null, detail: f.detail }); }); }); });
+    return res;
+  };
+  /* SP-Kafka: cluster, topics (children), consumer groups and their dead-letter topics */
+  const sizeKey = (s) => String(s || "").replace(/^kafka\./, "").replace(/[^a-z0-9]+/g, "_");
+  const topicsOf = (d) => Object.values(d.msg || {}).filter((m) => m.kind === "topic");
+  const chOf = (m, id) => m.channels.find((c) => c.id === id) || {};
+  const topicRate = (m, c) => m.pubs.filter((p) => p.ch === c.id).reduce((a, p) => a + (p.rate || 0), 0);
+  const groupsOf = (m) => Object.values(m.subs.reduce((g, s) => { const k = s.ch + "|" + s.group; (g[k] = g[k] || { ch: s.ch, group: s.group, subs: [], consumers: 0, rate: 0 }); g[k].subs.push(s); g[k].consumers += s.consumers || 1; g[k].rate = Math.max(g[k].rate, s.rate || 0); return g; }, {}));
+  api.kafkaGroups = groupsOf;
+  api.dlqName = (topic, group) => `${topic}.${group}.dlq`;
+  // load per broker (MB/s): writes × replication factor (leaders + follower copies) + reads per group; storage per broker (GiB)
+  api.kafkaLoad = (m) => {
+    const cl = m.cluster || {}, br = Math.max(1, m.brokers || 1);
+    let inMB = 0, outMB = 0, storeGiB = 0, parts = 0;
+    m.channels.forEach((c) => { const r = topicRate(m, c), mb = r * (c.msgKB || 1) / 1024, rf = c.rf || 1;
+      inMB += mb * rf; outMB += mb * (groupsOf(m).filter((g) => g.ch === c.id).length + (rf - 1));
+      storeGiB += mb * 3600 * (c.retentionH || 168) * rf / 1024; parts += (c.partitions || 1) * rf; });
+    groupsOf(m).forEach((g) => { const c = chOf(m, g.ch); const s0 = g.subs[0] || {}; if (s0.dlq !== false) parts += (c.partitions || 1) * 3; });
+    return { inMB: inMB / br, outMB: outMB / br, storeGiB: storeGiB / br, parts: parts / br, brokers: br, size: cl.size };
+  };
+  const kfact = (p, id) => (p.facts || []).find((f) => f.id === id);
+  Object.assign(KF, {
+    "kafka.zones": (d, P) => topicsOf(d).flatMap((m) => { const z = Math.max(1, (m.cluster && m.cluster.zones) || (d.zones || []).length || 1), b = m.brokers || 1;
+      if (z >= 2 && b % z === 0) return []; const to = Math.max(z, Math.ceil(b / z) * z);
+      return [{ on: m.id, title: z < 2 ? `${m.id} runs in one zone` : `${m.id} has ${b} brokers over ${z} zones`, why: z < 2 ? "A zone failure takes the whole cluster down. Spread brokers over at least two zones (three recommended)." : `The broker count must be a multiple of the zones, so each zone holds the same share of brokers and replicas. ${b} brokers do not divide over ${z} zones.`, fix: z >= 2 ? { set: { brokers: to }, label: `Use ${to} brokers` } : null }]; }),
+    "kafka.replication": (d, P) => topicsOf(d).flatMap((m) => m.channels.filter((c) => c.rf < P.minReplication || c.minIsr < P.minInsync || c.minIsr >= c.rf).map((c) => ({ on: m.id, key: c.id, title: `Topic ${c.id}: replication factor ${c.rf}, min.insync.replicas ${c.minIsr}`, why: `With fewer than ${P.minReplication} copies, a rolling update or one broker failure can take partitions offline or lose acknowledged messages. min.insync.replicas should be ${P.minInsync} and below the replication factor, so writes with acks=all continue while one broker is down.`, fix: { chan: { id: c.id, set: { rf: Math.max(c.rf, P.minReplication), minIsr: P.minInsync } }, label: `Replication ${Math.max(c.rf, P.minReplication)}, min in-sync ${P.minInsync}` } }))),
+    "kafka.unclean-election": (d) => topicsOf(d).filter((m) => m.cluster && m.cluster.unclean).map((m) => ({ on: m.id, title: `${m.id} allows unclean leader election`, why: "If every in-sync replica is lost, an out-of-date replica can become leader and acknowledged messages are silently lost. Turn it off: the partition waits for an in-sync replica instead.", fix: { set: { unclean: false }, label: "Turn off unclean leader election" } })),
+    "kafka.partitions-per-broker": (d, P, p) => topicsOf(d).flatMap((m) => { const L = api.kafkaLoad(m), k = sizeKey(L.size), rec = kfact(p, "partitions_" + k), max = kfact(p, "partitions_max_" + k);
+      if (!rec || L.parts <= rec.default) return []; const over = max && L.parts > max.default;
+      return [{ on: m.id, sev: over ? "crit" : "warn", title: `${m.id} carries about ${Math.round(L.parts)} partition replicas per broker (${L.size})`, why: `The recommendation for ${L.size} is ${rec.default} per broker, leaders and followers counted (a best practice, not enforced)${max ? `. Above ${max.default}, if the cluster becomes overloaded, you cannot update its configuration or move to a smaller broker size` : ""}. Dead-letter topics count too. Add brokers, use a larger size, or fewer partitions.`, facts: [rec, max].filter(Boolean) }]; }),
+    "kafka.broker-ceiling": (d, P) => topicsOf(d).flatMap((m) => { const L = api.kafkaLoad(m), cap = (P.brokerMBps || {})[L.size]; if (!cap) return []; const use = Math.max(L.inMB, L.outMB), lim = cap * (1 - P.brokerHeadroom);
+      return use > lim ? [{ on: m.id, title: `${m.id} brokers move about ${use.toFixed(1)} MB/s each; the planning ceiling for ${L.size} is ${cap} MB/s with ${Math.round(P.brokerHeadroom * 100)}% headroom`, why: `Traffic per broker counts every copy (replication factor) and every consumer group's reads. ${cap} MB/s is a NEXUS planning assumption, not an AWS limit: measure your cluster. Add brokers or use a larger size.` }] : []; }),
+    "kafka.storage": (d, P, p) => topicsOf(d).flatMap((m) => { const L = api.kafkaLoad(m), have = (m.cluster && m.cluster.storageGiB) || 0, need = L.storeGiB * (1 + P.storageHeadroom), mx = kfact(p, "storage_max");
+      if (!have || need <= have) return []; const over = mx && need > mx.default;
+      return [{ on: m.id, sev: over ? "crit" : "warn", title: `${m.id} needs about ${Math.round(need)} GiB per broker; it has ${have} GiB`, why: `Storage per broker = rate × message size × retention × replication factor ÷ brokers, plus ${Math.round(P.storageHeadroom * 100)}% headroom. ${over ? `That is above the ${mx.default} GiB maximum per broker: add brokers, shorten retention or use tiered storage.` : "Raise the storage (it cannot be reduced later), shorten retention, or turn on storage autoscaling."}`, facts: [mx].filter(Boolean), fix: over ? null : { set: { storageGiB: Math.ceil(need / 100) * 100 }, label: `Use ${Math.ceil(need / 100) * 100} GiB per broker` } }]; }),
+    "kafka.retention-outage": (d, P) => topicsOf(d).flatMap((m) => m.channels.filter((c) => (c.retentionH || 168) < P.plannedOutageH).map((c) => ({ on: m.id, key: c.id, title: `Topic ${c.id} keeps messages ${c.retentionH} h; a consumer outage of ${P.plannedOutageH} h must be survivable`, why: "A consumer that is down longer than the retention comes back to find its messages deleted. Keep them at least as long as the longest consumer outage you plan for.", fix: { chan: { id: c.id, set: { retentionH: P.plannedOutageH } }, label: `Keep ${P.plannedOutageH} h` } }))),
+    "kafka.offset-retention": (d, P) => topicsOf(d).filter((m) => m.cluster && (m.cluster.offsetRetH || 168) < P.plannedOutageH).map((m) => ({ on: m.id, title: `${m.id} forgets a group's position after ${m.cluster.offsetRetH} h`, why: `If a consumer group is down longer than the offset retention, its committed position is deleted and it restarts from the reset policy (earliest or latest): replaying or skipping messages. Keep offsets at least ${P.plannedOutageH} h.`, fix: { set: { offsetRetH: Math.max(168, P.plannedOutageH) }, label: `Keep offsets ${Math.max(168, P.plannedOutageH)} h` } })),
+    "kafka.lag-rto": (d, P) => { if (!d.req || !d.req.rto) return []; const rto = d.req.rto * 3600; return topicsOf(d).flatMap((m) => groupsOf(m).flatMap((g) => { const c = chOf(m, g.ch), per = 1000 / Math.max(1, (g.subs[0] && g.subs[0].procMs) || P.defaultProcMs), cap = Math.min(g.consumers, c.partitions || 1) * per, rate = g.rate;
+      if (!rate) return []; const backlog = rate * P.consumerOutageMin * 60, catchUp = cap > rate ? backlog / (cap - rate) : Infinity;
+      return catchUp > rto ? [{ on: g.subs[0].to, key: g.ch + "|" + g.group, title: isFinite(catchUp) ? `Group ${g.group} needs about ${Math.round(catchUp / 60)} min to catch up after a ${P.consumerOutageMin}-minute stop; the RTO is ${Math.round(rto / 60)} min` : `Group ${g.group} cannot keep up with ${g.ch}: ${Math.round(rate)} msg/s arrive, it processes about ${Math.round(cap)} msg/s`, why: `Catch-up time = backlog ÷ (processing capacity − arrival rate). Capacity = active consumers (at most the ${c.partitions} partitions) × 1000 ÷ processing time per message. Add consumers (and partitions), or make processing faster.` }] : []; })); },
+    "kafka.producer-durability": (d) => topicsOf(d).flatMap((m) => m.pubs.filter((p) => ["acks0", "acks1"].includes(p.delivery)).map((p) => ({ on: p.from, key: p.ch, title: `${p.from} publishes to ${p.ch} with ${p.delivery === "acks0" ? "acks=0" : "acks=1"}`, why: "acks=1 loses messages when the leader fails before the followers copy them; acks=0 does not even wait for the leader. For business events use acks=all with the idempotent producer.", edge: { from: p.from, to: m.id }, fix: { set: { delivery: "idempotent" }, label: "acks=all, idempotent producer" } }))),
+    "kafka.consumer-idempotency": (d) => topicsOf(d).flatMap((m) => m.subs.filter((s) => s.ack === "after" && !s.idem && s.toType !== "queue").map((s) => ({ on: s.to, key: s.ch, title: `${s.to} can read the same message twice but does not deduplicate`, why: "Kafka consumers commit offsets after processing: after a crash or a rebalance the last messages come again. Make processing idempotent (a processed-event table keyed by the event id).", edge: { from: m.id, to: s.to }, fix: { set: { idem: true }, label: "Deduplicate on the event id" } }))),
+    "kafka.dead-letter": (d) => topicsOf(d).flatMap((m) => m.subs.filter((s) => s.dlq === false).map((s) => ({ on: s.to, key: s.ch + "|" + s.group, title: `Group ${s.group} on ${s.ch} has no dead-letter topic`, why: `A message that keeps failing either blocks its partition or is skipped and lost. By default each group gets ${api.dlqName(s.ch, s.group)}: failed messages are kept there with their error, alarmed and can be redriven. Turning it off needs a recorded exception.`, edge: { from: m.id, to: s.to }, fix: { set: { dlq: true }, label: `Add ${api.dlqName(s.ch, s.group)}` } }))),
+    "kafka.dlq-retention": (d, P) => topicsOf(d).flatMap((m) => m.subs.filter((s) => s.dlq !== false && (s.dlqRetH || P.dlqRetentionH) < P.dlqRetentionH).map((s) => ({ on: s.to, key: s.ch + "|" + s.group, title: `${api.dlqName(s.ch, s.group)} keeps failed messages only ${s.dlqRetH} h`, why: `Failed messages need time to be investigated and redriven; policy keeps them ${P.dlqRetentionH} h (${P.dlqRetentionH / 24} days).`, edge: { from: m.id, to: s.to }, fix: { set: { dlqRetH: P.dlqRetentionH }, label: `Keep ${P.dlqRetentionH / 24} days` } }))),
+    "kafka.dlq-ordering": (d) => topicsOf(d).flatMap((m) => m.subs.filter((s) => chOf(m, s.ch).ordered && s.dlq !== false && s.onFail === "skip").map((s) => ({ on: s.to, key: s.ch + "|" + s.group, title: `${s.to} skips failed messages of ordered topic ${s.ch} to the dead-letter topic`, why: "Moving one message aside lets later messages for the same key go first, which breaks the ordering the topic promises. The default for ordered topics is to stop that partition and alert after the retries; skipping needs a recorded exception.", edge: { from: m.id, to: s.to }, fix: { set: { onFail: "stop" }, label: "Stop the partition and alert" } }))),
+    "kafka.ordering-key": (d) => topicsOf(d).flatMap((m) => m.pubs.filter((p) => chOf(m, p.ch).ordered && !p.key).map((p) => ({ on: p.from, key: p.ch, title: `${p.from} publishes to ordered topic ${p.ch} without a key`, why: "Without a key Kafka spreads messages over all partitions, so events for the same entity can be read out of order. Set the key to the entity id (for example order_id).", edge: { from: p.from, to: m.id } }))),
+    "kafka.idle-consumers": (d) => topicsOf(d).flatMap((m) => groupsOf(m).filter((g) => g.consumers > (chOf(m, g.ch).partitions || 1)).map((g) => ({ on: m.id, key: g.ch + "|" + g.group, sev: "info", title: `Group ${g.group} has ${g.consumers} consumers for ${chOf(m, g.ch).partitions} partitions of ${g.ch}`, why: `Within a group each partition is read by one consumer, so ${g.consumers - chOf(m, g.ch).partitions} consumers sit idle. Add partitions (plan the key spread) or run fewer consumers.` }))),
+    "kafka.hot-partition": (d, P) => topicsOf(d).flatMap((m) => m.channels.filter((c) => c.hotKey > 0 && (c.partitions || 1) > 1 && c.hotKey / 100 > P.hotPartitionFactor / (c.partitions || 1)).map((c) => ({ on: m.id, key: c.id, title: `Topic ${c.id}: one key carries ${c.hotKey}% of the traffic`, why: `All messages with one key go to one partition, so that partition gets ${c.hotKey}% of ${c.id}'s traffic instead of about ${Math.round(100 / c.partitions)}%: it limits the topic and its consumer. Re-key (for example store + order), or split the hot key with a suffix where ordering allows.` }))),
+    "kafka.auth-encryption": (d) => topicsOf(d).filter((m) => m.cluster && (m.cluster.auth === "none" || m.cluster.tls === false)).map((m) => ({ on: m.id, title: `${m.id} ${m.cluster.auth === "none" ? "accepts clients without authentication" : "allows plaintext traffic"}`, why: "Any workload that reaches the brokers can read and write every topic, or traffic can be read on the network. Use IAM access control (or SASL/SCRAM or mutual TLS) and TLS between clients and brokers.", fix: { set: { auth: m.cluster.auth === "none" ? "iam" : m.cluster.auth, tls: true }, label: "IAM access control and TLS" } })),
+    "kafka.auto-create": (d) => topicsOf(d).filter((m) => m.cluster && m.cluster.autoCreate).map((m) => ({ on: m.id, title: `${m.id} creates topics automatically`, why: "A typo in a producer creates a new topic with default partitions and replication, and messages silently go there. Create topics as code (Terraform) and turn automatic creation off.", fix: { set: { autoCreate: false }, label: "Turn off automatic topic creation" } })),
+    "kafka.pii-retention": (d, P) => topicsOf(d).flatMap((m) => m.channels.filter((c) => c.pii && (c.retentionH || 168) > P.piiMaxH).map((c) => ({ on: m.id, key: c.id, title: `Topic ${c.id} holds personal data for ${c.retentionH} h`, why: `Policy keeps personal data in streams at most ${P.piiMaxH} h (${P.piiMaxH / 24} days); its dead-letter topics inherit the classification. Shorten retention, or keep only ids in events and the personal data in the owning service.`, fix: { chan: { id: c.id, set: { retentionH: P.piiMaxH } }, label: `Keep ${P.piiMaxH / 24} days` } }))),
+    "kafka.outbox": (d) => topicsOf(d).flatMap((m) => m.pubs.filter((p) => p.writesDb && !p.outbox).map((p) => ({ on: p.from, key: p.ch, title: `${p.from} writes its database and publishes to ${p.ch} without an outbox`, why: `If ${p.from} saves and then fails before publishing (or the reverse), the database and the events disagree. Write the event to an outbox table in the same transaction and publish from there.`, edge: { from: p.from, to: m.id }, fix: { set: { outbox: true }, label: "Publish through an outbox" } }))),
+  });
+  api.KF = KF;
+  api.spChecks = () => [...Object.keys(MS), ...Object.keys(KF)];
+
   api.evaluate = (d) => {
     const res = [];
     Object.values(d.nodes).forEach((n) => {
@@ -172,7 +300,7 @@
         });
       });
     });
-    return res.concat(api.evaluateMessaging(d));
+    return res.concat(api.evaluateMessaging(d), api.evaluateSP(d));
   };
 
   /* ---------- what a component knows, senses and concludes ---------- */

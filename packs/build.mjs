@@ -7,10 +7,12 @@ import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
+const rt = () => createRequire(import.meta.url)("./runtime.js");
 const here = dirname(fileURLToPath(import.meta.url));
 const canvas = join(here, "../poc/prototype/index.html");
 export function loadPacks() {
-  const files = ["core", "components"].flatMap((d) => readdirSync(join(here, d)).filter((f) => f.endsWith(".json")).sort().map((f) => join(here, d, f)));
+  const files = ["core", "components", "services"].flatMap((d) => readdirSync(join(here, d)).filter((f) => f.endsWith(".json")).sort().map((f) => join(here, d, f)));
   const packs = files.map((f) => JSON.parse(readFileSync(f, "utf8")));
   const errs = [], ids = new Set();
   for (const p of packs) {
@@ -26,6 +28,16 @@ export function loadPacks() {
       if (f.default != null && f.max != null && f.kind !== "quota" && f.default > f.max) errs.push(`${p.id}.${f.id}: default above max`);
     }
     for (const r of p.rules || []) for (const id of r.facts || []) if (!fids.has(id)) errs.push(`${p.id}: rule ${r.id} cites unknown fact ${id}`);
+    if (p.sp) {
+      for (const k of ["name", "level", "status", "providers", "covers", "not_covered"]) if (p.sp[k] == null) errs.push(`${p.id}: sp.${k} missing`);
+      if (!p.policy || typeof p.policy !== "object") errs.push(`${p.id}: policy missing`);
+      if (!Array.isArray(p.integration) || !p.integration.length) errs.push(`${p.id}: integration missing`);
+      const impl = new Set(rt().spChecks());
+      for (const r of p.rules || []) {
+        for (const k of ["rationale", "basis", "refs", "fix"]) if (r[k] == null || (Array.isArray(r[k]) && !r[k].length)) errs.push(`${p.id}: rule ${r.id} has no ${k}`);
+        if (!impl.has(r.check)) errs.push(`${p.id}: rule ${r.id} has no check in packs/runtime.js`);
+      }
+    }
   }
   if (errs.length) throw new Error("Invalid packs:\n  " + errs.join("\n  "));
   return packs;

@@ -13,7 +13,9 @@ export async function open(viewport = { width: 1440, height: 900 }) {
 }
 // New design through the wizard; options: {services, avail, res}
 export async function newDesign(p, o = {}) {
-  await p.click("#ndBtn"); await p.fill('[data-ndf="services"]', o.services || "claims, policies");
+  await p.click("#ndBtn"); await p.waitForSelector('[data-ndf="services"]'); await p.waitForTimeout(150);
+  const want = o.services || "claims, policies";
+  for (let i = 0; i < 5 && (await p.inputValue('[data-ndf="services"]')) !== want; i++) { await p.fill('[data-ndf="services"]', want); await p.waitForTimeout(100); }
   if (o.rps) await p.fill('[data-ndf="rps"]', String(o.rps));
   for (let i = 0; i < 4; i++) {
     if (i === 1 && o.res) await p.click(`#ndDlg [data-nd="res"][data-k="${o.res}"]`);

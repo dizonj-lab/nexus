@@ -320,3 +320,24 @@ the next starts. Packs are versioned and pinned per design, so they upgrade and 
 independently of the core. Existing breadth is treated as legacy level 1 and upgraded pack by pack.
 Design: docs/design/SERVICE-PACKS.md.
 
+## D50 — The first two Service Packs ship at Preview, on by default in the prototype
+SP-Microservice 0.1 (ECS Fargate services) and SP-Kafka 0.1 (MSK provisioned, Standard brokers) are
+level 1 (Preview): sourced facts, every rule tested both ways, Terraform for AWS, known limits listed.
+The standard keeps Preview behind a setting; in the prototype both are **on by default**, labelled
+"preview", and can be turned off in Settings → Service packs, which returns their components to the
+legacy checks (strangler fig, section 10.4). Each pack lists the legacy rules it replaces.
+Accepting a finding is a recorded exception (reason, who, date) on the block or connection.
+
+## D51 — Message size per topic, defaulting to the workload's request size
+Answers SERVICE-PACKS open question 1. Byte-based limits (broker MB/s, storage) use each topic's
+average message size; a new topic takes the design's request size (Load → workload), so one value
+works until a topic needs its own. The reference design for the SP demos is a generic order flow
+(the point of sale design), open question 2.
+
+## D52 — No invented throughput for MSK Standard brokers
+AWS publishes partition recommendations per broker size but no MB/s figure for Standard brokers
+(it points to its sizing spreadsheet). NEXUS shows MB/s per broker and checks it only against
+ceilings the organisation sets in policy (`brokerMBps`), none by default. MSK's own default keeps
+unclean leader election on for clusters without tiered storage; NEXUS generates a configuration
+that turns it off, and says so.
+

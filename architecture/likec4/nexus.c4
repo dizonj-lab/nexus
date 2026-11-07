@@ -86,7 +86,7 @@ model {
     }
     packs = container 'Knowledge packs' {
       technology 'JSON packs, JavaScript runtime (packs/)'
-      description 'Facts with default, minimum, maximum and source; placement rules for subnets, zones and regions; component rules (DNS failover). Versioned and tested in packs/, inlined into the canvas by packs/build.mjs; served by the governance MCP server from WP1'
+      description 'Facts with default, minimum, maximum and source; placement rules for subnets, zones and regions; component rules (DNS failover); Service Packs SP-Microservice and SP-Kafka (preview: policy, integration, rules with fixes and exceptions). Versioned and tested in packs/, inlined into the canvas by packs/build.mjs; served by the governance MCP server from WP1'
     }
     edge = container 'Edge' {
       technology 'nginx'

@@ -1,4 +1,11 @@
-# NEXUS — Current state (v0.3.7)
+# NEXUS — Current state (v0.3.8)
+
+- **Service Packs, Preview**: SP-Microservice 0.1 (ECS Fargate: gRPC and REST
+  connectors with contract, deadline, retries and idempotency; hexagonal
+  inside view; scale state on the block; 13 rules) and SP-Kafka 0.1 (MSK
+  provisioned: cluster settings with sourced limits, topics and groups as
+  children, a dead-letter topic per group by default, 21 rules, Terraform with
+  NEXUS's broker configuration). On by default; Settings turns each off.
 
 - Messaging: channels on queues, streams and the new notifications/event-bus
   component; producers and consumers on connections; 20 messaging rules;

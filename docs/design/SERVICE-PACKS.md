@@ -1,6 +1,6 @@
 # Service Packs: one service at a time, done properly
 
-Status: **proposed** (nothing built) · November 2026 · Related: [PACKS.md](PACKS.md), D45–D48
+Status: **SP-Microservice 0.1 and SP-Kafka 0.1 built at level 1 (Preview)** in v0.3.8 · November 2026 · Related: [PACKS.md](PACKS.md), D45–D52. Files: `packs/services/`, checks in `packs/runtime.js`, tests in `packs/tests/sp.test.mjs` and `poc/tests/sp-*.e2e.mjs`, test plan `docs/test-plans/v0.3.8.md`
 
 ## 1. Why
 
@@ -354,8 +354,9 @@ component uses.
 
 ## 11. Open questions
 
-1. Average message size: one value per design, or per topic?
-2. Which design, if any, should be the reference for the SP-Kafka demo (the resort ticketing stream, or a generic order flow)?
+1. ~~Average message size: one value per design, or per topic?~~ Per topic, defaulting to the design's request size (D51).
+2. ~~Which design should be the reference for the SP-Kafka demo?~~ A generic order flow: the point of sale design (D51).
+3. Level 2 for both packs: recorded demo, `terraform validate` in CI, console help text, migration test, reviewer files.
 
 ## 12. Block template v2: every component is a Lego block
 

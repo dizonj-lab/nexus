@@ -1,0 +1,339 @@
+{
+ "id": "sp.microservice",
+ "version": "0.1.0",
+ "title": "SP-Microservice: a containerised service as a block with connectors",
+ "owner": "team-platform",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "svc",
+  "provider": "aws"
+ },
+ "sp": {
+  "name": "SP-Microservice",
+  "level": 1,
+  "status": "preview",
+  "providers": [
+   "aws"
+  ],
+  "covers": [
+   "Services on Amazon ECS (Fargate), any language",
+   "Connectors: gRPC and REST calls with contract, deadline, retries, idempotency and read or write; publish and consume (through SP-Kafka and the queue packs); database",
+   "Inside view: hexagonal adapters, ports and domain, generated from the connectors, with an Envoy sidecar",
+   "Scale-out: copies, state, scheduled work; scale state on the block during a demand run",
+   "SLO per service: availability and p99 latency"
+  ],
+  "not_covered": [
+   "Kubernetes (EKS), VMs and Lambda runtimes: legacy behaviour",
+   "Service mesh configuration (Envoy routes) as code",
+   "Contract tests (Pact) generated from the connectors",
+   "Azure and Google Cloud"
+  ],
+  "replaces": [
+   "spof (services)",
+   "shareddb"
+  ]
+ },
+ "policy": {
+  "maxSyncHops": 2,
+  "defaultDeadlineMs": 1000,
+  "defaultRetries": 1,
+  "maxRetryAmplification": 4,
+  "minCopies": 2,
+  "defaultSlo": 99.9,
+  "defaultP99Ms": 300
+ },
+ "integration": [
+  {
+   "from": "Service, function, adapter",
+   "to": "Service",
+   "allowed": "yes",
+   "means": "Synchronous call",
+   "carries": "Protocol (gRPC inside, REST at the edge), contract, deadline, retries, idempotency key, read or write"
+  },
+  {
+   "from": "API gateway, load balancer",
+   "to": "Service",
+   "allowed": "yes",
+   "means": "Request from the edge",
+   "carries": "REST (HTTPS + JSON) with an OpenAPI contract"
+  },
+  {
+   "from": "Users, browsers, partners",
+   "to": "Service over gRPC",
+   "allowed": "warning",
+   "means": "Browsers cannot call gRPC directly",
+   "carries": "Use REST or gRPC-Web through a proxy"
+  },
+  {
+   "from": "Service",
+   "to": "Database",
+   "allowed": "yes, one owner",
+   "means": "Its own data",
+   "carries": "SQL over TLS; other services use its API or events"
+  },
+  {
+   "from": "Service",
+   "to": "Kafka topic, queue, notification topic",
+   "allowed": "yes",
+   "means": "Publish (through an outbox when it also writes its database)",
+   "carries": "Key, event and version, delivery guarantee"
+  },
+  {
+   "from": "Kafka topic, queue",
+   "to": "Service",
+   "allowed": "yes",
+   "means": "Consume",
+   "carries": "Group, retries, dead-letter, idempotency, ordering"
+  },
+  {
+   "from": "Service",
+   "to": "Shared platform service",
+   "allowed": "as a dependency",
+   "means": "Logs, secrets, keys, images",
+   "carries": "Not a request flow"
+  }
+ ],
+ "facts": [
+  {
+   "id": "alb_grpc",
+   "label": "Application Load Balancer to targets over gRPC",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "By default HTTP/1.1; the target group's protocol version can be HTTP/2 or gRPC."
+  },
+  {
+   "id": "ecs_min_healthy",
+   "label": "Rolling deployment: minimum healthy",
+   "kind": "setting",
+   "default": 100,
+   "min": 0,
+   "max": 100,
+   "unit": "%",
+   "source": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DeploymentConfiguration.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Default for a replica service."
+  },
+  {
+   "id": "ecs_max_percent",
+   "label": "Rolling deployment: maximum running",
+   "kind": "setting",
+   "default": 200,
+   "min": 100,
+   "max": null,
+   "unit": "%",
+   "source": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DeploymentConfiguration.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Default for a replica service."
+  },
+  {
+   "id": "ecs_circuit_breaker",
+   "label": "Deployment circuit breaker",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "source": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-circuit-breaker.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Rolling-update deployments only; must be enabled explicitly; can roll back to the last deployment that completed."
+  }
+ ],
+ "rules": [
+  {
+   "id": "ms.call-loop",
+   "check": "ms.call-loop",
+   "severity": "warn",
+   "rationale": "Services that call each other in a circle fail together and multiply retries.",
+   "basis": [
+    "Reliability",
+    "Loose coupling"
+   ],
+   "refs": [
+    "https://sre.google/sre-book/addressing-cascading-failures/",
+    "https://learn.microsoft.com/en-us/azure/architecture/antipatterns/retry-storm/"
+   ],
+   "fix": "Insert a queue on the closing call (make it asynchronous)."
+  },
+  {
+   "id": "ms.sync-chain",
+   "check": "ms.sync-chain",
+   "severity": "warn",
+   "rationale": "Each synchronous hop adds latency and failure; keep chains short.",
+   "basis": [
+    "Reliability",
+    "Performance"
+   ],
+   "refs": [
+    "https://sre.google/sre-book/addressing-cascading-failures/",
+    "https://sre.google/sre-book/service-level-objectives/"
+   ],
+   "fix": "No automatic fix: make the last call an event, call it earlier, or keep a local copy from events. Can be accepted with a reason."
+  },
+  {
+   "id": "ms.deadline-order",
+   "check": "ms.deadline-order",
+   "severity": "warn",
+   "rationale": "A callee's deadline must be shorter than its caller's.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/",
+    "https://sre.google/sre-book/addressing-cascading-failures/"
+   ],
+   "fix": "Shorten the callee's deadline to 60% of the caller's."
+  },
+  {
+   "id": "ms.no-deadline",
+   "check": "ms.no-deadline",
+   "severity": "warn",
+   "rationale": "A call without a deadline turns a slow service into an outage upstream.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/",
+    "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_limit_retries.html"
+   ],
+   "fix": "Set the policy's default deadline."
+  },
+  {
+   "id": "ms.retry-unsafe",
+   "check": "ms.retry-unsafe",
+   "severity": "warn",
+   "rationale": "Retrying a write without an idempotency key can apply it twice.",
+   "basis": [
+    "Reliability",
+    "Data integrity"
+   ],
+   "refs": [
+    "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/",
+    "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+   ],
+   "fix": "Send an idempotency key."
+  },
+  {
+   "id": "ms.retry-amplification",
+   "check": "ms.retry-amplification",
+   "severity": "warn",
+   "rationale": "Retries at several layers multiply load when a service struggles.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://learn.microsoft.com/en-us/azure/architecture/antipatterns/retry-storm/",
+    "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_limit_retries.html",
+    "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+   ],
+   "fix": "Retry only at the first hop."
+  },
+  {
+   "id": "ms.shared-db",
+   "check": "ms.shared-db",
+   "severity": "warn",
+   "rationale": "A database per service keeps services independent.",
+   "basis": [
+    "Loose coupling"
+   ],
+   "refs": [
+    "https://microservices.io/patterns/data/database-per-service.html"
+   ],
+   "fix": "No automatic fix: move the other services to the owner's API or events."
+  },
+  {
+   "id": "ms.min-copies",
+   "check": "ms.min-copies",
+   "severity": "warn",
+   "rationale": "One copy stops the service on a deployment, a crash or a zone failure.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html"
+   ],
+   "fix": "Run the policy's minimum copies."
+  },
+  {
+   "id": "ms.stateful-scale",
+   "check": "ms.stateful-scale",
+   "severity": "warn",
+   "rationale": "Copies that keep state in memory disagree and lose it when scaling in.",
+   "basis": [
+    "Scalability"
+   ],
+   "refs": [
+    "https://12factor.net/processes"
+   ],
+   "fix": "No automatic fix: keep state in a database or cache."
+  },
+  {
+   "id": "ms.singleton-work",
+   "check": "ms.singleton-work",
+   "severity": "warn",
+   "rationale": "Scheduled work inside every copy runs once per copy.",
+   "basis": [
+    "Scalability",
+    "Data integrity"
+   ],
+   "refs": [
+    "https://12factor.net/admin-processes",
+    "https://docs.aws.amazon.com/scheduler/latest/UserGuide/what-is-scheduler.html",
+    "https://www.postgresql.org/docs/current/sql-select.html"
+   ],
+   "fix": "Trigger from an external scheduler."
+  },
+  {
+   "id": "ms.contract",
+   "check": "ms.contract",
+   "severity": "info",
+   "rationale": "Calls without a versioned contract break at run time instead of in a contract test.",
+   "basis": [
+    "Operations"
+   ],
+   "refs": [
+    "https://martinfowler.com/articles/consumerDrivenContracts.html",
+    "https://docs.pact.io/"
+   ],
+   "fix": "No automatic fix: name the .proto or OpenAPI contract."
+  },
+  {
+   "id": "ms.grpc-edge",
+   "check": "ms.grpc-edge",
+   "severity": "warn",
+   "rationale": "Browsers and most partners cannot call gRPC directly.",
+   "basis": [
+    "Compatibility"
+   ],
+   "refs": [
+    "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking"
+   ],
+   "fix": "Use REST (HTTPS) at the edge.",
+   "facts": [
+    "alb_grpc"
+   ]
+  },
+  {
+   "id": "ms.slo-chain",
+   "check": "ms.slo-chain",
+   "severity": "warn",
+   "rationale": "A service cannot be more available than all the services it needs together.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://sre.google/sre-book/service-level-objectives/"
+   ],
+   "fix": "No automatic fix: raise the dependencies' targets or degrade gracefully."
+  }
+ ]
+}

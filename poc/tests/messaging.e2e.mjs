@@ -5,7 +5,7 @@ const { b, p } = await open();
 await newDesign(p);
 const run = async (t) => { await p.evaluate((t) => __nx.run(t), t); await p.waitForTimeout(150); if (await p.isVisible("#guard")) { if (await p.isHidden("#gApply")) { await p.click("#gCancel"); return; } if (await p.isDisabled("#gApply")) await p.fill("#gJust", "Automated messaging test design."); await p.click("#gApply"); await p.waitForTimeout(200); } };
 const st = () => p.evaluate(() => ({ nodes: __nx.S.nodes, edges: __nx.S.edges.filter((e) => !e.kind || e.kind === "flow").map(({ _pts, _rpts, _wsep, _g, _drawn, _acc, _racc, ...e }) => e), f: __nx.findings.map((x) => ({ key: x.key, title: x.title, target: x.target, fix: x.fix, basis: x.basis })) }));
-// Kafka (the new design's event bus is MSK)
+// Kafka (the new design's event bus is MSK). With SP-Kafka on (the default) its rules replace the legacy msg.* ones for topics.
 let s = await st(); ok(s.nodes.Q1 && s.nodes.Q1.flavor === "kafka", "the new design has a Kafka cluster (Q1)");
 await run("add topic orders to Q1 partitions 12 key orderId ordered");
 s = await st(); ok(s.nodes.Q1.channels && s.nodes.Q1.channels.some((c) => c.id === "orders" && c.partitions === 12 && c.ordered), "add topic: orders with 12 partitions, ordering required");
@@ -15,18 +15,18 @@ s = await st();
 const pub = s.edges.find((e) => e.from === "SVC1" && e.to === "Q1"), sub = s.edges.find((e) => e.from === "Q1" && e.to === "SVC2");
 ok(pub && pub.ch === "orders" && pub.event === "OrderPlaced v1", "publish: SVC1 → Q1/orders with its event");
 ok(sub && sub.ch === "orders" && sub.group === "billing", "subscribe: SVC2 reads Q1/orders in group billing");
-ok(s.f.some((f) => /msg\.order-without-key/.test(f.key)), "rule: ordering required but SVC1 sends no key");
-ok(s.f.some((f) => /msg\.no-idempotency/.test(f.key) && f.target === "SVC2"), "rule: at-least-once delivery without idempotent processing (SVC2)");
-ok(s.f.some((f) => /msg\.no-outbox/.test(f.key) && f.target === "SVC1"), "rule: SVC1 writes its database and publishes without an outbox");
+ok(s.f.some((f) => /msg\.order-without-key|kafka\.ordering-key/.test(f.key)), "rule: ordering required but SVC1 sends no key");
+ok(s.f.some((f) => /msg\.no-idempotency|kafka\.consumer-idempotency/.test(f.key) && f.target === "SVC2"), "rule: at-least-once delivery without idempotent processing (SVC2)");
+ok(s.f.some((f) => /msg\.no-outbox|kafka\.outbox/.test(f.key) && f.target === "SVC1"), "rule: SVC1 writes its database and publishes without an outbox");
 await run("publish SVC1 to Q1/orders key orderId outbox");
-s = await st(); ok(!s.f.some((f) => /msg\.order-without-key|msg\.no-outbox/.test(f.key)), "with a key and an outbox both findings clear");
+s = await st(); ok(!s.f.some((f) => /msg\.order-without-key|msg\.no-outbox|kafka\.ordering-key|kafka\.outbox/.test(f.key)), "with a key and an outbox both findings clear");
 // apply a fix from the Advisor: idempotent processing
-const fi = await p.evaluate(() => __nx.findings.findIndex((f) => /msg\.no-idempotency/.test(f.key)));
+const fi = await p.evaluate(() => __nx.findings.findIndex((f) => /msg\.no-idempotency|kafka\.consumer-idempotency/.test(f.key)));
 await p.evaluate((i) => document.querySelector(`[data-fix="${i}"]`)?.click(), fi); await p.waitForTimeout(200); if (await p.isVisible("#guard")) await p.click("#gApply"); await p.waitForTimeout(200);
 s = await st(); ok(s.edges.find((e) => e.from === "Q1" && e.to === "SVC2").idem === true, "the Advisor fix sets idempotent processing on the connection");
 // replication factor rule and fix on the channel
 await p.evaluate(() => { const q = __nx.S.nodes.Q1; q.channels = q.channels.map((c) => c.id === "orders" ? { ...c, rf: 2 } : c); }); await p.evaluate(() => __nx.refresh()); await p.waitForTimeout(100);
-s = await st(); const rf = s.f.find((f) => /msg\.replication/.test(f.key));
+s = await st(); const rf = s.f.find((f) => /msg\.replication|kafka\.replication/.test(f.key));
 ok(rf && /replication factor 2/.test(rf.title), "rule: replication factor below 3 (MSK best practice, cited)");
 // notification topic (SNS) with fan-out
 await run("add sns named \"Order events\"");

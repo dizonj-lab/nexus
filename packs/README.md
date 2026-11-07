@@ -6,6 +6,7 @@ reviewed like code. Design: [docs/design/PACKS.md](../docs/design/PACKS.md).
 | Folder | What |
 |---|---|
 | `components/` | One pack per service and provider (`aws.cdn`, `aws.dns`, `azure.obj` …): facts with default, minimum, maximum, whether it can be raised, the official source and the date checked; optional rules |
+| `services/` | **Service Packs** (`sp.microservice`, `sp.kafka`): one service family to a defined standard. Besides facts and rules: `sp` (level, status, what it covers and does not, legacy checks it replaces), `policy` (organisation defaults the rules read), `integration` (allowed connections). Every rule has a rationale, basis, references and a fix (or "no automatic fix"), and a must-raise and must-not test in `tests/sp.test.mjs`. Design: [SERVICE-PACKS.md](../docs/design/SERVICE-PACKS.md) |
 | `core/` | `core.placement`: which component may go in which subnet tier, zone and region, with pros, cons and the reason when it cannot |
 | `schema/` | `pack.schema.json`, checked by `backend/tests/test_packs.py` |
 | `runtime.js` | The evaluator used by the canvas and the tests: facts, placement verdicts, findings, "think" |

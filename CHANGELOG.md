@@ -5,6 +5,57 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.8] — 2026-11-07
+
+### Added
+- **Service Packs, first two, at Preview** (on by default; Settings → Service
+  packs turns each off and brings back the legacy checks). Each pack lives in
+  `packs/services/` with what it covers and does not, organisation policy,
+  integration rules, sourced facts and rules with rationale, basis, references
+  and a fix; every rule has a must-raise and a must-not test.
+- **SP-Microservice 0.1** (ECS Fargate services):
+  - **gRPC** between services by default; REST stays at the edge. Console:
+    `connect A to B over grpc` / `over rest`.
+  - **Connectors** on the block: each call carries its contract, deadline,
+    retries, read or write, and idempotency key (flow Inspector).
+  - Inspector panel with tabs **Connectors · Inside · Scale & SLO · Rules ·
+    Pack**. Inside is the hexagonal view (adapters, ports, domain, Envoy
+    sidecar) generated from the connectors.
+  - **Scale state on the block** during a demand run: `×3→×5▲` waiting for the
+    scale-out delay, `×5▲+2` scaling out, `×10 MAX`, `×6→×3▼` waiting for the
+    cool-down, `×3▼−3` scaling in, and an instance bar from minimum to maximum.
+  - 13 rules: call loops, synchronous chains longer than 2 hops, deadlines that
+    do not shrink, calls without a deadline, retried writes without an
+    idempotency key, retries multiplying along a chain, shared databases,
+    fewer than 2 copies, in-memory state with several copies, scheduled work in
+    every copy, calls without a contract, gRPC from browsers, availability
+    targets above what the dependencies give.
+- **SP-Kafka 0.1** (Amazon MSK provisioned, Standard brokers):
+  - The cluster as a block: broker size (m5, m7g, t3.small), brokers (a
+    multiple of the zones), storage per broker (can grow, never shrink) and
+    autoscaling, client authentication, TLS, unclean leader election, automatic
+    topic creation, offset retention; a per-broker table of partition replicas,
+    MB/s and storage against the documented recommendations.
+  - **Topics as children** with message size, personal data and hot-key share;
+    **consumer groups** with catch-up time after a stop; a **dead-letter topic
+    per group by default** (`<topic>.<group>.dlq`), shown under its topic,
+    counted in the partitions and generated in Terraform.
+  - 21 rules, replacing the legacy messaging rules for Kafka topics while on.
+  - Terraform: `aws_msk_configuration` (unclean leader election and automatic
+    topic creation off, replication 3 and min in-sync 2 for three zones),
+    broker size and storage from the block, IAM access control, storage
+    autoscaling, dead-letter topics.
+- Designs record the Service Pack versions when a version is saved.
+
+### Changed
+- A new MSK cluster starts with brokers in a multiple of the zones (4 for two
+  zones, 3 for three).
+- Facts checked on 2026-11-07 against the official AWS pages: partitions per
+  broker by size, storage limits and the 6-hour wait, brokers per cluster
+  (30 ZooKeeper, 60 KRaft), MSK default configuration, broker-size updates,
+  tiered storage, authentication and encryption, ALB gRPC, ECS rolling
+  deployment defaults.
+
 ## [0.3.7] — 2026-11-06
 
 ### Added

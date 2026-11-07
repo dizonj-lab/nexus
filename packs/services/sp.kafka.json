@@ -1,0 +1,1058 @@
+{
+ "id": "sp.kafka",
+ "version": "0.1.0",
+ "title": "SP-Kafka: Amazon MSK provisioned cluster, topics, consumer groups and dead-letter topics",
+ "owner": "team-integration",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "queue",
+  "provider": "aws"
+ },
+ "sp": {
+  "name": "SP-Kafka",
+  "level": 1,
+  "status": "preview",
+  "providers": [
+   "aws"
+  ],
+  "flavor": "kafka",
+  "covers": [
+   "Amazon MSK provisioned, Standard brokers (m5, m7g, t3.small)",
+   "Cluster: brokers, broker size, zones, storage and autoscaling, client authentication, TLS, configuration (unclean leader election, automatic topic creation, offset retention)",
+   "Topics as children: partitions, replication, min in-sync, retention, cleanup, message size, ordering, personal data, hot key",
+   "Consumer groups and a dead-letter topic per group by default (<topic>.<group>.dlq)",
+   "Load per broker (MB/s), partition replicas per broker, storage per broker, catch-up time after a consumer stop",
+   "Terraform: cluster, configuration, topics and dead-letter topics"
+  ],
+  "not_covered": [
+   "MSK Serverless and Express brokers",
+   "MSK Connect, MSK Replicator (second region)",
+   "Apache Kafka in the data centre, Azure Event Hubs, Google Cloud Managed Kafka",
+   "Per-partition simulation over time (the rollup is per topic and broker)"
+  ],
+  "replaces": [
+   "msg.replication",
+   "msg.partitions-per-broker",
+   "msg.fire-and-forget",
+   "msg.no-idempotency",
+   "msg.no-dlq",
+   "msg.order-without-key",
+   "msg.idle-consumers",
+   "msg.no-outbox"
+  ]
+ },
+ "policy": {
+  "minReplication": 3,
+  "minInsync": 2,
+  "brokerHeadroom": 0.3,
+  "brokerMBps": {},
+  "storageHeadroom": 0.2,
+  "plannedOutageH": 24,
+  "consumerOutageMin": 30,
+  "defaultProcMs": 1.25,
+  "dlqRetentionH": 336,
+  "dlqRetries": 3,
+  "hotPartitionFactor": 2,
+  "piiMaxH": 720,
+  "sizes": [
+   "kafka.t3.small",
+   "kafka.m5.large",
+   "kafka.m5.xlarge",
+   "kafka.m5.2xlarge",
+   "kafka.m5.4xlarge",
+   "kafka.m5.8xlarge",
+   "kafka.m5.12xlarge",
+   "kafka.m5.16xlarge",
+   "kafka.m5.24xlarge",
+   "kafka.m7g.large",
+   "kafka.m7g.xlarge",
+   "kafka.m7g.2xlarge",
+   "kafka.m7g.4xlarge",
+   "kafka.m7g.8xlarge",
+   "kafka.m7g.12xlarge",
+   "kafka.m7g.16xlarge"
+  ]
+ },
+ "integration": [
+  {
+   "from": "Service, VM, function",
+   "to": "Topic",
+   "allowed": "yes",
+   "means": "Publish",
+   "carries": "Key, acks and idempotence, outbox"
+  },
+  {
+   "from": "Topic (consumer group)",
+   "to": "Service, VM, function",
+   "allowed": "yes",
+   "means": "Consume",
+   "carries": "Group, retries, dead-letter topic, idempotency, ordering, processing time"
+  },
+  {
+   "from": "Database",
+   "to": "Topic",
+   "allowed": "through a connector (not covered yet)",
+   "means": "Change data capture",
+   "carries": "—"
+  },
+  {
+   "from": "API gateway, load balancer, users",
+   "to": "Topic",
+   "allowed": "no",
+   "means": "Kafka has no HTTP entry point",
+   "carries": "Publish from a service, or add a REST proxy component"
+  }
+ ],
+ "facts": [
+  {
+   "id": "partitions_t3_small",
+   "label": "Recommended partition replicas per broker (kafka.t3.small)",
+   "kind": "behaviour",
+   "default": 300,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_t3_small",
+   "label": "Partitions per broker that still support update operations (kafka.t3.small)",
+   "kind": "behaviour",
+   "default": 300,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_large",
+   "label": "Recommended partition replicas per broker (kafka.m5.large)",
+   "kind": "behaviour",
+   "default": 1000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_large",
+   "label": "Partitions per broker that still support update operations (kafka.m5.large)",
+   "kind": "behaviour",
+   "default": 1500,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m5.xlarge)",
+   "kind": "behaviour",
+   "default": 1000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m5.xlarge)",
+   "kind": "behaviour",
+   "default": 1500,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_2xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m5.2xlarge)",
+   "kind": "behaviour",
+   "default": 2000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_2xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m5.2xlarge)",
+   "kind": "behaviour",
+   "default": 3000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_4xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m5.4xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_4xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m5.4xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_8xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m5.8xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_8xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m5.8xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_12xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m5.12xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_12xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m5.12xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_16xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m5.16xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_16xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m5.16xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m5_24xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m5.24xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m5_24xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m5.24xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m7g_large",
+   "label": "Recommended partition replicas per broker (kafka.m7g.large)",
+   "kind": "behaviour",
+   "default": 1000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m7g_large",
+   "label": "Partitions per broker that still support update operations (kafka.m7g.large)",
+   "kind": "behaviour",
+   "default": 1500,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m7g_xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m7g.xlarge)",
+   "kind": "behaviour",
+   "default": 1000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m7g_xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m7g.xlarge)",
+   "kind": "behaviour",
+   "default": 1500,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m7g_2xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m7g.2xlarge)",
+   "kind": "behaviour",
+   "default": 2000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m7g_2xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m7g.2xlarge)",
+   "kind": "behaviour",
+   "default": 3000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m7g_4xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m7g.4xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m7g_4xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m7g.4xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m7g_8xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m7g.8xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m7g_8xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m7g.8xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m7g_12xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m7g.12xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m7g_12xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m7g.12xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "partitions_m7g_16xlarge",
+   "label": "Recommended partition replicas per broker (kafka.m7g.16xlarge)",
+   "kind": "behaviour",
+   "default": 4000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Leaders and followers counted. Not enforced: a best practice when traffic goes to all partitions."
+  },
+  {
+   "id": "partitions_max_m7g_16xlarge",
+   "label": "Partitions per broker that still support update operations (kafka.m7g.16xlarge)",
+   "kind": "behaviour",
+   "default": 6000,
+   "min": null,
+   "max": null,
+   "unit": "partitions",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Above this, if the cluster becomes overloaded, you cannot update the configuration, move to a smaller broker size or associate a SASL/SCRAM secret."
+  },
+  {
+   "id": "storage_max",
+   "label": "Storage per broker",
+   "kind": "limit",
+   "default": 16384,
+   "min": 1,
+   "max": 16384,
+   "unit": "GiB",
+   "flavor": "kafka",
+   "field": "storageGiB",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/limits.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Minimum 1 GiB, maximum 16384 GiB per broker."
+  },
+  {
+   "id": "storage_cooldown",
+   "label": "Wait between storage increases (manual or autoscaling)",
+   "kind": "behaviour",
+   "default": 6,
+   "min": 6,
+   "max": null,
+   "unit": "h",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-update-storage.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Storage can be increased, never decreased. The wait ranges from 6 hours to over 24 hours."
+  },
+  {
+   "id": "brokers_zk",
+   "label": "Brokers per cluster (ZooKeeper-based)",
+   "kind": "quota",
+   "default": 30,
+   "min": 1,
+   "max": null,
+   "unit": "brokers",
+   "adjustable": true,
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/limits.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "60 for KRaft-based clusters; 90 brokers per account. Request more in Service Quotas."
+  },
+  {
+   "id": "brokers_kraft",
+   "label": "Brokers per cluster (KRaft-based)",
+   "kind": "quota",
+   "default": 60,
+   "min": 1,
+   "max": null,
+   "unit": "brokers",
+   "adjustable": true,
+   "flavor": "kafka",
+   "field": "brokers",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/limits.html",
+   "checked": "2026-11-07",
+   "verified": true
+  },
+  {
+   "id": "default_rf",
+   "label": "Default replication factor (3 zones)",
+   "kind": "setting",
+   "default": 3,
+   "min": 1,
+   "max": null,
+   "unit": "replicas",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-default-configuration.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "2 for clusters in 2 zones."
+  },
+  {
+   "id": "default_min_isr",
+   "label": "Default min.insync.replicas (3 zones)",
+   "kind": "setting",
+   "default": 2,
+   "min": 1,
+   "max": null,
+   "unit": "replicas",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-default-configuration.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "1 for clusters in 2 zones."
+  },
+  {
+   "id": "unclean_default",
+   "label": "Unclean leader election, MSK default",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-default-configuration.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "true on clusters without tiered storage, false with tiered storage. NEXUS generates a configuration that sets it to false."
+  },
+  {
+   "id": "auto_create_default",
+   "label": "Automatic topic creation, MSK default",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-default-configuration.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "false."
+  },
+  {
+   "id": "broker_throughput",
+   "label": "Throughput per Standard broker",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "MB/s",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "AWS publishes no per-broker figure for Standard brokers; it points to the MSK sizing and pricing spreadsheet. NEXUS uses your organisation's measured ceilings (policy), none by default."
+  },
+  {
+   "id": "broker_size_update",
+   "label": "Changing the broker size",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-update-broker-type.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Rolling, one broker at a time; you can continue to produce and consume. Use 3 zones, replication factor 3 and min.insync.replicas at most RF − 1."
+  },
+  {
+   "id": "broker_add_rebalance",
+   "label": "Adding brokers",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Existing partitions stay where they are: rebalance by reassigning partitions to the new brokers (kafka-reassign-partitions.sh)."
+  },
+  {
+   "id": "tiered_storage",
+   "label": "Tiered storage",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-tiered-storage.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Kafka 3.6.0 or higher (or 2.8.2.tiered), provisioned clusters only, not on kafka.t3.small."
+  },
+  {
+   "id": "encryption",
+   "label": "Encryption",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-encryption.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "Always encrypted at rest (an AWS managed key if you choose none). In transit: TLS between brokers by default; client to broker TLS only by default (TLS 1.2)."
+  },
+  {
+   "id": "client_auth",
+   "label": "Client authentication",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "flavor": "kafka",
+   "source": "https://docs.aws.amazon.com/msk/latest/developerguide/kafka_apis_iam.html",
+   "checked": "2026-11-07",
+   "verified": true,
+   "note": "IAM access control, mutual TLS or SASL/SCRAM; unauthenticated access can be enabled."
+  }
+ ],
+ "rules": [
+  {
+   "id": "kafka.zones",
+   "check": "kafka.zones",
+   "severity": "crit",
+   "rationale": "Brokers over at least two zones, the count a multiple of the zones.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html"
+   ],
+   "fix": "Use the next multiple of the zones."
+  },
+  {
+   "id": "kafka.replication",
+   "check": "kafka.replication",
+   "severity": "warn",
+   "rationale": "Replication factor 3 and min in-sync 2 keep writes and data through one broker loss.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html"
+   ],
+   "fix": "Set replication 3 and min in-sync 2.",
+   "facts": [
+    "default_rf",
+    "default_min_isr"
+   ]
+  },
+  {
+   "id": "kafka.unclean-election",
+   "check": "kafka.unclean-election",
+   "severity": "warn",
+   "rationale": "Unclean leader election can silently lose acknowledged messages.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/msk-default-configuration.html"
+   ],
+   "fix": "Turn it off.",
+   "facts": [
+    "unclean_default"
+   ]
+  },
+  {
+   "id": "kafka.partitions-per-broker",
+   "check": "kafka.partitions-per-broker",
+   "severity": "warn",
+   "rationale": "Too many partition replicas per broker slow the cluster and block updates.",
+   "basis": [
+    "Performance",
+    "Operations"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html"
+   ],
+   "fix": "No automatic fix: add brokers, a larger size or fewer partitions."
+  },
+  {
+   "id": "kafka.broker-ceiling",
+   "check": "kafka.broker-ceiling",
+   "severity": "warn",
+   "rationale": "Traffic per broker within the organisation's measured ceiling, with headroom.",
+   "basis": [
+    "Performance"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html"
+   ],
+   "fix": "No automatic fix: add brokers or a larger size.",
+   "facts": [
+    "broker_throughput"
+   ]
+  },
+  {
+   "id": "kafka.storage",
+   "check": "kafka.storage",
+   "severity": "warn",
+   "rationale": "Storage per broker must hold the retention for every copy.",
+   "basis": [
+    "Operations"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/msk-update-storage.html"
+   ],
+   "fix": "Raise storage (it cannot be reduced).",
+   "facts": [
+    "storage_max",
+    "storage_cooldown"
+   ]
+  },
+  {
+   "id": "kafka.retention-outage",
+   "check": "kafka.retention-outage",
+   "severity": "warn",
+   "rationale": "Retention must outlast the longest planned consumer outage.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "Keep messages for the policy's planned outage."
+  },
+  {
+   "id": "kafka.offset-retention",
+   "check": "kafka.offset-retention",
+   "severity": "warn",
+   "rationale": "Committed positions must outlast the longest planned consumer outage.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "Raise offset retention."
+  },
+  {
+   "id": "kafka.lag-rto",
+   "check": "kafka.lag-rto",
+   "severity": "warn",
+   "rationale": "After a short stop, a group must catch up within the RTO.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "No automatic fix: add consumers and partitions, or process faster."
+  },
+  {
+   "id": "kafka.producer-durability",
+   "check": "kafka.producer-durability",
+   "severity": "warn",
+   "rationale": "acks=all and the idempotent producer for business events.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "Use acks=all with the idempotent producer."
+  },
+  {
+   "id": "kafka.consumer-idempotency",
+   "check": "kafka.consumer-idempotency",
+   "severity": "warn",
+   "rationale": "Kafka delivers at least once; consumers must deduplicate.",
+   "basis": [
+    "Reliability",
+    "Data integrity"
+   ],
+   "refs": [
+    "https://microservices.io/patterns/communication-style/idempotent-consumer.html"
+   ],
+   "fix": "Deduplicate on the event id."
+  },
+  {
+   "id": "kafka.dead-letter",
+   "check": "kafka.dead-letter",
+   "severity": "warn",
+   "rationale": "Every consumer group has a dead-letter topic by default.",
+   "basis": [
+    "Operations",
+    "Reliability"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "Add <topic>.<group>.dlq."
+  },
+  {
+   "id": "kafka.dlq-retention",
+   "check": "kafka.dlq-retention",
+   "severity": "warn",
+   "rationale": "Failed messages kept long enough to investigate and redrive.",
+   "basis": [
+    "Operations"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "Keep the policy's retention."
+  },
+  {
+   "id": "kafka.dlq-ordering",
+   "check": "kafka.dlq-ordering",
+   "severity": "warn",
+   "rationale": "Ordered topics stop the partition instead of skipping messages.",
+   "basis": [
+    "Data integrity"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "Stop the partition and alert."
+  },
+  {
+   "id": "kafka.ordering-key",
+   "check": "kafka.ordering-key",
+   "severity": "warn",
+   "rationale": "Ordered topics need a key so one entity's events stay in one partition.",
+   "basis": [
+    "Data integrity"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "No automatic fix: choose the entity id as the key."
+  },
+  {
+   "id": "kafka.idle-consumers",
+   "check": "kafka.idle-consumers",
+   "severity": "info",
+   "rationale": "Within a group each partition has one consumer; extra consumers idle.",
+   "basis": [
+    "Cost",
+    "Performance"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "No automatic fix: add partitions or fewer consumers."
+  },
+  {
+   "id": "kafka.hot-partition",
+   "check": "kafka.hot-partition",
+   "severity": "warn",
+   "rationale": "One key with a large share of traffic makes one partition the bottleneck.",
+   "basis": [
+    "Performance"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "No automatic fix: re-key or split the hot key."
+  },
+  {
+   "id": "kafka.auth-encryption",
+   "check": "kafka.auth-encryption",
+   "severity": "crit",
+   "rationale": "Clients authenticate and traffic is encrypted.",
+   "basis": [
+    "Security"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/kafka_apis_iam.html",
+    "https://docs.aws.amazon.com/msk/latest/developerguide/msk-encryption.html"
+   ],
+   "fix": "IAM access control and TLS.",
+   "facts": [
+    "client_auth",
+    "encryption"
+   ]
+  },
+  {
+   "id": "kafka.auto-create",
+   "check": "kafka.auto-create",
+   "severity": "warn",
+   "rationale": "Topics are created as code, not by a typo in a producer.",
+   "basis": [
+    "Operations"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/msk/latest/developerguide/msk-default-configuration.html"
+   ],
+   "fix": "Turn off automatic creation.",
+   "facts": [
+    "auto_create_default"
+   ]
+  },
+  {
+   "id": "kafka.pii-retention",
+   "check": "kafka.pii-retention",
+   "severity": "warn",
+   "rationale": "Personal data in streams is kept only as long as policy allows.",
+   "basis": [
+    "Security",
+    "PDPA"
+   ],
+   "refs": [
+    "https://kafka.apache.org/documentation/"
+   ],
+   "fix": "Shorten retention."
+  },
+  {
+   "id": "kafka.outbox",
+   "check": "kafka.outbox",
+   "severity": "warn",
+   "rationale": "A service that writes its database and publishes uses an outbox.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://microservices.io/patterns/data/transactional-outbox.html"
+   ],
+   "fix": "Publish through an outbox."
+  }
+ ]
+}

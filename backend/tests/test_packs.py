@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[2] / "packs"
 SCHEMA = json.loads((ROOT / "schema" / "pack.schema.json").read_text())
-PACKS = sorted([*(ROOT / "core").glob("*.json"), *(ROOT / "components").glob("*.json")])
+PACKS = sorted([*(ROOT / "core").glob("*.json"), *(ROOT / "components").glob("*.json"), *(ROOT / "services").glob("*.json")])
 
 
 def test_there_are_packs():
