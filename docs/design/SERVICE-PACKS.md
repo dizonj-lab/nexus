@@ -214,7 +214,7 @@ MSK Replicator for a second region · MSK Connect for connectors · Lambda event
 | kafka.storage | Storage needed ≤ broker storage with policy headroom, autoscaling on | Warning | Operations |
 | kafka.producer-durability | acks=all and idempotence for business events | High | Reliability |
 | kafka.consumer-idempotency | At-least-once consumers are idempotent | Warning | Reliability |
-| kafka.dead-letter | Consumers have a dead-letter topic and bounded retries | Warning | Operations |
+| kafka.dead-letter | Every consumer group has its dead-letter topic (created by default, section 8.6a) and bounded retries | Warning | Operations |
 | kafka.outbox | A service that writes its database and publishes uses an outbox | Warning | Reliability |
 | kafka.ordering-key | Ordered topics are published with a key; consumers keep per-key order | Warning | Reliability |
 | kafka.state-compaction | Topics holding current state are compacted | Info | Operations |
@@ -224,7 +224,7 @@ MSK Replicator for a second region · MSK Connect for connectors · Lambda event
 
 ### 8.5 Policy defaults (organisation layer, overridable with an approved exception)
 
-Minimum replication factor 3 · min.insync.replicas 2 · broker headroom 30 % · storage headroom 20 % ·
+Minimum replication factor 3 · min.insync.replicas 2 · dead-letter topic on, 3 retries with backoff, 14-day retention · broker headroom 30 % · storage headroom 20 % ·
 hot-partition share 2× the average · personal-data retention per the data policy · naming
 `<domain>.<entity>.<version>` · owner required.
 
@@ -239,6 +239,46 @@ hot-partition share 2× the average · personal-data retention per the data poli
 | Networking | Private subnets, security groups, private connectivity between VPCs |
 | Security | KMS keys, IAM policies or ACLs per topic and group |
 | Observability | Lag, under-replicated partitions and storage alarms generated |
+
+### 8.6a Dead-letter topic by default (decided November 2026)
+
+Kafka has no built-in dead-letter queue; it is a convention: a separate topic the consumer writes a
+failed message to (frameworks such as Spring Kafka and Kafka Connect's error handling do this). In
+SP-Kafka every consume connection gets one **by default**.
+
+| Item | Default | Why |
+|---|---|---|
+| When it is created | With each consumer group's first consume connection | No group without a place for failed messages |
+| Name | `<topic>.<group>.dlq`, for example `orders.loyalty.dlq` | Groups fail for different reasons; one DLQ per group keeps them apart and owned |
+| Where it appears | A child topic in the cluster, drawn under its source topic with a DLQ badge; a dashed red connection from the group | You can see it, select it, and see its depth |
+| Partitions, replication | Same partitions as the source topic, replication 3, min in-sync 2 | Keeps the key, so a redrive lands in the same order per key |
+| Retention | 14 days (policy) | Long enough to investigate; longer than the source's 7 days |
+| What goes there | Only messages that still fail after the retries, or fail at once with an error that cannot succeed (bad schema, validation) | Transient errors are retried, not dead-lettered |
+| Retries before it | 3, exponential backoff with jitter (policy) | Matches the consume connection's retry setting |
+| What it carries | The original message and key, plus headers: source topic, partition, offset, consumer group, error, attempts, time | Enough to diagnose and redrive |
+| Owner | The consuming team | They fix it |
+| Alarm | Any message arriving, and depth growing over a day | A DLQ nobody watches is data loss with extra steps |
+| Personal data | Same classification as the source topic | A DLQ copies its data |
+| Redrive | An action on the DLQ: back to the source topic (or a retry topic) after the fix; consumers are idempotent, so a redrive is safe | Recovery is part of the design, not a script found later |
+
+**Ordered topics.** Moving one message to the DLQ lets later messages for the same key go first. For
+topics marked "ordering required", the default becomes **stop and alert for that partition** after the
+retries (no skipping). You can choose "skip to the DLQ" instead, as a recorded exception. The simulator
+shows the lag that a stopped partition builds.
+
+**Opting out** (for example a best-effort metrics stream) is an exception: owner, reason, expiry.
+
+**Rules added:** `kafka.dlq-missing` (removed without an exception) · `kafka.dlq-alarm` (no alarm) ·
+`kafka.dlq-retention` (shorter than policy) · `kafka.dlq-ordering` (an ordered topic that skips to the
+DLQ without an exception) · `kafka.dlq-growing` (the simulator sees its depth grow) ·
+`kafka.dlq-pii` (classification lower than the source).
+
+**Terraform:** a `kafka_topic` per DLQ with its retention, ACLs (the group writes, the owning team
+reads), and the alarms.
+
+**Other packs:** SQS and SNS (SP-Queues) use their native redrive policies and dead-letter queues;
+Lambda event source mappings use their failure destinations. The defaults (on, retries, retention,
+alarm, owner) are the same across packs.
 
 ### 8.7 Experience
 
