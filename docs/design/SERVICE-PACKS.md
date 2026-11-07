@@ -316,3 +316,76 @@ component uses.
 
 1. Average message size: one value per design, or per topic?
 2. Which design, if any, should be the reference for the SP-Kafka demo (the resort ticketing stream, or a generic order flow)?
+
+## 12. Block template v2: every component is a Lego block
+
+Every component a Service Pack defines follows one template. It was drafted on an MSK cluster and
+tested on a microservice; the test added the items marked *(v2)*.
+
+![Block anatomy, example MSK cluster](img/block-anatomy-msk.png)
+
+| Part | What the block declares |
+|---|---|
+| **Placement** | One scope: none/global, region, VPC, zones (spans 2–3, one subnet per zone), or one subnet. A subnet always lives in one zone. Drops are checked: fits, possible with risks (Action Guard), or refused with the reason |
+| **Connectors** | The block's connection points on the canvas (called *connectors*, so that *ports* keeps its hexagonal meaning inside a service). Each has a role (call, publish, consume, CDC, sink, platform *(v2)*), a protocol, who may connect, what a connection carries, and its **contract** *(v2)*: OpenAPI or gRPC for calls, AsyncAPI for events |
+| **Children** | Sub-components with their own connectors, properties and rules. Each declares its kind *(v2)*: infrastructure (topic, partition), logical (endpoint, worker) or running instance (task, pod). The parent shows their aggregate and its worst child |
+| **Properties** | Unit, default, minimum, maximum, source, and who set it |
+| **Constraints** | Hard limits: a change that breaks one is refused |
+| **Rules and best practice** | Findings with a fix and a reference (section 13); thresholds from organisation policy |
+| **Security** | Authentication, encryption, exposure, access per child, personal data |
+| **Behaviour** | Capacity, failure, recovery, disruption when changed |
+| **Runtime** *(v2, compute blocks)* | ECS Fargate, Kubernetes, VMs or Lambda; the runtime's pack supplies its placement, limits, scaling and disruption |
+| **SLOs** *(v2)* | Per endpoint or consumer: availability, p99 latency, error budget; read by rules and the simulator |
+| **Scale-out** *(v2, compute blocks)* | Stateless or not; singleton work and how it is triggered; concurrency control; idempotency; what caps the number of copies (connections, partitions) |
+| **Produces** | Terraform/OpenTofu, LikeC4, metrics, decision records |
+
+### 12.1 Inside a compute block (double-click)
+
+![Inside the Orders service](img/block-inside-service.png)
+
+Hexagonal architecture: inbound adapters (REST, event consumer, health) call **inbound ports** (use
+cases); the **domain** holds the business logic and depends on nothing outside; **outbound ports**
+(repository, event publisher, gateways) are implemented by **outbound adapters**. An Envoy sidecar
+carries every call in and out (mTLS, timeouts, retries, circuit breaking, telemetry). A connector on the
+canvas lands on an adapter at this level.
+
+### 12.2 Loosely coupled, one job, scales out without conflicts
+
+![Orders service scaled out](img/block-service-scale-out.png)
+
+- **One job:** the service owns one business capability and its own data.
+- **Loosely coupled:** events where possible, calls only where needed (timeout, one retry policy,
+  circuit breaker, idempotency key, graceful degradation), contracts instead of shared code or tables.
+- **Scales out:** copies are identical and keep nothing; every shared decision is made once by the
+  database (locking, unique keys, outbox claims), the broker (partition assignment) or a scheduler
+  outside the copies. The table in the drawing becomes rules on the block, each with a fix.
+
+## 13. References
+
+Rules cite these. Links were current on 7 November 2026; the pack CI will check them (a dead link
+fails the build, like a broken test).
+
+**Architecture and design**
+- Hexagonal architecture (ports and adapters), Alistair Cockburn: https://alistair.cockburn.us/hexagonal-architecture/
+- The Twelve-Factor App: processes (VI) https://12factor.net/processes · disposability (IX) https://12factor.net/disposability · admin processes (XII) https://12factor.net/admin-processes · config (III) https://12factor.net/config
+- Microservice patterns, Chris Richardson: database per service https://microservices.io/patterns/data/database-per-service.html · transactional outbox https://microservices.io/patterns/data/transactional-outbox.html · idempotent consumer https://microservices.io/patterns/communication-style/idempotent-consumer.html · saga https://microservices.io/patterns/data/saga.html
+- Martin Fowler: Optimistic Offline Lock https://martinfowler.com/eaaCatalog/optimisticOfflineLock.html · Tolerant Reader https://martinfowler.com/bliki/TolerantReader.html · Consumer-driven contracts https://martinfowler.com/articles/consumerDrivenContracts.html
+
+**Reliability**
+- AWS Well-Architected, Reliability pillar: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html · REL05-BP03 Control and limit retry calls: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_limit_retries.html
+- Amazon Builders' Library: Timeouts, retries, and backoff with jitter https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/ · Making retries safe with idempotent APIs https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/
+- Azure Architecture Center: cloud design patterns https://learn.microsoft.com/en-us/azure/architecture/patterns/ (Competing Consumers, Leader Election, Retry, Circuit Breaker, Bulkhead, Scheduler Agent Supervisor) · Retry Storm antipattern https://learn.microsoft.com/en-us/azure/architecture/antipatterns/retry-storm/ · Transient fault handling https://learn.microsoft.com/en-us/azure/architecture/best-practices/transient-faults
+- Google SRE book: Service level objectives https://sre.google/sre-book/service-level-objectives/ · Handling overload https://sre.google/sre-book/handling-overload/ · Addressing cascading failures https://sre.google/sre-book/addressing-cascading-failures/
+
+**Platform and protocols**
+- Envoy: circuit breaking and retry budgets https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking · global rate limiting https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/other_features/global_rate_limiting
+- Kubernetes: liveness, readiness and startup probes https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ · CronJob https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+- Amazon EventBridge Scheduler: https://docs.aws.amazon.com/scheduler/latest/UserGuide/what-is-scheduler.html · Amazon RDS Proxy: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html
+- PostgreSQL `SELECT … FOR UPDATE SKIP LOCKED`: https://www.postgresql.org/docs/current/sql-select.html
+- Apache Kafka documentation (consumer groups): https://kafka.apache.org/documentation/
+- OpenAPI https://spec.openapis.org/oas/latest.html · AsyncAPI https://www.asyncapi.com/docs/reference/specification/latest · OpenTelemetry https://opentelemetry.io/docs/ · Pact (contract testing) https://docs.pact.io/
+- RFC 9562, UUIDs including version 7: https://www.rfc-editor.org/rfc/rfc9562
+
+**Security**
+- NIST SP 800-204, Security Strategies for Microservices-based Application Systems: https://doi.org/10.6028/NIST.SP.800-204 · SP 800-204B, Attribute-based Access Control for microservices with a service mesh: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204B.pdf · SP 800-204C, DevSecOps: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204C.pdf
+- OWASP API Security Top 10: https://owasp.org/API-Security/
