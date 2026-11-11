@@ -5,6 +5,14 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- **AWS product ground truth** (`packs/catalog/`): AWS's own product list, read from
+  aws.amazon.com/products and its product directory (367 entries: 107 on today's page, 278 services),
+  joined with a curated NEXUS map (type, scope, Service Pack family, tier) and the packs that exist.
+  Generates `docs/design/AWS-GROUND-TRUTH.md`: coverage (3 by Service Packs, 18 by component packs,
+  44 drawable without a pack, 302 not modelled) and the Service Pack backlog in order. Tested in
+  `packs/tests/catalog.test.mjs`. AWS App Mesh is flagged: AWS ended support on 30 September 2026.
+
 ## [0.3.8] — 2026-11-07
 
 ### Added
