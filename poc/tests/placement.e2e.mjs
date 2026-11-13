@@ -9,7 +9,7 @@ const S = () => p.evaluate(() => ({ nets: __nx.S.nets, nodes: __nx.S.nodes, oute
 let s = await S();
 ok(s.nets.length === 3 && s.nets.every((x) => x.std), "a new design gets public, application and data subnets");
 ok(s.nodes.SVC1.net === "NET2" && s.nodes.DB1.net === "NET3", "services land in the application subnet, databases in the data subnet");
-ok(await p.evaluate(() => __nx.packDesign().zones.join(",") === "a,b"), "the design knows its zones (a, b)");
+ok(await p.evaluate(() => __nx.packDesign().zones.join(",") === "a,b,c"), "the design knows its zones (a, b, c: every AZ in Singapore)");
 
 // 1. a database dragged into the application subnet: possible, with trade-offs shown in the Action Guard
 let net2 = await boxOf(p, "net:NET2"), d = await dragTo(p, "DB1", net2.x, net2.y, shot("1-db-to-app"));
@@ -41,7 +41,7 @@ ok(await p.evaluate(() => !!__nx.V.flash), "the target is highlighted in red wit
 // 4. zones side by side; pin a service to zone b by dropping it into lane b
 await p.evaluate(() => __nx.run("zones side by side")); await p.waitForTimeout(500);
 const lanes = await p.evaluate(() => __nx.laneHits().map((l) => ({ z: l.z, x0: l.x0, x1: l.x1, y0: l.y0, y1: l.y1 })));
-ok(lanes.length === 2 && lanes[1].x0 > lanes[0].x1, "two zone lanes, side by side");
+ok(lanes.length === 3 && lanes[1].x0 > lanes[0].x1, "three zone lanes, side by side");
 if (shot("4-lanes")) await p.screenshot({ path: shot("4-lanes") });
 const sv = await nodePos(p, "SVC2"); d = await dragTo(p, "SVC2", sv.x + (lanes[1].x0 - lanes[0].x0), sv.y, shot("4-pin"));
 ok(d && d.kind === "zone" && d.target === "b", "dropping into lane b targets zone b");

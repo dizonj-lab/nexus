@@ -14,7 +14,9 @@ const tab = async (t) => { await p.evaluate(() => __nx.inspect("Q1")); await p.w
 const tf = () => p.evaluate(() => __nx.genTF());
 
 ok(await p.evaluate(() => __nx.spOn("sp.kafka")), "SP-Kafka is on by default (preview)");
-let s = await q(); ok(s.brokers === 4, `the new MSK cluster gets 4 brokers over 2 zones (a multiple of the zones): ${s.brokers}`);
+let s = await q(); ok(s.brokers === 3, `the new MSK cluster gets 3 brokers over Singapore's 3 zones (a multiple of the zones): ${s.brokers}`);
+// the rest of this check uses a two-zone design, as an architect may choose
+await p.evaluate(() => { const S = __nx.S; S.settings.zones = 2; S.settings.zonesSet = true; S.nodes.Q1.brokers = 4; __nx.refresh(); }); await p.waitForTimeout(150); s = await q();
 ok(!(await keys()).some((k) => /kafka\.zones|kafka\.auth|kafka\.unclean|kafka\.replication|kafka\.storage/.test(k)), "the starter cluster raises no cluster finding");
 // cluster tab: per-broker table and limits
 let t = await tab("cluster");

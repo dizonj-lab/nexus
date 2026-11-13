@@ -5,6 +5,17 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.12] — 2026-11-13
+
+### Fixed
+- **Saved designs did not come back (since v0.3.9).** When a design was saved with the Layers panel
+  open (every new design leaves it open), reloading the page stopped at start-up: the canvas showed
+  nothing and saved versions looked lost. They were still stored and now load again. When the
+  browser's storage is full, the console says so instead of failing without a word.
+- **Every AZ in the region by default.** New AWS designs use all of the region's availability zones
+  (3 in Singapore; the canvas draws up to 3) instead of 2. A choice in Layers → Zones / sites is kept;
+  older designs saved with the old default of 2 open with the region's zones.
+
 ## [0.3.11] — 2026-11-13
 
 ### Fixed

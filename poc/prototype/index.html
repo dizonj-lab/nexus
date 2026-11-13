@@ -419,7 +419,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.11">NEXUS<small>Architecture Workbench · v0.3.11</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.12">NEXUS<small>Architecture Workbench · v0.3.12</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -1222,7 +1222,7 @@ function ensureGT67(){if(!S.gt)return;let b=false;
  if(b&&S.ver)S.ver.gt++;
  if(S.caps&&!S.caps.some(c=>(c.types||[]).includes('dns'))){S.caps.push({id:'TC'+(S.caps.length+1),name:'DNS traffic steering (Route 53, Traffic Manager, Cloud DNS, GSLB)',types:['dns'],on:true});if(S.ver)S.ver.caps++}}
 const hasGT=id=>(S.gt||[]).some(g=>g.id===id);
-function ensureSettings(){ensureGT67();const d=defaultSettings();S.settings=S.settings||{};S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.sp={...d.sp,...(S.settings.sp||{})};S.settings.price=S.settings.price||{}}
+function ensureSettings(){ensureGT67();const d=defaultSettings();S.settings=S.settings||{};if(+S.settings.zones===2&&!S.settings.zonesSet&&prov()!=='vmware'){try{if(regionAZs()>2)S.settings.zones=regionZonesDefault()}catch(e){}}S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.sp={...d.sp,...(S.settings.sp||{})};S.settings.price=S.settings.price||{}}
 function defaultCaps(){return [
  {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
  {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
@@ -1269,7 +1269,8 @@ function ensureP8(){if(!S.ea.some(g=>g.id==='P8')){S.ea.push({id:'P8',t:'Each se
 const KEY='nexus.workbench.v1';
 const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
 if(EMBED)document.documentElement.classList.add('embedded');
-function persist(){if(EMBED){embedChanged();return}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let persistWarned=false;
+function persist(){if(EMBED){embedChanged();return}try{localStorage.setItem(KEY,JSON.stringify(S));persistWarned=false}catch(e){if(!persistWarned){persistWarned=true;try{say(`Not saved: the browser's storage for this page is full (${Math.round(JSON.stringify(S).length/1024)} KB). Saved versions take most of it (History tab).`,'s')}catch(x){}}}}
 let normalized=[];
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();ensureP2();ensureSettings();normalized=normalizeParts();return true}}catch(e){}return false}
 const UNDO=[],REDO=[];
@@ -1333,7 +1334,8 @@ const PAYLOAD_LIMIT=[['aws','gw',10240,'Amazon API Gateway accepts payloads up t
 /* ---------- zones and zone outage ---------- */
 // Instances spread round-robin over the region's zones (a, b, c). A subnet with a zone pins its components to it.
 const ZN='abc';
-const zoneCount=()=>Math.min(3,Math.max(1,+((S.settings&&S.settings.zones)||2)));
+const zoneCount=()=>Math.min(3,Math.max(1,+((S.settings&&S.settings.zones)||regionZonesDefault())));
+function regionZonesDefault(){try{const r=regionAZs();return r?Math.min(3,r):2}catch(e){return 2}}
 const zoneList=()=>ZN.slice(0,zoneCount()).split('');
 const homeZone=n=>{if(n.az&&ZN.includes(n.az))return n.az;const x=n.net&&(S.nets||[]).find(y=>y.id===n.net);if(x&&!x.std&&!(x.azs&&x.azs.length>1)){const z=x.az?String(x.az).trim().toLowerCase().slice(-1):null;return z&&ZN.includes(z)?z:null}return null};
 // A subnet group spans the region's zones (one subnet per zone); a pinned component runs only in its zone.
@@ -4383,7 +4385,7 @@ function setOutage(z){const was=S.outage||null;z=z||null;if(was===z)return;S.out
  say(`Zone ${z} outage (${zoneCount()} zones): ${r.ok?'the design survives':'the design does NOT survive'}. Errors ${(KPI.err*100).toFixed(1)}%, bottleneck ${KPI.worst?KPI.worst.id+(isFinite(F[KPI.worst.id].util)?' at '+pct(F[KPI.worst.id].util):' (down)'):'none'}.${r.down.length?`\nDown: ${r.down.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}${r.fo.length?`\nFails over: ${r.fo.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}${r.deg.length?`\nReduced capacity: ${r.deg.map(n=>`${n.id} (${F[n.id].zx.why})`).join('; ')}.`:''}\nThe Design Advisor lists a fix for each. Type "restore zone" to end the outage.`,'s')}
 // AZs the design can use: the canvas draws up to 3; the region (both regions with two) may have fewer
 function regionAZs(){if(!NP||!NP.regionAZs||prov()==="vmware")return null;const r=regNames(),a=NP.regionAZs(prov(),r.a),b=mr()?NP.regionAZs(prov(),r.b):null;return a&&b?Math.min(a,b):a||null}
-function setZones(nz){const ra=regionAZs();if(ra&&+nz>ra){say(`${regCity(regNames().a)} has ${ra} availability zone${ra>1?'s':''}${mr()?' (in the smaller of the two regions)':''}: the design can use at most ${ra}.`,'s');renderZ();return}nz=Math.min(3,Math.max(1,+nz||2));if(nz===zoneCount())return;pushUndo(`Zones in the region: ${zoneCount()} → ${nz}`);S.settings.zones=nz;if(S.outage&&!zoneList().includes(S.outage))S.outage=null;changed();renderDem()}
+function setZones(nz){const ra=regionAZs();if(ra&&+nz>ra){say(`${regCity(regNames().a)} has ${ra} availability zone${ra>1?'s':''}${mr()?' (in the smaller of the two regions)':''}: the design can use at most ${ra}.`,'s');renderZ();return}nz=Math.min(3,Math.max(1,+nz||2));if(nz===zoneCount())return;pushUndo(`Zones in the region: ${zoneCount()} → ${nz}`);S.settings.zones=nz;S.settings.zonesSet=true;if(S.outage&&!zoneList().includes(S.outage))S.outage=null;changed();renderDem()}
 $('#zOut')&&($('#zOut').onchange=e=>setOutage(e.target.value));$('#zCount')&&($('#zCount').onchange=e=>setZones(e.target.value));
 
 
@@ -4668,7 +4670,8 @@ if(EMBED){seed();ensureSettings()}else if(!load()){seed();ensureSettings()}
 resize();
 changed();
 placePanels(true);
-setLayout(S.settings.view.layout||'focus');
+// a saved layout may open a side panel (Layers) whose code is defined further down: open it again at the end of start-up
+let layoutLater=false;try{setLayout(S.settings.view.layout||'focus')}catch(e){layoutLater=true}
 fit();
 if(EMBED)parent.postMessage({type:'nexus:ready'},location.origin);else say('Welcome to NEXUS. The sample "Customer Portal" design is loaded so you can see the workbench in action.','s');
 if(normalized.length)say(`Fixed an old sub-design: ${normalized.join(', ')} were placeholder services carrying their parent's full traffic, which made them show red. They are now parts with no capacity of their own.`,'g');
@@ -4792,7 +4795,7 @@ function ndCreate(){const s=NDW,res=s.res||ndRec(),R=RESIL.find(x=>x.k===res),re
  $('#ndDlg').hidden=true;
  confirmUnsaved(`Creating "${name}"`,()=>act(`New design: ${name}`,()=>{
   S.deploy=s.where;buildBaselineCore({name,where:s.where,rps:+s.rps||1000,pii:s.pii,events:s.events,files:s.files,services:services.length?services:['Core'],saas:s.saas||[],who:'customers',cdn:+s.rps>3000});
-  S.settings.zones=res==='single'?1:(+s.avail>=99.99?3:2);S.outage=null;S.routage=null;
+  S.settings.zones=res==='single'?1:(regionAZs()?regionZonesDefault():(+s.avail>=99.99?3:2));S.outage=null;S.routage=null;
   if(R.region){S.multi={...(S.multi||{}),on:true,mode:res,a:undefined,b:undefined,expanded:false};routeUsersViaDns(res==='aa'?{policy:'latency',health:true,defaultRec:true,ttl:60,shareA:50}:{policy:'failover',health:true,defaultRec:true,ttl:60,shareA:100})}
   else S.multi={...(S.multi||{}),on:false,expanded:false};
   kids('root').forEach(n=>{if(n.type==='db'){n.standby=res!=='single';n.multi=pl.database||undefined}
@@ -4866,7 +4869,8 @@ function zoneSpread(n){const zs=zoneList();if(!zs.length)return null;
  if(isManaged(n)&&n.type!=='db')return zs.map(z=>({z,c:1,m:true}));
  if(n.type==='db'){return zs.map((z,i)=>({z,c:i===0?1:(i===1&&n.standby?1:0)}))}
  const c=Math.max(1,instCount(n)),hz=homeZone(n),home=Math.max(0,zs.indexOf(hz||zs[0])),out=zs.map(z=>({z,c:0}));if(hz){out[home].c=c;return out}for(let i=0;i<c;i++)out[(home+i)%zs.length].c++;return out}
-const layerOv=()=>({net:true,sec:true,int:true,plat:true,az:true,repl:true,...((S.view&&S.view.layers)||{})});
+// a declaration (hoisted): the Layers panel can be drawn while a saved design loads
+function layerOv(){return {net:true,sec:true,int:true,plat:true,az:true,repl:true,...((S.view&&S.view.layers)||{})}}
 function layerChecks(){const top=kids('root'),has=t=>top.some(n=>n.type===t),z=zoneCount(),req=S.req||{},extE=S.edges.filter(e=>isFlow(e)&&S.nodes[e.to]&&['saas','ext'].includes(S.nodes[e.to].type)),
  inetToData=S.edges.filter(e=>isFlow(e)&&S.nodes[e.from]&&S.nodes[e.from].type==='user'&&S.nodes[e.to]&&['db','cache','obj','svc'].includes(S.nodes[e.to].type)),miss=top.filter(n=>missingDeps(n).length);
  return [
@@ -5012,8 +5016,9 @@ function importStrategy(){const h=strategyHandoff();
 {const h=strategyHandoff();if(h&&S.strategyImported!==h.id)setTimeout(()=>say(`A strategy hand-off from NEXUS Strategy (${h.org||''}) is waiting: ${(h.principles||[]).length} principles, ${(h.guardrails||[]).length} guardrails, ${(h.capabilities||[]).length} capabilities. Type "import strategy" to apply it.`,'s'),400)}
 // Test hook for the browser checks in poc/tests (only with ?test in the address).
 if(/[?&]test\b/.test(location.search))try{setupWhatIf()}catch(e){console.warn('what-if panel',e)}
-window.__nx={whatIfs:()=>whatIfs(),outerLabel:()=>outerLabel(),outerLabelB:()=>outerLabelB(),regionAZs:()=>regionAZs(),drawZone:n=>drawZone(n),zoneMembers:z=>zoneMembers(z),spOn,kDlqs:id=>kDlqs(S.nodes[id]),scaleState,spFindings,kafkaOf,mskTf,genTF:()=>genTF(),SIM:()=>SIM,refresh:()=>changed(),inspect:id=>focusNode(id),get S(){return S},get F(){return F},get findings(){return findings},NP,packDesign,placeVerdict,V,P,run:t=>run(t),zoneHits:()=>zoneHits,laneHits:()=>V.azLanes||[]};
+window.__nx={whatIfs:()=>whatIfs(),ensureSettings:()=>ensureSettings(),outerLabel:()=>outerLabel(),outerLabelB:()=>outerLabelB(),regionAZs:()=>regionAZs(),drawZone:n=>drawZone(n),zoneMembers:z=>zoneMembers(z),spOn,kDlqs:id=>kDlqs(S.nodes[id]),scaleState,spFindings,kafkaOf,mskTf,genTF:()=>genTF(),SIM:()=>SIM,refresh:()=>changed(),inspect:id=>focusNode(id),get S(){return S},get F(){return F},get findings(){return findings},NP,packDesign,placeVerdict,V,P,run:t=>run(t),zoneHits:()=>zoneHits,laneHits:()=>V.azLanes||[]};
 say('Click ▾ on any component for actions. Every change is reviewed by the Action Guard and can be undone (Ctrl+Z). "help" lists console commands.','s');
+if(layoutLater){setLayout(S.settings.view.layout||'focus');fit()}
 requestAnimationFrame(frame);
 })();
 </script>
