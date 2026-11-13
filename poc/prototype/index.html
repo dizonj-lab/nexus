@@ -419,7 +419,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.14">NEXUS<small>Architecture Workbench · v0.3.14</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.15">NEXUS<small>Architecture Workbench · v0.3.15</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -1446,6 +1446,9 @@ const CH_DEF={topic:n=>({partitions:n.partitions||6,rf:3,minIsr:2,retentionH:168
 const chDefault=(n,k)=>({id:{topic:'events',queue:'work',exchange:'events',notif:'notifications',bus:'events'}[k],kind:k,...CH_DEF[k](n)});
 const chans=n=>{const k=chKind(n);return n.channels&&n.channels.length?n.channels.map(c=>({...CH_DEF[k](n),...c,kind:k})):[chDefault(n,k)]};
 const chOf=(n,e)=>{const cs=chans(n);return cs.find(c=>c.id===e.ch)||cs[0]};
+// A connection can carry several topics (a service publishes or reads more than one): e.ch first, then e.chs.
+const chsOf=(n,e)=>{const cs=chans(n),ids=[chOf(n,e).id,...(e.chs||[])].filter((x,i,a)=>a.indexOf(x)===i&&cs.some(c=>c.id===x));return ids};
+const hasCh=(n,e,id)=>chsOf(n,e).includes(id);
 const isPub=e=>{const b=S.nodes[e.to];return !!b&&MSG_T.includes(b.type)&&isFlow(e)};
 const isSub=e=>{const a=S.nodes[e.from];return !!a&&MSG_T.includes(a.type)&&isFlow(e)};
 const protoDef=(a,b)=>b.type==='fn'?'lambda':b.type==='queue'?'sqs':['ext','saas'].includes(b.type)?'https':a.type==='notify'?'https':'pull';
@@ -1457,16 +1460,16 @@ function pick(o,ks){const r={};ks.forEach(k=>{if(o[k]!==undefined&&o[k]!==null)r
 // a stream or an exchange gives every consumer group (or bound queue) a copy, shared within the group;
 // a notification topic or event bus pushes a copy to every subscription whose filter matches.
 function msgShares(n,ins,outs,pass){const res=new Map(),k=chKind(n),cs=chans(n),chIn={};let tot=0;
- ins.forEach(e=>{const c=chOf(n,e).id,f=EF.get(e)||0;chIn[c]=(chIn[c]||0)+f;tot+=f});
+ ins.forEach(e=>{const cl=chsOf(n,e),f=EF.get(e)||0;cl.forEach(c=>{chIn[c]=(chIn[c]||0)+f/cl.length});tot+=f});
  const sc=tot>0?pass/tot:0;if(!tot)cs.forEach((c,i)=>chIn[c.id]=i?0:pass/(sc||1));
- const groups={};outs.forEach(e=>{const c=chOf(n,e).id,sd=subDef(e),g=k==='queue'?c:(k==='notif'||k==='bus')?c+'|'+e.to:c+'|'+sd.group;(groups[g]=groups[g]||[]).push(e)});
- Object.values(groups).forEach(g=>g.forEach(e=>{const c=chOf(n,e).id,base=(chIn[c]||0)*(tot?sc:1),m=Math.max(0,Math.min(100,+subDef(e).match||100))/100;res.set(e,base*m/g.length)}));
+ const groups={},gk=(e,c)=>{const sd=subDef(e);return k==='queue'?c:(k==='notif'||k==='bus')?c+'|'+e.to:c+'|'+sd.group};outs.forEach(e=>chsOf(n,e).forEach(c=>{const g=gk(e,c);(groups[g]=groups[g]||[]).push(e)}));
+ outs.forEach(e=>{const m=Math.max(0,Math.min(100,+subDef(e).match||100))/100;res.set(e,chsOf(n,e).reduce((a,c)=>a+(chIn[c]||0)*(tot?sc:1)*m/groups[gk(e,c)].length,0))});
  return res}
 // The design's messaging, as plain data for the packs runtime.
 function msgDesign(){const out={};kids('root').filter(n=>MSG_T.includes(n.type)).forEach(n=>{
  out[n.id]={id:n.id,type:n.type,flavor:n.flavor,kind:chKind(n),region:regionOf(n),channels:chans(n),
-  pubs:S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>{const a=S.nodes[e.from];return {from:e.from,fromType:a.type,ch:chOf(n,e).id,...pubDef(e),writesDb:S.edges.some(x=>x.from===e.from&&isFlow(x)&&S.nodes[x.to]&&S.nodes[x.to].type==='db'),rate:EF.get(e)||0}}),
-  subs:S.edges.filter(e=>e.from===n.id&&isFlow(e)).map(e=>{const b=S.nodes[e.to];return {to:e.to,toType:b.type,toRegion:regionOf(b),ch:chOf(n,e).id,...subDef(e),consumers:instCount(b)*Math.max(1,+subDef(e).conc||1),rate:EF.get(e)||0,toFifo:b.type==='queue'&&chans(b).some(c=>c.fifo)}})}});return out}
+  pubs:S.edges.filter(e=>e.to===n.id&&isFlow(e)).flatMap(e=>{const a=S.nodes[e.from],cl=chsOf(n,e);return cl.map(ch=>({from:e.from,fromType:a.type,ch,...pubDef(e),writesDb:S.edges.some(x=>x.from===e.from&&isFlow(x)&&S.nodes[x.to]&&S.nodes[x.to].type==='db'),rate:(EF.get(e)||0)/cl.length}))}),
+  subs:S.edges.filter(e=>e.from===n.id&&isFlow(e)).flatMap(e=>{const b=S.nodes[e.to],cl=chsOf(n,e);return cl.map(ch=>({to:e.to,toType:b.type,toRegion:regionOf(b),ch,...subDef(e),consumers:instCount(b)*Math.max(1,+subDef(e).conc||1),rate:(EF.get(e)||0)/cl.length,toFifo:b.type==='queue'&&chans(b).some(c=>c.fifo)}))})}});return out}
 function queueLoad(n,i){
  const fl=n.flavor||'native',kafka=fl==='kafka',sc=scaleOf(n);
  const c=Math.max(1,n.consumers||1),p=Math.max(1,n.partitions||1),b=Math.max(1,n.brokers||1);
@@ -2117,7 +2120,7 @@ const ipsOf=n=>isManaged(n)?(n.type==='lb'?8:2):Math.max(instCount(n),autoOf(n)?
 const SP_CALLERS=['svc','vm','fn','adp','api'];
 // brokers default: at least 3, a multiple of the zones (MSK spreads brokers evenly over the zones)
 function kBrokers(){let z=2;try{z=zoneCount()}catch(e){}return Math.max(z,Math.ceil(3/z)*z)}
-function kDlqs(n){return new Set(S.edges.filter(e=>e.from===n.id&&isFlow(e)&&subDef(e).dlq!==false).map(e=>chOf(n,e).id+'|'+subDef(e).group)).size}
+function kDlqs(n){return new Set(S.edges.filter(e=>e.from===n.id&&isFlow(e)&&subDef(e).dlq!==false).flatMap(e=>chsOf(n,e).map(c=>c+'|'+subDef(e).group))).size}
 // AWS product catalogue (packs/catalog, inlined by packs/build.mjs)
 function catProduct(id){return NP&&NP.catalog?NP.catalog('aws').find(p=>p.i===id):null}
 function shortProd(p){const ab=(/\(([^)]+)\)/.exec(p.n)||[])[1];return ab&&ab.length<=12&&!/\s/.test(ab)?p.n.replace(/\s*\([^)]*\)/,'').replace(/^(Amazon|AWS)\b.*$/,m=>(/^AWS/.test(m)?'AWS ':'Amazon ')+ab):p.n.replace(/\s*\([^)]*\)/,'')}
@@ -2161,16 +2164,16 @@ function spPanelHTML(n){if(n.parent!=='root')return '';const kind=n.type==='svc'
   <div class="spt" role="tablist">${spTabs[kind].map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===tab}" class="${k===tab?'on':''}" data-spt="${kind}|${k}">${l}${k==='rules'&&open.length?` · ${open.length}`:''}</button>`).join('')}</div><div class="spb">${body}</div></div>`}
 function spRow(dir,peer,proto,policy,edge,cls=''){return `<tr ${edge?`data-spe="${esc(edge)}" tabindex="0" title="Open this connection"`:''}><td><span class="spd ${cls}">${dir}</span></td><td>${peer}</td><td>${proto}</td><td>${policy}</td></tr>`}
 function spConnHTML(n){const ins=S.edges.filter(e=>e.to===n.id&&isFlow(e)),outs=S.edges.filter(e=>e.from===n.id&&isFlow(e));let r='';
- ins.forEach(e=>{const a=S.nodes[e.from];if(!a)return;if(MSG_T.includes(a.type)){const sd=subDef(e);r+=spRow('SUB',`<b>${esc(chOf(a,e).id)}</b><br><small>← ${e.from} · group ${esc(sd.group)}</small>`,`${esc(e.proto)}`,`${sd.idem?'idempotent':'<span class="warn">not idempotent</span>'} · ${sd.dlq===false?'<span class="warn">no DLQ</span>':isKafka(a)?'DLQ '+esc(NP.dlqName(chOf(a,e).id,sd.group)):'DLQ'}`,`${e.from}>${e.to}`,'sub');return}
+ ins.forEach(e=>{const a=S.nodes[e.from];if(!a)return;if(MSG_T.includes(a.type)){const sd=subDef(e);r+=spRow('SUB',`<b>${esc(chsOf(a,e).join(', '))}</b><br><small>← ${e.from} · group ${esc(sd.group)}</small>`,`${esc(e.proto)}`,`${sd.idem?'idempotent':'<span class="warn">not idempotent</span>'} · ${sd.dlq===false?'<span class="warn">no DLQ</span>':isKafka(a)?'DLQ '+esc(chsOf(a,e).map(c=>NP.dlqName(c,sd.group)).join(', ')):'DLQ'}`,`${e.from}>${e.to}`,'sub');return}
   if(isCallE(e)){const c=callOf(e);r+=spRow('IN',`<b>${esc(e.from)}</b> ${esc(a.name)}`,`${esc(e.proto)} · ${esc(contractOf(e))}`,`${c.deadline?c.deadline+' ms':'<span class="warn">no deadline</span>'}`,`${e.from}>${e.to}`,'in');return}
   r+=spRow('IN',`<b>${esc(e.from)}</b> ${esc(a.name)}`,`${esc(e.proto)}`,'from the edge',`${e.from}>${e.to}`,'in')});
- outs.forEach(e=>{const b=S.nodes[e.to];if(!b)return;if(MSG_T.includes(b.type)){const pd=pubDef(e);r+=spRow('PUB',`<b>${esc(chOf(b,e).id)}</b><br><small>→ ${e.to}</small>`,esc(e.proto),`${pd.key?'key '+esc(pd.key):'no key'} · ${pd.outbox?'outbox':'direct'}`,`${e.from}>${e.to}`,'pub');return}
+ outs.forEach(e=>{const b=S.nodes[e.to];if(!b)return;if(MSG_T.includes(b.type)){const pd=pubDef(e);r+=spRow('PUB',`<b>${esc(chsOf(b,e).join(', '))}</b><br><small>→ ${e.to}</small>`,esc(e.proto),`${pd.key?'key '+esc(pd.key):'no key'} · ${pd.outbox?'outbox':'direct'}`,`${e.from}>${e.to}`,'pub');return}
   if(isCallE(e)){const c=callOf(e);r+=spRow('OUT',`<b>${esc(e.to)}</b> ${esc(b.name)}`,`${esc(e.proto)} · ${esc(contractOf(e))}`,`${c.deadline?c.deadline+' ms':'<span class="warn">no deadline</span>'} · ${c.retries} retr${c.retries===1?'y':'ies'} · ${c.op}${c.op==='write'?(c.idem?' · idempotency key':' · <span class="warn">no idempotency key</span>'):''}`,`${e.from}>${e.to}`,'out');return}
   r+=spRow(b.type==='db'||b.type==='cache'?'DB':'OUT',`<b>${esc(e.to)}</b> ${esc(b.name)}`,esc(e.proto),b.type==='db'?'owned data':'',`${e.from}>${e.to}`,b.type==='db'||b.type==='cache'?'db':'out')});
  return `<table class="spx"><tr><th></th><th>Connector</th><th>Protocol · contract</th><th>Policy</th></tr>${r||'<tr><td colspan="4">No connections yet.</td></tr>'}</table><div class="why">Click a row to open the connection: protocol, contract, deadline, retries, idempotency and read or write. gRPC inside, REST at the edge.</div>`}
 function spInsideHTML(n){const ins=S.edges.filter(e=>e.to===n.id&&isFlow(e)),outs=S.edges.filter(e=>e.from===n.id&&isFlow(e));
  const inA=[...new Set(ins.map(e=>{const a=S.nodes[e.from];return a&&MSG_T.includes(a.type)?'Event consumer':e.proto==='gRPC'?'gRPC server':'REST controller'}))];
- const ports=outs.map(e=>{const b=S.nodes[e.to];if(!b)return null;return MSG_T.includes(b.type)?`Events → ${pubDef(e).outbox?'outbox relay':'publisher'} (${esc(chOf(b,e).id)})`:b.type==='db'?`Repository → ${esc(svcName(b))}`:b.type==='cache'?`Cache → ${esc(svcName(b))}`:`${esc(b.name)} → ${esc(e.proto)} client`}).filter(Boolean);
+ const ports=outs.map(e=>{const b=S.nodes[e.to];if(!b)return null;return MSG_T.includes(b.type)?`Events → ${pubDef(e).outbox?'outbox relay':'publisher'} (${esc(chsOf(b,e).join(', '))})`:b.type==='db'?`Repository → ${esc(svcName(b))}`:b.type==='cache'?`Cache → ${esc(svcName(b))}`:`${esc(b.name)} → ${esc(e.proto)} client`}).filter(Boolean);
  const H=Math.max(110,22+Math.max(ports.length,inA.length)*24);
  return `<svg viewBox="0 0 370 ${H}" class="sphex" role="img" aria-label="Inside ${esc(n.id)}: adapters, ports and domain"><rect x="1" y="1" width="368" height="${H-2}" rx="7" class="bg"/>
   <rect x="8" y="10" width="58" height="${H-20}" rx="5" class="env"/><text x="37" y="26" text-anchor="middle" class="b">Envoy</text>${['mTLS','deadlines','retries','breaker','traces'].map((t,i)=>`<text x="37" y="${42+i*13}" text-anchor="middle">${t}</text>`).join('')}
@@ -2403,7 +2406,7 @@ const CH_FIELDS={topic:[['partitions','Partitions','number'],['rf','Replication 
 function chFieldHTML(n,c,[f,l,t]){const v=c[f],id=`data-chf="${esc(c.id)}" data-f="${f}"`;
  return `<label>${esc(l)} ${t==='bool'?`<input type="checkbox" ${id} ${v?'checked':''}>`:Array.isArray(t)?`<select ${id}>${t.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`:`<input ${id} type="${t}" value="${esc(v??'')}" ${t==='number'?'min="0"':''}>`}</label>`}
 function chanInspHTML(n){const k=chKind(n),cs=chans(n),W=CH_WORD[k];
- const pubs=e=>S.edges.filter(x=>x.to===n.id&&isFlow(x)&&chOf(n,x).id===e).map(x=>x.from),subs=e=>S.edges.filter(x=>x.from===n.id&&isFlow(x)&&chOf(n,x).id===e).map(x=>`${x.to}${k==='topic'||k==='exchange'?' ('+subDef(x).group+')':''}`);
+ const pubs=e=>S.edges.filter(x=>x.to===n.id&&isFlow(x)&&hasCh(n,x,e)).map(x=>x.from),subs=e=>S.edges.filter(x=>x.from===n.id&&isFlow(x)&&hasCh(n,x,e)).map(x=>`${x.to}${k==='topic'||k==='exchange'?' ('+subDef(x).group+')':''}`);
  return `<h4>${n.type==='notify'?'Topics and subscriptions':'Channels'} · ${esc(svcName(n))}</h4>${n.type==='notify'?`<label>Kind <select id="iNtf"><option value="topic" ${n.flavor!=='bus'?'selected':''}>Notification topic (${esc(pk().nt.topic)})</option><option value="bus" ${n.flavor==='bus'?'selected':''}>Event bus with rules (${esc(pk().nt.bus)})</option></select></label>`:''}
   <div class="why">${{topic:'Kafka topics: each consumer group reads every message; inside a group, the partitions are shared. The key decides the partition, and ordering holds per key.',queue:'Queues: each message goes to one consumer (competing consumers). FIFO keeps order per message group.',exchange:'RabbitMQ exchanges: each consumer group is a queue bound to the exchange and gets its own copy.',notif:'Notification topics push every message to every subscription whose filter matches. Nothing is kept for replay.',bus:'Event bus: producers send event types; rules (the subscriptions) match them by content and push to their targets.'}[k]}</div>
   ${cs.map(c=>`<div class="chan"><div class="lh"><b>${esc(W)} ${esc(c.id)}</b>${cs.length>1||n.channels?`<button type="button" class="ib" data-chdel="${esc(c.id)}" title="Remove ${esc(W)}">×</button>`:''}</div>
@@ -2414,9 +2417,12 @@ function bindChanInsp(n){const id=n.id,k=chKind(n);
  const save=(desc,fn)=>act(`${id}: ${desc}`,()=>{const m=S.nodes[id];m.channels=chans(m).map(c=>{const o={...c};delete o.kind;return o});fn(m)});
  document.querySelectorAll('[data-chf]').forEach(el=>el.onchange=()=>{const c=el.dataset.chf,f=el.dataset.f,v=el.type==='checkbox'?el.checked:el.type==='number'?Math.max(0,+el.value||0):String(el.value).slice(0,60);
   save(`${CH_WORD[k]} ${c}: ${f} → ${v}`,m=>{const ch=m.channels.find(x=>x.id===c);if(ch)ch[f]=v;if(f==='partitions'&&m.channels.length===1)m.partitions=v})});
- document.querySelectorAll('[data-chdel]').forEach(b=>b.onclick=()=>{const c=b.dataset.chdel;save(`remove ${CH_WORD[k]} ${c}`,m=>{m.channels=m.channels.filter(x=>x.id!==c);S.edges.forEach(e=>{if((e.to===id||e.from===id)&&e.ch===c)delete e.ch})})});
+ document.querySelectorAll('[data-chdel]').forEach(b=>b.onclick=()=>{const c=b.dataset.chdel;save(`remove ${CH_WORD[k]} ${c}`,m=>{m.channels=m.channels.filter(x=>x.id!==c);dropChRefs(id,c)})});
  const a=document.getElementById('chAdd');if(a)a.onclick=()=>{const v=String($('#chNew').value||'').trim().replace(/[^\w.\-]/g,'').slice(0,40);if(!v)return;addChannel(id,v)};
  const f=document.getElementById('iNtf');if(f)f.onchange=e=>{const v=e.target.value;act(`${id}: ${v==='bus'?'event bus':'notification topic'}`,()=>{const m=S.nodes[id];m.flavor=v;delete m.channels})}}
+// Topic references on connections: rename or drop one everywhere (e.ch and e.chs)
+function dropChRefs(id,c){S.edges.forEach(e=>{if(e.to!==id&&e.from!==id)return;if(e.chs)e.chs=e.chs.filter(x=>x!==c);if(e.ch===c){if(e.chs&&e.chs.length)e.ch=e.chs.shift();else delete e.ch}if(e.chs&&!e.chs.length)delete e.chs})}
+function renameChRefs(id,a,b){S.edges.forEach(e=>{if(e.to!==id&&e.from!==id)return;if(e.ch===a)e.ch=b;if(e.chs)e.chs=e.chs.map(x=>x===a?b:x)})}
 function addChannel(id,name,opts){const n=S.nodes[id];if(!n||!MSG_T.includes(n.type))return false;const k=chKind(n);if(chans(n).some(c=>c.id===name)&&n.channels){say(`${id} already has ${CH_WORD[k]} ${name}.`,'s');return false}
  act(`${id}: add ${CH_WORD[k]} ${name}`,()=>{const m=S.nodes[id];const cur=m.channels?m.channels:[];m.channels=[...cur.map(c=>{const o={...c};delete o.kind;return o}),{id:name,...CH_DEF[k](m),...(opts||{})}]},{after:()=>say(`${id}: ${CH_WORD[k]} ${name} added. Connect a producer with "publish SVC1 to ${id}/${name}" and a consumer with "subscribe SVC2 to ${id}/${name}".`,'s')});return true}
 function msgEdgeHTML(e){const a=S.nodes[e.from],b=S.nodes[e.to];let h='';
@@ -2657,7 +2663,7 @@ const tags=n=>`tags = { nexus_id = "${n.id}", zone = "${zoneOf(n)}" }`;
 const pab=n=>['aws_s3_bucket_public_access_block',[`bucket                  = aws_s3_bucket.${slug(n)}.id`,'block_public_acls       = true','block_public_policy     = true','restrict_public_buckets = true']];
 // Topics, queues, exchanges, subscriptions and rules, one resource each.
 function msgTf(n,tg){const k=chKind(n),r=[],sl=x=>String(x).toLowerCase().replace(/[^a-z0-9]+/g,'_'),base=slug(n);
- const subs=c=>S.edges.filter(e=>e.from===n.id&&isFlow(e)&&chOf(n,e).id===c.id).map(e=>({e,sd:subDef(e),b:S.nodes[e.to]}));
+ const subs=c=>S.edges.filter(e=>e.from===n.id&&isFlow(e)&&hasCh(n,e,c.id)).map(e=>({e,sd:subDef(e),b:S.nodes[e.to]}));
  const ep=b=>b.type==='queue'?`aws_sqs_queue.${slug(b)}${chans(b).length?'_'+sl(chans(b)[0].id):''}.arn`:b.type==='fn'?`aws_lambda_function.${slug(b)}.arn`:`"https://${slug(b)}.example.internal/events"`;
  chans(n).forEach(c=>{const cn=`${base}_${sl(c.id)}`;
   if(tg==='aws'){
@@ -2931,8 +2937,8 @@ function polyLen(p){let L=0;for(let i=0;i<p.length-1;i++)L+=Math.hypot(p[i+1].x-
 function pointAt(p,t){const L=polyLen(p)*t;let acc=0;for(let i=0;i<p.length-1;i++){const s=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);if(acc+s>=L){const u=s?(L-acc)/s:0;return {x:p[i].x+(p[i+1].x-p[i].x)*u,y:p[i].y+(p[i+1].y-p[i].y)*u}}acc+=s}return p[p.length-1]}
 // Trace a route with rounded corners; horizontal runs hop over vertical runs of other flows.
 function msgLabel(e){const a=S.nodes[e.from],b=S.nodes[e.to];if(!a||!b)return '';
- if(isPub(e)){const p=pubDef(e),c=chOf(b,e);return `→ ${c.id}${p.key?' · key '+p.key:''}`}
- if(isSub(e)){const sd=subDef(e),c=chOf(a,e),k=chKind(a);return `${c.id} →${k==='notif'||k==='bus'?' '+sd.protocol:k==='queue'?'':' · '+sd.group}${sd.filter?' · filter':''}`}return ''}
+ if(isPub(e)){const p=pubDef(e),c={id:chsOf(b,e).join(', ')};return `→ ${c.id}${p.key?' · key '+p.key:''}`}
+ if(isSub(e)){const sd=subDef(e),c={id:chsOf(a,e).join(', ')},k=chKind(a);return `${c.id} →${k==='notif'||k==='bus'?' '+sd.protocol:k==='queue'?'':' · '+sd.group}${sd.filter?' · filter':''}`}return ''}
 /* ---------- flow lines never lie on top of each other ---------- */
 // 1) the ends that share a side of a component are spread along that side;
 // 2) middle runs that share a corridor are moved apart. Works on the screen route of each flow, every frame.
@@ -3782,6 +3788,16 @@ if(regionCmd(c,l))return;
  if(/^(restore|recover|end)\s+(the\s+)?zone|^zone\s+outage\s+off/.test(l)){setOutage(null);return}
  if(m=l.match(/^zones?\s+([123])$/)){setZones(+m[1]);say(`The region now has ${zoneCount()} zones (${zoneList().join(', ')}).`,'s');return}
  if(/^((create|new|add)\s+(subnet|security group|sg|app(lication)? group)\b|move\s+[a-z]{1,4}\d+\s+(to|into)\b|allow\s+\S+\s+from\b)/i.test(c)&&netCmd(c,ids))return;
+ {const m=c.trim().match(/^rename\s+(?:topic|queue|exchange|channel|event type)\s+([\w.\-]+)\s+(?:to|as)\s+([\w.\-]+)\s+(?:on|in|of)\s+([A-Za-z]+\d+)$/i);if(m){const id=m[3].toUpperCase(),n=S.nodes[id],[a,b]=[m[1],m[2]];if(!n||!MSG_T.includes(n.type)){say(`${id} is not a queue, stream or notification component.`,'s');return}
+  const cs=chans(n);if(!cs.some(x=>x.id===a)){say(`${id} has no ${CH_WORD[chKind(n)]} ${a}. It has: ${cs.map(x=>x.id).join(', ')}.`,'s');return}if(cs.some(x=>x.id===b)){say(`${id} already has ${CH_WORD[chKind(n)]} ${b}.`,'s');return}if(!/^[A-Za-z0-9._-]{1,249}$/.test(b)){say('Topic names use letters, digits, ".", "_" and "-" (up to 249 characters).','s');return}
+  act(`${id}: rename ${CH_WORD[chKind(n)]} ${a} → ${b}`,()=>{const x=S.nodes[id];x.channels=chans(x).map(q=>{const o={...q};delete o.kind;return q.id===a?{...o,id:b}:o});renameChRefs(id,a,b)},{tradeoffs:isKafka(n)?['− Kafka cannot rename a topic: in the cluster this is a new topic. Publish to both, move consumers, then delete the old one.','+ The design, connections and dead-letter topics follow the new name']:null});return}}
+ {const m=c.trim().match(/^(?:remove|delete|drop)\s+(?:topic|queue|exchange|channel|event type)\s+([\w.\-]+)\s+(?:from|on|in)\s+([A-Za-z]+\d+)$/i);if(m){const id=m[2].toUpperCase(),n=S.nodes[id],t=m[1];if(!n||!MSG_T.includes(n.type)){say(`${id} is not a queue, stream or notification component.`,'s');return}
+  const cs=chans(n);if(!cs.some(x=>x.id===t)){say(`${id} has no ${CH_WORD[chKind(n)]} ${t}.`,'s');return}if(cs.length<2){say(`${t} is ${id}'s only ${CH_WORD[chKind(n)]}: add another first.`,'s');return}
+  act(`${id}: remove ${CH_WORD[chKind(n)]} ${t}`,()=>{const x=S.nodes[id];x.channels=chans(x).filter(q=>q.id!==t).map(q=>{const o={...q};delete o.kind;return o});dropChRefs(id,t)});return}}
+ {const m=c.trim().match(/^(unsubscribe|unpublish)\s+([A-Za-z]+\d+)\s+(?:from|to|on)\s+([A-Za-z]+\d+)\/([\w.\-]+)$/i);if(m){const pub=/unpublish/i.test(m[1]),who=m[2].toUpperCase(),mid=m[3].toUpperCase(),t=m[4],N=S.nodes[mid],[A,B]=pub?[who,mid]:[mid,who],e=findEdge(A,B);
+  if(!N||!MSG_T.includes(N.type)||!e||!hasCh(N,e,t)){say(`${who} does not ${pub?'publish to':'read'} ${mid}/${t}.`,'s');return}
+  const rest=chsOf(N,e).filter(x=>x!==t);act(`${who} ${pub?'stops publishing to':'stops reading'} ${mid}/${t}`,()=>{if(!rest.length){removeEdge(A,B);return}const x=findEdge(A,B);x.ch=rest[0];x.chs=rest.slice(1);if(!x.chs.length)delete x.chs});return}}
+ {const m=c.trim().match(/^(?:list\s+)?topics(?:\s+(?:on|of|in))?\s+([A-Za-z]+\d+)$/i);if(m){const id=m[1].toUpperCase(),n=S.nodes[id];if(n&&MSG_T.includes(n.type)){const md=msgDesign()[id]||{pubs:[],subs:[]};say(`${id} · ${chans(n).length} ${CH_WORD[chKind(n)]}${chans(n).length>1?'s':''}:\n`+chans(n).map(x=>`  ${x.id}${x.partitions?' · '+x.partitions+' partitions':''}${x.key?' · key '+x.key:''}\n    from ${[...new Set(md.pubs.filter(p=>p.ch===x.id).map(p=>p.from))].join(', ')||'—'} · to ${[...new Set(md.subs.filter(q=>q.ch===x.id).map(q=>q.to+(q.group?' ('+q.group+')':'')))].join(', ')||'—'}`).join('\n'),'s');return}}}
  {const m=c.trim().match(/^add\s+(topic|queue|exchange|channel|event type)\s+([\w.\-]+)\s+(?:to|on|in)\s+([A-Za-z]+\d+)(.*)$/i);if(m){const id=m[3].toUpperCase(),n=S.nodes[id];if(!n||!MSG_T.includes(n.type)){say(`${id} is not a queue, stream or notification component.`,'s');return}
   const rest=m[4]||'',o={},pa=rest.match(/partitions?\s+(\d+)/i),ky=rest.match(/key\s+([\w.\-]+)/i);if(pa)o.partitions=+pa[1];if(ky)o.key=ky[1];if(/\bfifo\b/i.test(rest))o.fifo=true;if(/\bordered\b|\border(ing)? required\b/i.test(rest))o.ordered=true;if(/\bcompact/i.test(rest))o.cleanup='compact';addChannel(id,m[2],o);return}}
  {const m=c.trim().match(/^(publish|subscribe)\s+([A-Za-z]+\d+)\s+(?:to|on|from)\s+([A-Za-z]+\d+)(?:\/([\w.\-]+))?(.*)$/i);if(m){const pub=/publish/i.test(m[1]),who=m[2].toUpperCase(),mid=m[3].toUpperCase(),N=S.nodes[mid],W=S.nodes[who];
@@ -3790,7 +3806,7 @@ if(regionCmd(c,l))return;
   const g=(re)=>(rest.match(re)||[])[1];if(g(/key\s+([\w.\-]+)/i))set.key=g(/key\s+([\w.\-]+)/i);if(g(/event\s+"?([^"]+?)"?(?:\s+(?:key|group|protocol|filter)\b|$)/i))set.event=g(/event\s+"?([^"]+?)"?(?:\s+(?:key|group|protocol|filter)\b|$)/i);
   if(g(/group\s+([\w.\-]+)/i))set.group=g(/group\s+([\w.\-]+)/i);if(g(/protocol\s+(\w+)/i))set.protocol=g(/protocol\s+(\w+)/i).toLowerCase();if(g(/filter\s+"([^"]+)"/i))set.filter=g(/filter\s+"([^"]+)"/i);if(/\boutbox\b/i.test(rest))set.outbox=true;if(/\bidempotent\b/i.test(rest))set.idem=true;
   const [A,B]=pub?[who,mid]:[mid,who];
-  act(`${pub?'Publish':'Subscribe'} ${who} ${pub?'to':'to'} ${mid}/${ch}`,()=>{if(!findEdge(A,B))connect(A,B);const e=findEdge(A,B);if(e)Object.assign(e,set)},{after:()=>say(`${pub?`${who} publishes to ${mid}/${ch}${set.key?' with key '+set.key:''}`:`${who} ${chKind(N)==='notif'||chKind(N)==='bus'?'subscribes to':'consumes'} ${mid}/${ch}${set.group?' in group '+set.group:''}`}. Select the connection to see its delivery, acknowledgement, retries and dead-letter settings.`,'s')});return}}
+  act(`${pub?'Publish':'Subscribe'} ${who} ${pub?'to':'to'} ${mid}/${ch}`,()=>{const had=findEdge(A,B);if(!had)connect(A,B);const e=findEdge(A,B);if(!e)return;const cur=had&&e.ch&&chans(N).some(x=>x.id===e.ch)?chsOf(N,e):[];if(cur.length&&!cur.includes(ch)){const {ch:_c,...rest}=set;Object.assign(e,rest);e.chs=[...(e.chs||[]),ch]}else Object.assign(e,set)},{after:()=>say(`${pub?`${who} publishes to ${mid}/${ch}${set.key?' with key '+set.key:''}`:`${who} ${chKind(N)==='notif'||chKind(N)==='bus'?'subscribes to':'consumes'} ${mid}/${ch}${set.group?' in group '+set.group:''}`}. Select the connection to see its delivery, acknowledgement, retries and dead-letter settings.`,'s')});return}}
  if(/^(new\s+)?blank(\s+(canvas|design))?$|^start\s+(over|from\s+(a\s+)?blank(\s+canvas)?)$|^clear\s+(the\s+)?canvas$/.test(l)){blankCanvas();return}
  if(/^(reset|fit)\s+(the\s+)?(sizes?|regions?|subnets?|boxes)(\s+sizes?)?$/.test(l)){resetZoneSizes();return}
  {const m=c.trim().match(/^(?:use\s+|make\s+)?aurora(?:\s+for)?\s+([A-Za-z]+\d+)$/i)||c.trim().match(/^([A-Za-z]+\d+)\s+(?:to|as|on)\s+aurora$/i);if(m){const id=m[1].toUpperCase(),n=S.nodes[id];if(!n||n.type!=='db'){say(`${id} is not a database.`,'s');return}if(prov()!=='aws'){say('Aurora is an AWS engine: deploy to AWS first.','s');return}

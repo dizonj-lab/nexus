@@ -5,6 +5,17 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.15] — 2026-11-13
+
+### Added
+- **Topics from the console.** `rename topic OLD to NEW on Q1` (connections and dead-letter topics follow;
+  the Action Guard notes that Kafka has no rename, so in the cluster it is a new topic and a migration),
+  `remove topic NAME from Q1`, `unsubscribe SVC3 from Q1/NAME`, `unpublish SVC1 from Q1/NAME`, and
+  `topics Q1` (each topic with its partitions, key, publishers and consumer groups).
+- **Several topics on one connection.** A service can publish to, or read, more than one topic of the
+  same cluster: a second `publish` or `subscribe` adds the topic instead of replacing the first. Load is
+  split across the topics; each topic a group reads gets its own dead-letter topic.
+
 ## [0.3.14] — 2026-11-13
 
 ### Added

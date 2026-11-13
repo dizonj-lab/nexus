@@ -24,6 +24,20 @@ await p.evaluate(() => __nx.openMenu("Q1", 300, 300)); await p.waitForTimeout(15
 ok(/Topics and consumer groups/.test(await p.textContent("#nmenu")), "the cluster's ▾ menu has Topics and consumer groups…");
 await p.click('#nmenu [data-m="topics"]'); await p.waitForTimeout(300);
 ok(await p.evaluate(() => document.activeElement && document.activeElement.id === "kfTName"), "it opens the Topics tab with the cursor in the new topic name");
+// 1b. topics from the console: rename, several topics on one connection, unsubscribe, remove, list
+const run = async (t) => { await p.evaluate((t) => __nx.run(t), t); await apply(); };
+await run("rename topic sales.order.placed.v1 to sales.order.v1 on Q1");
+ok(await p.evaluate(() => __nx.S.nodes.Q1.channels.some((c) => c.id === "sales.order.v1") && __nx.S.edges.find((e) => e.from === "SVC1" && e.to === "Q1").ch === "sales.order.v1"), "rename topic: the topic and its publisher follow the new name");
+await run("add topic payments.payment.v1 to Q1 partitions 12 key orderId ordered");
+await run("subscribe SVC2 from Q1/payments.payment.v1 group analytics");
+ok(await p.evaluate(() => { const e = __nx.S.edges.find((x) => x.from === "Q1" && x.to === "SVC2"); return e.ch === "sales.order.v1" && (e.chs || []).includes("payments.payment.v1"); }), "a second subscribe on the same connection adds the topic instead of replacing it");
+await run("topics Q1");
+ok(/sales\.order\.v1[\s\S]*to SVC2 \(analytics\)[\s\S]*payments\.payment\.v1[\s\S]*to SVC2 \(analytics\)/.test((await p.textContent("#conOut")).slice(-600)), "topics Q1 lists each topic with its publishers and consumer groups");
+ok(await p.evaluate(() => __nx.kDlqs("Q1") === 2), "each topic the group reads gets its own dead-letter topic (2)");
+await run("unsubscribe SVC2 from Q1/payments.payment.v1");
+ok(await p.evaluate(() => { const e = __nx.S.edges.find((x) => x.from === "Q1" && x.to === "SVC2"); return e && !(e.chs || []).length && e.ch === "sales.order.v1"; }), "unsubscribe drops one topic and keeps the connection");
+await run("remove topic payments.payment.v1 from Q1");
+ok(await p.evaluate(() => !__nx.S.nodes.Q1.channels.some((c) => c.id === "payments.payment.v1")), "remove topic deletes it from the cluster");
 // 2. resize a subnet and the region
 await p.evaluate(() => __nx.inspect(null)); await p.waitForTimeout(200);
 const hit = (z) => p.evaluate((z) => __nx.zoneHits().find((h) => h.z === z), z);
