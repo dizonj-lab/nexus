@@ -233,10 +233,38 @@
       return comp < own - 1e-9 ? [{ on: n.id, title: `${n.id} targets ${own}% but its ${deps.length} synchronous dependencies together give about ${comp.toFixed(2)}%`, why: `If ${n.id} needs every one of ${deps.map((m) => m.id).join(", ")} to answer, it cannot be more available than all of them together. Raise their targets, or degrade gracefully (cached or default answers) when one is down.` }] : []; }),
   };
   const KF = {};
+  /* SP-Aurora: the canvas computes each cluster's state (instances, routing, load, lag) into d.aurora[id] */
+  const AU = {};
+  const aurs = (d) => Object.values(d.aurora || {});
+  const ms = (x) => `${Math.round(x)} ms`;
+  Object.assign(AU, {
+    "aurora.ha": (d) => aurs(d).filter((a) => !a.secondary && !a.readers.some((r) => r.az !== a.writer.az)).map((a) => ({ on: a.id,
+      title: a.readers.length ? `${a.id}'s readers are all in the writer's zone (${a.writer.az})` : `${a.id} has no reader to fail over to`,
+      why: `If the writer fails, Aurora recreates it in the same zone (typically under 10 minutes). If zone ${a.writer.az} goes down, every instance goes with it and you must create a new one in another zone. A reader in another zone is promoted instead, usually in under 30–60 seconds.`,
+      fix: { set: { readReplicas: Math.max(1, a.readers.length), aurReaders: null }, label: "Add a reader in another zone" } })),
+    "aurora.target-zone": (d) => aurs(d).filter((a) => a.readers.some((r) => r.az !== a.writer.az) && a.target && a.target.az === a.writer.az).map((a) => ({ on: a.id,
+      title: `${a.id} would promote ${a.target.name} first, in the writer's zone ${a.writer.az}`,
+      why: `${a.target.name} has the highest priority (tier ${a.target.tier}). In a zone ${a.writer.az} outage it is lost with the writer, so failover waits for the next tier. Give a reader in another zone tier 0.` })),
+    "aurora.idle-readers": (d) => aurs(d).filter((a) => a.readers.length && a.reads > 0 && a.readsToReaders === 0).map((a) => ({ on: a.id,
+      title: `${a.id}'s ${a.readers.length} reader${a.readers.length > 1 ? "s are" : " is"} idle: every connection uses the cluster endpoint`,
+      why: `The cluster endpoint always goes to the writer, so ${Math.round(a.reads)} reads/s run there and the readers serve nothing. Set read-only callers to the reader endpoint, or to both (writes to the cluster endpoint, reads to the reader endpoint), on the Connections tab.` })),
+    "aurora.lag": (d, P) => aurs(d).filter((a) => a.readers.length && a.readsToReaders > 0 && a.lagMs > P.lagStaleMs).map((a) => ({ on: a.id,
+      title: `${a.id} replica lag about ${ms(a.lagMs)}: reads may miss recent writes`,
+      why: `The writer runs at ${Math.round(a.writer.wUtil * 100)}% of its write capacity, and lag grows with the write rate (AWS: usually much less than 100 ms). A user who writes then reads through the reader endpoint can see old data. Read your own writes through the cluster endpoint, or lower the write load.` })),
+    "aurora.max-readers": (d) => aurs(d).filter((a) => a.wanted > 15 || (a.as && a.as.on && +a.as.max > 15)).map((a) => ({ on: a.id,
+      title: `${a.id} asks for more than 15 readers`, why: `An Aurora cluster has at most 15 Aurora Replicas${a.as && a.as.on ? "; Auto Scaling stops at 15" : ""}. Scale the instance class, cache reads, or split the data.`,
+      fix: { set: { readReplicas: Math.min(15, a.wanted), ...(a.as && a.as.on ? { aurAs: { ...a.as, max: 15 } } : {}) }, label: "Cap at 15" } })),
+    "aurora.as-secondary": (d) => aurs(d).filter((a) => a.secondary && a.as && a.as.on).map((a) => ({ on: a.id,
+      title: `${a.id} is a Global Database secondary: Auto Scaling does not apply`, why: "Aurora global databases do not support Aurora Auto Scaling for secondary DB clusters. Size its readers by hand for the load it takes after a failover.",
+      fix: { set: { aurAs: { ...a.as, on: false } }, label: "Turn Auto Scaling off" } })),
+    "aurora.writer-hot": (d) => aurs(d).filter((a) => a.writer.wUtil > 0.6).map((a) => ({ on: a.id,
+      title: `${a.id}'s writer is at ${Math.round(a.writer.wUtil * 100)}% of its write capacity`,
+      why: "Only the writer takes writes; readers do not help. Scale the writer's instance class, cache, or buffer writes in a queue. A failover moves the same load to a reader of the same class." })),
+  });
   api.evaluateSP = (d) => {
     const res = [];
     api.sps().forEach((p) => { if (!api.spOn(d, p.id)) return; const P = api.policy(d, p.id);
-      (p.rules || []).forEach((r) => { const c = MS[r.check] || KF[r.check]; if (!c) return;
+      (p.rules || []).forEach((r) => { const c = MS[r.check] || KF[r.check] || AU[r.check]; if (!c) return;
         (c(d, P, p) || []).forEach((f) => { const tgt = f.edge ? d.edges.find((e) => e.from === f.edge.from && e.to === f.edge.to) : d.nodes[f.on];
           const ex = (tgt && tgt.spEx && tgt.spEx[r.id]) || (d.nodes[f.on] && d.nodes[f.on].spEx && d.nodes[f.on].spEx[r.id + (f.key ? "|" + f.key : "")]);
           res.push({ id: r.id, sev: f.sev || r.severity, on: f.on, edge: f.edge, key: f.key || "", title: f.title, why: f.why, rationale: r.rationale, basis: r.basis || [], refs: r.refs || [], pack: tag(p), sp: p.sp.name, facts: (r.facts || []).map((id) => (p.facts || []).find((x) => x.id === id)).filter(Boolean).concat(f.facts || []), fix: f.fix ? { ...f.fix, on: f.on, edge: f.fix.set ? f.edge : undefined } : null, accepted: ex || null, detail: f.detail }); }); }); });
@@ -294,7 +322,7 @@
     "kafka.outbox": (d) => topicsOf(d).flatMap((m) => m.pubs.filter((p) => p.writesDb && !p.outbox).map((p) => ({ on: p.from, key: p.ch, title: `${p.from} writes its database and publishes to ${p.ch} without an outbox`, why: `If ${p.from} saves and then fails before publishing (or the reverse), the database and the events disagree. Write the event to an outbox table in the same transaction and publish from there.`, edge: { from: p.from, to: m.id }, fix: { set: { outbox: true }, label: "Publish through an outbox" } }))),
   });
   api.KF = KF;
-  api.spChecks = () => [...Object.keys(MS), ...Object.keys(KF)];
+  api.spChecks = () => [...Object.keys(MS), ...Object.keys(KF), ...Object.keys(AU)];
 
   api.evaluate = (d) => {
     const res = [];

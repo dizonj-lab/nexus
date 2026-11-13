@@ -9,7 +9,7 @@ NP.load({ packs: loadPacks() });
 
 const svc = (id, o = {}) => ({ id, type: "svc", name: id, parent: "root", rep: 2, ...o });
 const call = (from, to, o = {}) => ({ from, to, proto: "gRPC", ...o });
-const D = (nodes, edges = [], o = {}) => ({ provider: "aws", zones: ["a", "b", "c"], req: o.req || null, nodes: Object.fromEntries(nodes.map((n) => [n.id, n])), edges, msg: o.msg || {}, sp: { on: { "sp.microservice": true, "sp.kafka": true }, policy: o.policy || {} } });
+const D = (nodes, edges = [], o = {}) => ({ provider: "aws", zones: ["a", "b", "c"], req: o.req || null, nodes: Object.fromEntries(nodes.map((n) => [n.id, n])), edges, msg: o.msg || {}, sp: { on: { "sp.microservice": true, "sp.kafka": true, "sp.aurora": true }, policy: o.policy || {} }, aurora: o.aurora || {} });
 const raised = (d, id) => NP.evaluateSP(d).filter((f) => f.id === id && !f.accepted);
 // Kafka: one cluster Q1 with topics, publishers and subscribers
 const topic = (id, o = {}) => ({ id, kind: "topic", partitions: 6, rf: 3, minIsr: 2, retentionH: 168, cleanup: "delete", ordered: false, msgKB: 1, ...o });
@@ -19,6 +19,10 @@ const cl = (o = {}) => ({ size: "kafka.m5.large", storageGiB: 1000, auth: "iam",
 const K = (o = {}, req = null, policy) => D([svc("P1"), svc("C1"), { id: "Q1", type: "queue", flavor: "kafka", parent: "root" }], [], { req, policy,
   msg: { Q1: { id: "Q1", kind: "topic", flavor: "kafka", brokers: o.brokers ?? 3, cluster: cl(o.cluster), channels: o.channels || [topic("orders")], pubs: o.pubs || [pub("P1", "orders")], subs: o.subs || [sub("C1", "orders")] } } });
 
+// Aurora: the canvas computes the cluster state; these build it directly
+const rd = (i, az, o = {}) => ({ name: `DB1-reader-${i}`, az, tier: 1, i, util: 0.2, ...o });
+const AS = (o = {}) => { const readers = o.readers ?? [rd(1, "b")]; const target = o.target !== undefined ? o.target : [...readers].sort((a, b) => a.tier - b.tier)[0] || null;
+  return D([svc("A"), { id: "DB1", type: "db", parent: "root" }], [{ from: "A", to: "DB1" }], { aurora: { DB1: { id: "DB1", secondary: false, writer: { name: "DB1-writer", az: "a", util: 0.4, wUtil: 0.2 }, readers, reads: 800, readsToReaders: 600, readsOnWriter: 200, writes: 200, lagMs: 25, target, as: { on: false, min: 1, max: 4, target: 60 }, wanted: readers.length, ...o, readers } } }); };
 const CASES = [
   ["ms.call-loop", D([svc("A"), svc("B")], [call("A", "B"), call("B", "A")]), D([svc("A"), svc("B")], [call("A", "B")])],
   ["ms.sync-chain", D([svc("A"), svc("B"), svc("C"), svc("E")], [call("A", "B"), call("B", "C"), call("C", "E")]), D([svc("A"), svc("B"), svc("C")], [call("A", "B"), call("B", "C")])],
@@ -54,6 +58,13 @@ const CASES = [
   ["kafka.auto-create", K({ cluster: { autoCreate: true } }), K()],
   ["kafka.pii-retention", K({ channels: [topic("customers", { pii: true, retentionH: 2000 })], pubs: [pub("P1", "customers")], subs: [sub("C1", "customers")] }), K({ channels: [topic("customers", { pii: true, retentionH: 168 })], pubs: [pub("P1", "customers")], subs: [sub("C1", "customers")] })],
   ["kafka.outbox", K({ pubs: [pub("P1", "orders", { writesDb: true, outbox: false })] }), K({ pubs: [pub("P1", "orders", { writesDb: true, outbox: true })] })],
+  ["aurora.ha", AS({ readers: [] }), AS()],
+  ["aurora.target-zone", AS({ readers: [rd(1, "a", { tier: 0 }), rd(2, "b")] }), AS({ readers: [rd(1, "b", { tier: 0 }), rd(2, "a")] })],
+  ["aurora.idle-readers", AS({ readsToReaders: 0 }), AS()],
+  ["aurora.lag", AS({ lagMs: 180 }), AS({ lagMs: 30 })],
+  ["aurora.max-readers", AS({ wanted: 18 }), AS()],
+  ["aurora.as-secondary", AS({ secondary: true, as: { on: true, min: 1, max: 4, target: 60 } }), AS({ secondary: true })],
+  ["aurora.writer-hot", AS({ writer: { name: "DB1-writer", az: "a", util: 0.9, wUtil: 0.8 } }), AS()],
 ];
 test("every SP rule has a must-raise and a must-not case", () => {
   const ids = NP.sps().flatMap((p) => p.rules.map((r) => r.id)).sort();

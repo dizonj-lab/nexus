@@ -41,7 +41,7 @@ node poc/tests/mock-llm.mjs 18080 >/tmp/nexus-mock-llm.log 2>&1 & M=$!
 node poc/tests/serve.mjs 18081 >/dev/null 2>&1 & H=$!
 trap 'kill $M $H 2>/dev/null' EXIT
 sleep 1
-for t in second-opinion placement reconnect properties dns settings flows messaging disruption blank sp-microservice sp-kafka workbench regions edit; do
+for t in second-opinion placement reconnect properties dns settings flows messaging disruption blank sp-microservice sp-kafka sp-aurora workbench regions edit; do
   echo "-- $t"; node "poc/tests/$t.e2e.mjs" || fail=1
 done
 [ -n "${BACKEND_FAIL:-}" ] && { echo "backend tests failed (see above)"; fail=1; }

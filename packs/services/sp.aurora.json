@@ -1,0 +1,346 @@
+{
+ "id": "sp.aurora",
+ "version": "0.1.0",
+ "title": "SP-Aurora: Amazon Aurora provisioned cluster, writer and readers, endpoints, lag, failover and Auto Scaling",
+ "owner": "team-data",
+ "layer": "vendor",
+ "schema": "nexus-pack/1",
+ "applies_to": {
+  "type": "db",
+  "provider": "aws"
+ },
+ "sp": {
+  "name": "SP-Aurora",
+  "level": 1,
+  "status": "preview",
+  "providers": [
+   "aws"
+  ],
+  "flavor": "aurora",
+  "covers": [
+   "Amazon Aurora (PostgreSQL or MySQL compatible), provisioned: one writer and up to 15 readers, each in an AZ with a promotion tier",
+   "Endpoints per connection: cluster (writer), reader (balanced over readers; the writer when there are none), or both (writes to the cluster endpoint, reads to the reader endpoint)",
+   "Load per instance: writes only on the writer; reads where the endpoint sends them",
+   "Replica lag that grows with the writer's write load, stale-read risk; Global Database lag to region B",
+   "Failover: zone or writer loss promotes the reader with the highest priority in a surviving AZ (about 30–60 s), or recreates the writer (about 10 minutes) when there is none",
+   "Aurora Auto Scaling of readers: target average reader CPU, minimum and maximum, cooldowns",
+   "Terraform: aws_rds_cluster, one aws_rds_cluster_instance per instance (AZ, promotion tier), Application Auto Scaling for readers"
+  ],
+  "not_covered": [
+   "Aurora Serverless v2 capacity (ACUs)",
+   "Custom endpoints, RDS Proxy, write forwarding",
+   "Aurora Limitless Database and Aurora DSQL",
+   "Backtrack, cloning, zero-ETL",
+   "Per-query simulation over time (the rollup is per instance)"
+  ],
+  "replaces": [
+   "spof-db"
+  ]
+ },
+ "policy": {
+  "lagBaseMs": 20,
+  "lagStaleMs": 100,
+  "asTargetCpu": 60,
+  "asMin": 1,
+  "asMax": 15,
+  "readerCreateMin": 10,
+  "defaultEndpoint": "cluster",
+  "assumptions": "lagBaseMs (replica lag with an idle writer) and readerCreateMin (time to add a reader) are NEXUS planning assumptions, not AWS figures: AWS documents lag as usually much less than 100 ms and gives no creation time. Measure AuroraReplicaLag in CloudWatch."
+ },
+ "integration": [
+  {
+   "from": "Service, VM, function",
+   "to": "Aurora cluster",
+   "allowed": "yes",
+   "means": "Query",
+   "carries": "Endpoint (cluster, reader, or both), reads and writes"
+  }
+ ],
+ "facts": [
+  {
+   "id": "readers_max",
+   "label": "Aurora Replicas (readers) per cluster",
+   "kind": "limit",
+   "default": 15,
+   "min": 0,
+   "max": 15,
+   "unit": "instances",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Replication.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "An Aurora DB cluster can contain up to 15 Aurora Replicas."
+  },
+  {
+   "id": "reader_endpoint",
+   "label": "Reader endpoint",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Endpoints.Reader.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Balances each connection request among the Aurora Replicas. With no replicas, it connects to the primary (writer). Balancing is per connection, not per query."
+  },
+  {
+   "id": "cluster_endpoint",
+   "label": "Cluster (writer) endpoint",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.Endpoints.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Connects to the primary instance; all writes (DML, DDL) go there. After a failover it points to the new primary."
+  },
+  {
+   "id": "replica_lag",
+   "label": "Replica lag",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": 100,
+   "unit": "ms",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Replication.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Usually much less than 100 ms after the primary writes an update; varies with the rate of change and increases during heavy writes."
+  },
+  {
+   "id": "failover_promote",
+   "label": "Failover to an Aurora Replica",
+   "kind": "behaviour",
+   "default": null,
+   "min": 30,
+   "max": 60,
+   "unit": "s",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Service is typically restored in less than 60 seconds, and often less than 30 seconds. Reads and writes to the primary fail with an exception during the interruption."
+  },
+  {
+   "id": "failover_recreate",
+   "label": "No Aurora Replica: the primary is recreated",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": 600,
+   "unit": "s",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Recreated in the same AZ, typically in less than 10 minutes. If the whole AZ is down and every instance is in it, create a new instance in another AZ yourself."
+  },
+  {
+   "id": "promotion_tier",
+   "label": "Promotion tier (failover priority)",
+   "kind": "setting",
+   "default": 1,
+   "min": 0,
+   "max": 15,
+   "unit": "tier",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "0 is the highest priority, 15 the lowest. Ties go to the largest instance, then an arbitrary one. Changing it does not trigger a failover."
+  },
+  {
+   "id": "storage_azs",
+   "label": "Cluster volume",
+   "kind": "behaviour",
+   "default": 3,
+   "min": null,
+   "max": null,
+   "unit": "AZs",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Copies of the data across three Availability Zones in the Region; instances in any AZ read the same volume."
+  },
+  {
+   "id": "volume_max",
+   "label": "Cluster volume maximum size",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 128,
+   "unit": "TiB",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_Limits.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "128 TiB; 256 TiB on specific newer engine versions."
+  },
+  {
+   "id": "as_cooldown",
+   "label": "Auto Scaling cooldown (scale-out and scale-in)",
+   "kind": "setting",
+   "default": 300,
+   "min": 0,
+   "max": null,
+   "unit": "s",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Integrating.AutoScaling.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Default 300 s each when not set. Target tracking on average reader CPU or connections; scale-in can be disabled."
+  },
+  {
+   "id": "as_global",
+   "label": "Auto Scaling in a Global Database secondary",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": null,
+   "unit": "",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Integrating.AutoScaling.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Aurora global databases do not support Aurora Auto Scaling for secondary DB clusters."
+  },
+  {
+   "id": "global_lag",
+   "label": "Global Database replication lag",
+   "kind": "behaviour",
+   "default": null,
+   "min": null,
+   "max": 1,
+   "unit": "s",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Replicates to secondary Regions with latency typically under a second."
+  },
+  {
+   "id": "global_secondaries",
+   "label": "Global Database secondary Regions",
+   "kind": "limit",
+   "default": null,
+   "min": null,
+   "max": 10,
+   "unit": "regions",
+   "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html",
+   "checked": "2026-11-13",
+   "verified": true,
+   "note": "Up to 10 read-only secondary Regions; a secondary cluster can have up to 16 read-only instances."
+  }
+ ],
+ "rules": [
+  {
+   "id": "aurora.ha",
+   "check": "aurora.ha",
+   "severity": "crit",
+   "rationale": "A reader in another AZ is the failover target: without one, a writer failure means recreating it (about 10 minutes) and an AZ outage needs a new instance created by hand.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html"
+   ],
+   "facts": [
+    "failover_promote",
+    "failover_recreate"
+   ],
+   "fix": "Add a reader in another AZ (promotion tier 0 or 1)."
+  },
+  {
+   "id": "aurora.target-zone",
+   "check": "aurora.target-zone",
+   "severity": "warn",
+   "rationale": "The reader Aurora promotes first should not share the writer's AZ: a zone outage would take both.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html"
+   ],
+   "facts": [
+    "promotion_tier"
+   ],
+   "fix": "Give a reader in another AZ the highest priority."
+  },
+  {
+   "id": "aurora.idle-readers",
+   "check": "aurora.idle-readers",
+   "severity": "warn",
+   "rationale": "Readers serve only connections that use the reader endpoint; through the cluster endpoint every query runs on the writer.",
+   "basis": [
+    "Performance"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Endpoints.Reader.html"
+   ],
+   "facts": [
+    "reader_endpoint",
+    "cluster_endpoint"
+   ],
+   "fix": "Send read-only connections to the reader endpoint."
+  },
+  {
+   "id": "aurora.lag",
+   "check": "aurora.lag",
+   "severity": "warn",
+   "rationale": "Replica lag grows with the write rate; above about 100 ms, reads through the reader endpoint can miss recent writes.",
+   "basis": [
+    "Performance"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Replication.html"
+   ],
+   "facts": [
+    "replica_lag"
+   ],
+   "fix": "Read your own writes through the cluster endpoint, or lower the write load on the writer."
+  },
+  {
+   "id": "aurora.max-readers",
+   "check": "aurora.max-readers",
+   "severity": "crit",
+   "rationale": "An Aurora cluster has at most 15 Aurora Replicas.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Replication.html"
+   ],
+   "facts": [
+    "readers_max"
+   ],
+   "fix": "Keep readers (and Auto Scaling maximum) at 15 or fewer."
+  },
+  {
+   "id": "aurora.as-secondary",
+   "check": "aurora.as-secondary",
+   "severity": "warn",
+   "rationale": "Aurora Auto Scaling is not supported for Global Database secondary clusters.",
+   "basis": [
+    "Reliability"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Integrating.AutoScaling.html"
+   ],
+   "facts": [
+    "as_global"
+   ],
+   "fix": "Size the secondary's readers by hand."
+  },
+  {
+   "id": "aurora.writer-hot",
+   "check": "aurora.writer-hot",
+   "severity": "warn",
+   "rationale": "Writes scale only with the writer instance: readers do not take writes.",
+   "basis": [
+    "Performance"
+   ],
+   "refs": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Replication.html"
+   ],
+   "facts": [
+    "cluster_endpoint"
+   ],
+   "fix": "Scale the writer up, cache reads, or buffer writes in a queue."
+  }
+ ]
+}

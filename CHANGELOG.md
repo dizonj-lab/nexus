@@ -5,6 +5,41 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.14] — 2026-11-13
+
+### Added
+- **SP-Aurora 0.1 (preview): an Aurora cluster behaves like Aurora.** `aurora DB1`, or Engine →
+  Aurora PostgreSQL in the Inspector, makes the database a provisioned Aurora cluster:
+  - **Writer and readers** (up to 15), each in an AZ with a promotion tier (0–15). Writes run only on
+    the writer.
+  - **Endpoints per connection**: the cluster endpoint always reaches the writer (its reads too); the
+    reader endpoint is read-only and balances connections over the readers, or reaches the writer
+    when there are none; "both" sends writes to the cluster endpoint and reads to the reader
+    endpoint. New connections use the cluster endpoint, as an application does until it is told
+    otherwise, so readers sit idle until you route reads to them. `endpoint SVC1 DB1 both`.
+  - **Replica lag** grows with the writer's write load (AWS: usually much less than 100 ms; NEXUS
+    assumes 20 ms when writes are light). Above 100 ms, a finding warns that reads can be stale.
+    Region B as a Global Database secondary adds the cross-region trip.
+  - **Failover**: losing the writer's zone promotes the reader with the highest priority in a
+    surviving zone (typically under 30–60 s); with no reader there, the cluster is down until an
+    instance is created by hand. Readers in the lost zone drop out of the reader endpoint.
+  - **Aurora Auto Scaling** for readers: on/off, minimum, maximum (15), target reader CPU; cooldowns
+    of 300 s.
+  - **Inspector**: Cluster (instances, zones, tiers, load, lag, endpoints, failover target),
+    Connections (endpoint per caller), Auto Scaling, Rules, Pack. The node tag reads `W+2R 23ms`.
+  - **Rules**: no failover target in another zone, first failover target in the writer's zone, idle
+    readers, stale reads from lag, more than 15 readers, Auto Scaling on a Global Database secondary,
+    writer saturated by writes.
+  - **Terraform**: `aws_rds_cluster`, one `aws_rds_cluster_instance` per instance with AZ and
+    promotion tier, Application Auto Scaling (`rds:cluster:ReadReplicaCount`,
+    `RDSReaderAverageCPUUtilization`).
+  - Facts from the Aurora User Guide (endpoints, replication, high availability, storage, Auto
+    Scaling, Global Database, quotas), checked 2026-11-13. Settings → Service Packs turns it off.
+
+### Fixed
+- Adding a reader to Aurora no longer shows the RDS read-replica snapshot pause: Aurora readers attach
+  to the shared cluster volume.
+
 ## [0.3.13] — 2026-11-13
 
 ### Added
