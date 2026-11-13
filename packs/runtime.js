@@ -13,6 +13,16 @@
   api.load = (bundle) => { B = bundle || { packs: [] }; return api; };
   api.bundle = () => B;
   api.version = () => B.built || "dev";
+  // provider product catalogue (from packs/catalog): find products by name for the palette and the console
+  api.catalog = (prov) => (B.catalog && B.catalog[prov] && B.catalog[prov].products) || [];
+  const norm = (t) => String(t || "").toLowerCase().replace(/\(.*?\)/g, " ").replace(/\b(amazon|aws|for|the|service|managed)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
+  api.matchProduct = (prov, q, min = 80) => { const n = norm(q); if (!n) return null; let best = null, bs = 0;
+    for (const p of api.catalog(prov)) { const nm = norm(p.n), abbr = ((/\(([^)]+)\)/.exec(p.n) || [])[1] || "").toLowerCase(); let sc = nm === n || abbr === n || p.i === n ? 100 : n.split(" ").every((w) => nm.split(" ").includes(w)) ? 60 : 0; if (sc && p.pg) sc += 2; if (sc > bs) { bs = sc; best = p; } }
+    return bs >= min ? best : null; };
+  api.findProducts = (prov, q, max = 30) => { const n = norm(q); if (!n) return []; const words = n.split(" ");
+    return api.catalog(prov).map((p) => { const nm = norm(p.n), abbr = (/\(([^)]+)\)/.exec(p.n) || [])[1] || ""; let sc = 0;
+      if (nm === n || abbr.toLowerCase() === n || p.i === n) sc = 100; else if (nm.startsWith(n)) sc = 80; else if (words.every((w) => nm.includes(w))) sc = 60; else if (words.every((w) => (nm + " " + norm(p.s)).includes(w))) sc = 30;
+      if (sc && p.pg) sc += 5; if (sc && p.t) sc += 3; return { p, sc }; }).filter((x) => x.sc).sort((a, b) => b.sc - a.sc || a.p.n.localeCompare(b.p.n)).slice(0, max).map((x) => x.p); };
   const tag = (p) => `${p.id}@${p.version}`;
   const core = () => B.packs.find((p) => p.id === "core.placement") || { types: {}, families: {}, tiers: {}, zones: { default: { fit: "ok", pros: [], cons: [] }, rules: {} }, reserved_ips: {} };
   const typeOk = (t, type) => Array.isArray(t) ? t.includes(type) : t === type;

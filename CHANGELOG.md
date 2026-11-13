@@ -5,6 +5,41 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.9] — 2026-11-13
+
+### Fixed
+- **Placement is drawn as the knowledge says.** The canvas now has columns: internet ·
+  **global edge** (DNS, CDN, a WAF in front of a CDN) · **regional services, no VPC** (API Gateway,
+  Cognito, regional WAF) · the VPC and its subnets · **regional services, no VPC** (S3, SQS, SNS,
+  DynamoDB, Bedrock). A CDN was drawn inside the public subnets of region A; managed services sat
+  in subnet columns. The VPC frame and the shared platform band no longer include them. New designs
+  and Tidy use the same columns; with two regions, each region's services are labelled.
+- **Two regions get DNS steering.** Turning on multi-region adds DNS (Route 53 on AWS) if there is
+  none, puts it in front of every internet entry point, and points it at the entry of region B when
+  the regions are drawn side by side: failover routing for active-passive, latency for
+  active-active. The console said "Active-active" for active-passive and "DNS splits users 50/50"
+  when there was no DNS.
+- **Console:** `add dns` / `add route 53` added nothing or an API endpoint; `add api gateway`,
+  `add secrets manager` and similar were wired to the existing component of the same name; `why DB1`
+  printed "undefined"; `multi-region active-passive` was not understood. Unknown requests without a
+  model print one line instead of three.
+
+### Added
+- **The AWS product catalogue in the workbench**: Add component searches all AWS products (367 from
+  aws.amazon.com/products); `add <any AWS product>` and `find <words>` in the console. Products NEXUS
+  models are added with their name; others say they are not modelled yet and which Service Pack is
+  planned; retired products are flagged (App Mesh).
+- **One What-if panel** (the rail's What-if, formerly Load): every active what-if with one Clear all,
+  the load multiplier, zone, region and component failures, and the demand run. The top bar shows a
+  single chip only while a what-if is active; the Inspector no longer has a failure selector.
+  Design settings (workload, zones, regions, resilience patterns) moved to Layers.
+- Console answers without a model: `what is SVC1`, `list components`, `find …`, `show iac`
+  (and other panels), `tidy` (everything, when nothing is selected).
+
+### Changed
+- Less noise: "what changed" chips appear only after small edits (three components or fewer), not
+  on every component after a new design.
+
 ### Added
 - **AWS product ground truth** (`packs/catalog/`): AWS's own product list, read from
   aws.amazon.com/products and its product directory (367 entries: 107 on today's page, 278 services),

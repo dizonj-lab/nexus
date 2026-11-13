@@ -49,3 +49,15 @@ test("coverage levels follow the packs", () => {
   assert.equal(lv("directconnect"), "not-modelled");
   assert.match(products.find((p) => p.id === "app-mesh").nexus.retired, /30 September 2026/);
 });
+test("product search for the palette and console: names, abbreviations, generic words stay generic", async () => {
+  const { block } = await import("../build.mjs");
+  const html = block(), j = JSON.parse(html.match(/<script id="nexusPacks" type="application\/json">([\s\S]*?)<\/script>/)[1].replace(/\\u003c/g, "<"));
+  const R = (await import("node:module")).createRequire(import.meta.url)("../runtime.js"); R.load(j);
+  assert.equal(R.matchProduct("aws", "route 53").i, "route53");
+  assert.equal(R.matchProduct("aws", "msk").i, "msk");
+  assert.equal(R.matchProduct("aws", "direct connect").i, "directconnect");
+  assert.equal(R.matchProduct("aws", "database"), null, "a generic word is not a product");
+  assert.equal(R.matchProduct("aws", "cache"), null);
+  assert.ok(R.findProducts("aws", "kafka").some((p) => p.i === "msk"));
+  assert.ok(R.catalog("aws").length > 250);
+});
