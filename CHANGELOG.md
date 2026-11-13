@@ -5,6 +5,33 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.10] — 2026-11-13
+
+### Fixed
+- **Global edge hops.** DNS → CDN → the CDN's WAF → API gateway or regional edge is a valid chain;
+  "global → global is not an allowed hop" no longer fires. A WAF attached to a CDN is global: drawing
+  region B no longer copies it.
+- **Load balancers.** A load balancer whose callers are all private (API gateway through a VPC Link,
+  services) is internal and belongs in the application tier: no "skips a perimeter" for GW → LB or
+  LB → services, no "belongs in the public tier". An internet-facing load balancer may forward to
+  private targets (edge → app).
+- **DR findings in two regions.** Region B is the DR plan: regional services (API gateway) no longer
+  ask for one, and region-B copies get no findings of their own. Identity providers keep one note:
+  user pools are not copied to region B.
+- **Managed services in region B.** Drawing region B gave the managed API gateway a private subnet.
+- **Shared databases.** A service and its region-B copy are one owner, not two services sharing a
+  database (SP-Microservice and the legacy rule).
+- **Finding numbers.** Findings from placement, multi-region, workforce sign-in, critical settings
+  and Service Packs were listed without a number ("undefined").
+
+### Added
+- **Database replication with two regions.** Turning on two regions replicates every single-region
+  database (Aurora Global Database on AWS): writes stay in region A, region B reads locally and
+  takes over in about a minute. In active-active the finding says writes from region B cross to
+  region A and offers Aurora DSQL for writes in both regions. Region B's services then use their own
+  database copy, so nothing crosses regions.
+- `regions.e2e.mjs` in `run-all.sh`.
+
 ## [0.3.9] — 2026-11-13
 
 ### Fixed

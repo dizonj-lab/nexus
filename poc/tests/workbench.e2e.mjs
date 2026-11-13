@@ -21,6 +21,11 @@ ok((await zone(os)) === "rback", "S3 is drawn as a regional service behind the V
 ok((await zone("Q1")).startsWith("net:") || (await zone("Q1")) === "data", "MSK (in subnets) stays inside the VPC");
 await run("add dynamodb"); const ddb = (await p.evaluate(() => Object.values(__nx.S.nodes).find((n) => n.product === "dynamodb")))?.id;
 ok(ddb && (await zone(ddb)) === "rback", "DynamoDB from the catalogue is regional, outside the VPC");
+// CDN → WAF on the CDN → API gateway is a valid edge chain (no "skips a perimeter")
+await p.evaluate((c) => { const S = __nx.S; S.edges = S.edges.filter((e) => !(e.from === "U1" && e.to === "WAF1")); S.edges.push({ from: "U1", to: c, proto: "HTTPS", via: "internet" }, { from: c, to: "WAF1", proto: "HTTPS", via: "net" }); __nx.refresh(); }, cdn);
+await p.waitForTimeout(150);
+ok((await zone("WAF1")) === "global", "a WAF in front of the CDN joins the global edge");
+ok(!(await p.evaluate(() => __nx.findings.some((f) => /^zone:/.test(f.key) && /CDN|WAF1/.test(f.title)))), "CDN → WAF → API gateway raises no 'skips a perimeter' finding");
 ok(await p.evaluate(() => { const v = __nx.placeVerdict("net", Object.values(__nx.S.nodes).find((n) => n.type === "cdn").id, __nx.S.nets[0].id); return v.fit === "no"; }), "dropping the CDN into a subnet is still refused");
 
 // 2. the console knows DNS by name; two regions get DNS steering in both
@@ -34,7 +39,10 @@ ok(/Active-passive/.test(await out()) && !/Active-active across/.test((await out
 ok(await p.evaluate((d) => __nx.S.nodes[d].policy === "failover", dns), "DNS uses failover routing for active-passive");
 ok(await p.evaluate((d) => __nx.S.edges.some((e) => e.from === "U1" && e.to === d) && !__nx.S.edges.some((e) => e.from === "U1" && e.to === "WAF1"), dns), "users reach the regions through DNS");
 await run("regions side by side");
-ok(await p.evaluate((d) => { const b = Object.values(__nx.S.nodes).find((n) => n.twin === "WAF1" && n.region === "B"); return b && __nx.S.edges.some((e) => e.from === d && e.to === b.id); }, dns), "with region B drawn, DNS also points at region B's entry");
+ok(await p.evaluate((d) => { const S = __nx.S, flow = (e) => !e.kind || e.kind === "flow", seen = new Set([d]), q = [d];
+  while (q.length) { const x = q.shift(); S.edges.filter((e) => flow(e) && e.from === x).forEach((e) => { if (!seen.has(e.to)) { seen.add(e.to); q.push(e.to); } }); }
+  return [...seen].some((id) => S.nodes[id] && S.nodes[id].region === "B" && ["gw", "waf", "lb"].includes(S.nodes[id].type)); }, dns), "with region B drawn, users reach region B's entry through DNS (and the CDN)");
+ok(await p.evaluate(() => Object.values(__nx.S.nodes).filter((n) => n.type === "waf" && __nx.drawZone(n) === "global").length === 1), "the CDN's WAF is global: one WAF, not copied into region B");
 
 // 3. the AWS catalogue: palette and console
 await p.click("#addBtn"); await p.fill("#palQ", "direct connect"); await p.waitForTimeout(150);
