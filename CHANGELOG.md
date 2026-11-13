@@ -5,6 +5,22 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.13] — 2026-11-13
+
+### Added
+- **Topics and consumer groups without the console.** Selecting a Kafka cluster opens its **Topics**
+  tab first, with **＋ Topic** (name, partitions, ordered per key) and **＋ Publisher** (service, topic,
+  key). The **Consumer groups** tab has **＋ Consumer group** (group name, service, topic); each group
+  gets its dead-letter topic. The cluster's ▾ menu has **Topics and consumer groups…**. The forms run
+  the same commands as the console, through the Action Guard, and echo them in the console.
+- **Resizable regions and subnets.** Drag the bottom-right corner of a region or subnet to make it
+  larger; columns to its right and bands below it move to make room. Double-click the corner to fit
+  it to its components again; `reset sizes` fits every box. Sizes are saved with the design and undo
+  with Ctrl+Z.
+
+### Fixed
+- Subnet labels (one CIDR per AZ, longer with 3 AZs) no longer run into the next subnet.
+
 ## [0.3.12] — 2026-11-13
 
 ### Fixed

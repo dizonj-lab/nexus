@@ -195,7 +195,7 @@ pre.code{margin:0;padding:8px 10px;font-family:var(--f-mono);font-size:11px;line
 .insp{padding:8px 10px;display:grid;gap:7px}
 .sp{border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden}.sph{display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--accent-soft);font-size:12px}.sph .spl{color:var(--muted);font-size:11px;flex:1}
 .spt{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line)}.spt button{border:0;background:none;padding:5px 7px;font-size:11.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}.spt button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-.spb{padding:7px 8px;display:grid;gap:6px}.spx{width:100%;border-collapse:collapse;font-size:11px}.spx td,.spx th{padding:3px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.spx th{font-size:9.5px;color:var(--muted);letter-spacing:.04em}.spx tr[data-spe]{cursor:pointer}.spx tr[data-spe]:hover{background:var(--accent-soft)}
+.spb{padding:7px 8px;display:grid;gap:6px}.kfadd{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:6px;border:1px dashed var(--accent);border-radius:6px;font-size:11px}.kfadd input:not([type=checkbox]),.kfadd select{min-width:0;flex:1 1 120px}.kfadd label{display:flex;align-items:center;gap:3px}.kfadd .why{flex-basis:100%}.spx{width:100%;border-collapse:collapse;font-size:11px}.spx td,.spx th{padding:3px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.spx th{font-size:9.5px;color:var(--muted);letter-spacing:.04em}.spx tr[data-spe]{cursor:pointer}.spx tr[data-spe]:hover{background:var(--accent-soft)}
 .spd{font-family:var(--f-mono);font-size:9.5px;font-weight:700;padding:0 4px;border-radius:3px;background:var(--line)}.spd.in{color:var(--accent)}.spd.pub,.spd.sub{color:#6d4fe0}.spd.sub{border:1px dashed #7c5cff;background:none}
 .sphex{width:100%;height:auto;font-size:8.5px}.sphex text{fill:var(--ink)}.sphex .b{font-weight:700;font-size:9.5px}.sphex .bg{fill:var(--bg);stroke:var(--line)}.sphex .env{fill:var(--surface);stroke:var(--muted);stroke-dasharray:3 2}.sphex .ad{fill:var(--surface);stroke:var(--accent)}.sphex .dom{fill:var(--accent-soft);stroke:var(--ok)}.sphex .pt{fill:var(--surface);stroke:var(--line)}
 .spf{border-left:3px solid var(--warn);padding:4px 6px;display:grid;gap:3px;font-size:11.5px}.spf.crit{border-color:var(--crit)}.spf.info{border-color:var(--muted)}.spf.acc{border-color:var(--ok);opacity:.85}.spr{font-size:10.5px}.spa{display:flex;gap:4px;flex-wrap:wrap}.spa input{flex:1;min-width:120px;font-size:11px}
@@ -419,7 +419,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.12">NEXUS<small>Architecture Workbench · v0.3.12</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.13">NEXUS<small>Architecture Workbench · v0.3.13</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -2086,10 +2086,10 @@ function drawScaleBar(n,x,y,w,h,k){if(!(n.type==='svc'&&spOn('sp.microservice'))
   ctx.strokeStyle=gone?colors.accent:colors.line;ctx.lineWidth=.8;ctx.fillRect(x+10*k+i*cw,y0,Math.max(1,cw-1.5*k),3.5*k);if(!run&&!want||gone)ctx.strokeRect(x+10*k+i*cw,y0,Math.max(1,cw-1.5*k),3.5*k)}
  ctx.globalAlpha=1}
 /* ----- Inspector: the SP panel ----- */
-const spTabs={svc:[['conn','Connectors'],['inside','Inside'],['scale','Scale & SLO'],['rules','Rules'],['pack','Pack']],kafka:[['cluster','Cluster'],['topics','Topics'],['groups','Groups'],['rules','Rules'],['pack','Pack']]};
+const spTabs={svc:[['conn','Connectors'],['inside','Inside'],['scale','Scale & SLO'],['rules','Rules'],['pack','Pack']],kafka:[['topics','Topics'],['groups','Consumer groups'],['cluster','Cluster'],['rules','Rules'],['pack','Pack']]};
 function spPanelHTML(n){if(n.parent!=='root')return '';const kind=n.type==='svc'&&spOn('sp.microservice')?'svc':isKafka(n)&&spOn('sp.kafka')?'kafka':null;if(!kind)return '';
  const p=spPack(kind==='svc'?'sp.microservice':'sp.kafka'),tab=(V.spTab&&V.spTab[kind])||spTabs[kind][0][0],fs=spFindings().filter(f=>f.on===n.id||(f.edge&&(f.edge.from===n.id||f.edge.to===n.id))),open=fs.filter(f=>!f.accepted);
- const body={conn:spConnHTML,inside:spInsideHTML,scale:spScaleHTML,cluster:kfClusterHTML,topics:kfTopicsHTML,groups:kfGroupsHTML,rules:(n)=>spRulesHTML(n,fs),pack:()=>spPackHTML(p)}[tab](n);
+ const body={conn:spConnHTML,inside:spInsideHTML,scale:spScaleHTML,cluster:kfClusterHTML,topics:n=>kfAddTopicHTML(n)+kfTopicsHTML(n)+kfLinkHTML(n,'pub'),groups:n=>kfLinkHTML(n,'sub')+kfGroupsHTML(n),rules:(n)=>spRulesHTML(n,fs),pack:()=>spPackHTML(p)}[tab](n);
  return `<div class="sp" id="spPanel"><div class="sph"><b>${esc(p.sp.name)} ${esc(p.version)}</b><span class="spl">${esc(p.sp.status)} · level ${p.sp.level}</span>${open.length?`<span class="pill ${open.some(f=>f.sev==='crit')?'crit':'warn'}">${open.length}</span>`:'<span class="pill ok">✓</span>'}</div>
   <div class="spt" role="tablist">${spTabs[kind].map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===tab}" class="${k===tab?'on':''}" data-spt="${kind}|${k}">${l}${k==='rules'&&open.length?` · ${open.length}`:''}</button>`).join('')}</div><div class="spb">${body}</div></div>`}
 function spRow(dir,peer,proto,policy,edge,cls=''){return `<tr ${edge?`data-spe="${esc(edge)}" tabindex="0" title="Open this connection"`:''}><td><span class="spd ${cls}">${dir}</span></td><td>${peer}</td><td>${proto}</td><td>${policy}</td></tr>`}
@@ -2159,7 +2159,14 @@ function kfTopicsHTML(n){const m=kafkaMsg(n),cs=chans(n),gs=m?NP.kafkaGroups(m):
    <label>Retention h ${inp(c,'retentionH',c.retentionH,'number','min="1"')}</label><label>Message KB ${inp(c,'msgKB',c.msgKB,'number','min="0.1" step="0.1"')}</label><label>Hot key % ${inp(c,'hotKey',c.hotKey||0,'number','min="0" max="100" title="Share of traffic of the busiest key; 0 = spread evenly"')}</label>
    <label>Cleanup <select data-spc="${esc(c.id)}|cleanup"><option ${c.cleanup!=='compact'?'selected':''}>delete</option><option ${c.cleanup==='compact'?'selected':''}>compact</option></select></label><label>Ordered <select data-spc="${esc(c.id)}|ordered"><option value="false" ${!c.ordered?'selected':''}>No</option><option value="true" ${c.ordered?'selected':''}>Per key</option></select></label><label>Personal data <select data-spc="${esc(c.id)}|pii"><option value="false" ${!c.pii?'selected':''}>No</option><option value="true" ${c.pii?'selected':''}>Yes</option></select></label></div>
    ${gs.filter(g=>g.ch===c.id).map(g=>{const s0=g.subs[0]||{};return s0.dlq===false?`<div class="spdlq off">no dead-letter topic for group ${esc(g.group)} (exception needed)</div>`:`<div class="spdlq"><span class="pill info">DLQ</span> <b>${esc(NP.dlqName(c.id,g.group))}</b> · ${c.partitions} partitions · replication 3 · ${Math.round((s0.dlqRetH||P.dlqRetentionH)/24)} days · owner: group ${esc(g.group)} · alarm on any message${c.pii?' · personal data':''}</div>`}).join('')}</div>`}).join('')+
-  `<div class="why">Topics are children of the cluster. Each consumer group gets its dead-letter topic by default; it has the source's partitions, so a redrive keeps the order per key. Add a topic with the console: add topic NAME to ${n.id}.</div>`}
+  `<div class="why">Topics are children of the cluster. Each consumer group gets its dead-letter topic by default; it has the source's partitions, so a redrive keeps the order per key. In the console: add topic NAME to ${n.id}.</div>`}
+// Add a topic, a publisher or a consumer group from the panel (the same commands as the console, through the Action Guard)
+const kfApps=()=>kids('root').filter(m=>['svc','vm','fn','api','adp'].includes(m.type));
+function kfAddTopicHTML(n){return `<div class="kfadd"><b>＋ Topic</b><input id="kfTName" placeholder="domain.entity.event.v1, e.g. sales.order.placed.v1" aria-label="Topic name"><label>Partitions <input id="kfTPart" type="number" min="1" max="10000" value="6" style="width:60px"></label><label><input id="kfTOrd" type="checkbox"> ordered per key</label><button class="btn primary" id="kfTAdd" type="button">Add topic</button></div>`}
+function kfLinkHTML(n,kind){const cs=chans(n),apps=kfApps();if(!cs.length)return '';
+ const tsel=`<select id="kf${kind}T" aria-label="Topic">${cs.map(c=>`<option>${esc(c.id)}</option>`).join('')}</select>`,asel=`<select id="kf${kind}A" aria-label="Service">${apps.map(a=>`<option value="${a.id}">${a.id} · ${esc(a.name)}</option>`).join('')}</select>`;
+ return kind==='pub'?`<div class="kfadd"><b>＋ Publisher</b>${asel}<span>publishes to</span>${tsel}<input id="kfpubK" placeholder="key, e.g. orderId" style="width:120px" aria-label="Message key"><button class="btn" id="kfpubAdd" type="button">Add publisher</button></div>`
+  :`<div class="kfadd"><b>＋ Consumer group</b><input id="kfsubG" placeholder="group, e.g. payments" style="width:130px" aria-label="Consumer group"><span>with</span>${asel}<span>reads</span>${tsel}<button class="btn primary" id="kfsubAdd" type="button">Add consumer group</button><div class="why">Each group gets every message of the topic; services in the same group share its partitions. A dead-letter topic &lt;topic&gt;.&lt;group&gt;.dlq is added for the group.</div></div>`}
 function kfGroupsHTML(n){const m=kafkaMsg(n),P=spPol('sp.kafka');if(!m)return '';const gs=NP.kafkaGroups(m),rto=S.req&&S.req.rto?S.req.rto*3600:0;
  return gs.length?`<table class="spx"><tr><th>Group · topic</th><th>Consumers</th><th>On failure</th><th>Catch-up</th></tr>${gs.map(g=>{const c=chans(n).find(x=>x.id===g.ch)||{},s0=g.subs[0]||{},active=Math.min(g.consumers,c.partitions||1),cap=active*1000/Math.max(.01,s0.procMs||P.defaultProcMs),backlog=g.rate*P.consumerOutageMin*60,cu=cap>g.rate?backlog/(cap-g.rate):Infinity;
   return `<tr data-spe="${esc(n.id+'>'+s0.to)}" tabindex="0"><td><b>${esc(g.group)}</b><br><small>${esc(g.ch)} → ${esc(g.subs.map(s=>s.to).join(', '))}</small></td><td>${g.consumers} for ${c.partitions} partitions${g.consumers>c.partitions?' <span class="warn">(idle)</span>':''}</td><td>${s0.retries} retries, then ${s0.dlq===false?'<span class="warn">no DLQ</span>':c.ordered&&s0.onFail!=='skip'?'stop partition':'DLQ'}</td><td class="${isFinite(cu)&&(!rto||cu<=rto)?'':'warn'}">${isFinite(cu)?`${Math.max(1,Math.round(cu/60))} min after a ${P.consumerOutageMin}-min stop`:'cannot keep up'}</td></tr>`}).join('')}</table><div class="why">Within a group each partition is read by one consumer. Catch-up = backlog ÷ (capacity − arrival rate); capacity from the consumers' processing time (the connection's settings). Click a row to open the consume connection.</div>`:'<div class="just">No consumer groups yet: subscribe a service to a topic.</div>'}
@@ -2168,6 +2175,11 @@ const spExKey=f=>f.edge?`e|${f.edge.from}>${f.edge.to}|${f.id}`:`n|${f.on}|${f.i
 function spSetEx(key,val){const [t,a,...rest]=key.split('|');
  act(val?`Accept ${rest[0]} on ${a}: ${val.reason}`:`Revoke the exception for ${rest[0]} on ${a}`,()=>{let o,k;if(t==='e'){const [f,to]=a.split('>');o=findEdge(f,to);k=rest[0]}else{o=S.nodes[a];k=rest.join('|')}if(!o)return;o.spEx={...(o.spEx||{})};if(val)o.spEx[k]=val;else delete o.spEx[k];if(!Object.keys(o.spEx).length)delete o.spEx})}
 function bindSP(n){const P=document.getElementById('spPanel');if(!P)return;const id=n.id;
+ {const g=s=>P.querySelector(s),go=c=>run(c);
+  g('#kfTAdd')&&(g('#kfTAdd').onclick=()=>{const t=g('#kfTName').value.trim();if(!/^[A-Za-z0-9._-]{1,249}$/.test(t)){say('Topic names use letters, digits, ".", "_" and "-" (up to 249 characters).','g');g('#kfTName').focus();return}go(`add topic ${t} to ${id} partitions ${Math.max(1,+g('#kfTPart').value||6)}${g('#kfTOrd').checked?' ordered':''}`)});
+  g('#kfTName')&&(g('#kfTName').onkeydown=e=>{if(e.key==='Enter')g('#kfTAdd').click()});
+  g('#kfpubAdd')&&(g('#kfpubAdd').onclick=()=>{const k=g('#kfpubK').value.trim();go(`publish ${g('#kfpubA').value} to ${id}/${g('#kfpubT').value}${k?' key '+k:''}`)});
+  g('#kfsubAdd')&&(g('#kfsubAdd').onclick=()=>{const gr=g('#kfsubG').value.trim()||g('#kfsubA').value.toLowerCase();if(!/^[A-Za-z0-9._-]+$/.test(gr)){say('Group names use letters, digits, ".", "_" and "-".','g');return}go(`subscribe ${g('#kfsubA').value} from ${id}/${g('#kfsubT').value} group ${gr}`)})}
  P.querySelectorAll('[data-spt]').forEach(b=>b.onclick=()=>{const [k,t]=b.dataset.spt.split('|');V.spTab={...(V.spTab||{}),[k]:t};renderAdvisor()});
  P.querySelectorAll('[data-spe]').forEach(r=>{const go=()=>{const [f,t]=r.dataset.spe.split('>');if(findEdge(f,t)){V.sel=null;V.selE={from:f,to:t};showTab('insp')}};r.onclick=go;r.onkeydown=e=>{if(e.key==='Enter')go()}});
  P.querySelectorAll('[data-spn]').forEach(el=>el.onchange=()=>{const f=el.dataset.spn;let v=el.value;if(v==='true'||v==='false')v=v==='true';else if(el.type==='number')v=+v;
@@ -2864,6 +2876,11 @@ function tracePath(e,vsegs){
 const SHARED_COL={reg:'#0d9488',art:'#7c5cff',kms:'#d97706',sec:'#d4458f',mon:'#0284c7'};
 const colOf=n=>{if(SHARED_COL[n.type])return SHARED_COL[n.type];const f=F[n.id];if(n.type==='user')return f&&f.noRoute?colors.crit:colors.accent;if(!f||EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part')return colors.muted;return colors[st(f.util)]};
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+// Resizable regions and subnets: boxes fit their components; the architect can make one larger by dragging its bottom-right corner.
+const zName=z=>z==='__outer'?'region A':z==='__outerB'?'region B':z.startsWith('net:')||z.startsWith('B:net:')?((netById(z.replace(/^B:/,'').slice(4))||{}).name||z):zoneLabel(z);
+const zExtra=z=>(S.view&&S.view.zsize&&S.view.zsize[z])||null;
+function zGripAt(sx,sy){let best=null,bd=11;zoneHits.forEach(b=>{if(['internet','third','corp'].includes(b.z))return;const d=Math.hypot(sx-b.x1,sy-b.y1);if(d<=bd){bd=d;best=b}});return best}
+function resetZoneSizes(){if(!S.view||!S.view.zsize||!Object.keys(S.view.zsize).length){say('No region or subnet has been resized.','s');return}pushUndo('Reset region and subnet sizes');S.view.zsize={};persist();say('Regions and subnets fit their components again.','s')}
 let particles=[],last=performance.now(),connecting=null,mouse={x:0,y:0},zoneHits=[];
 V.multi=new Set();V.hoverZ=null;V.marquee=null;
 const reduce=matchMedia('(prefers-reduced-motion: reduce)');
@@ -2923,9 +2940,10 @@ function frame(now){
  ctx.font=`600 ${Math.max(9,10*V.k)}px "IBM Plex Sans Condensed",sans-serif`;
  const hw=(V.mode==='iso'?52:NW/2+16)*V.k,hh=(V.mode==='iso'?40:NH/2+22)*V.k;
  const boxes={};if(V.mode!=='iso')Object.entries(byZ).forEach(([z,ps])=>{boxes[z]={x0:Math.min(...ps.map(p=>p.x))-hw,x1:Math.max(...ps.map(p=>p.x))+hw,y0:Math.min(...ps.map(p=>p.y))-hh-8*V.k,y1:Math.max(...ps.map(p=>p.y))+hh+(V.mode==='iso'?0:24*V.k)}});
+ Object.entries(boxes).forEach(([z,b])=>{const e=zExtra(z);if(e){b.x1+=e.w*V.k;b.y1+=e.h*V.k}});
  const innerAll=Object.entries(boxes).filter(([z])=>!OUT_Z.includes(z.replace(/^B:/,''))),inner=innerAll.filter(([z])=>!z.startsWith('B:')).map(([,b])=>b);
  if(V.scope==='root')[['__outer',inner,outerLabel()],['__outerB',innerAll.filter(([z])=>z.startsWith('B:')).map(([,b])=>b),outerLabelB()]].forEach(([key,list,lab])=>{if(!list.length)return;
-  const o={x0:Math.min(...list.map(b=>b.x0))-14*V.k,x1:Math.max(...list.map(b=>b.x1))+14*V.k,y0:Math.min(...list.map(b=>b.y0))-24*V.k,y1:Math.max(...list.map(b=>b.y1))+12*V.k};
+  const o={x0:Math.min(...list.map(b=>b.x0))-14*V.k,x1:Math.max(...list.map(b=>b.x1))+14*V.k,y0:Math.min(...list.map(b=>b.y0))-24*V.k,y1:Math.max(...list.map(b=>b.y1))+12*V.k};{const e=zExtra(key);if(e){o.x1+=e.w*V.k;o.y1+=e.h*V.k}}
   if(key==='__outer'&&stamp()){ctx.save();ctx.strokeStyle=S.routage==='b'?colors.crit:colors.accent;ctx.globalAlpha=.32;ctx.setLineDash([6,5]);ctx.lineWidth=1.2;rr(o.x0+18*V.k,o.y0+18*V.k,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.75;ctx.fillStyle=S.routage==='b'?colors.crit:colors.accent;ctx.fillText(`${S.multi&&S.multi.mode==='ap'?'STANDBY':'REGION B'} · ${regNames().b} · same stack${S.routage==='b'?' · DOWN':''}`,o.x0+28*V.k,o.y1+32*V.k);ctx.restore()}
   const down=mr()&&((key==='__outer'&&S.routage==='a')||(key==='__outerB'&&S.routage==='b')),hz=V.hoverZ===key||V.selZone===key,c=down?colors.crit:colors.accent;
   ctx.strokeStyle=c;ctx.globalAlpha=hz?.9:.45;ctx.lineWidth=hz?2.4:1.2;rr(o.x0,o.y0,o.x1-o.x0,o.y1-o.y0,12*V.k);ctx.stroke();if(down){ctx.fillStyle=hexA(colors.crit,.05);ctx.fill()}ctx.globalAlpha=.85;ctx.fillStyle=c;ctx.fillText(lab,o.x0+10*V.k,o.y0+14*V.k);ctx.globalAlpha=1;
@@ -2933,8 +2951,9 @@ function frame(now){
  Object.entries(boxes).forEach(([z,b])=>{
   const hz=V.hoverZ===z||V.selZone===z;ctx.setLineDash(hz?[]:[4,4]);ctx.strokeStyle=hz?colors.accent:z==='internet'?colors.crit:z==='platform'||z==='corp'?colors.accent:colors.muted;ctx.globalAlpha=hz?.9:z==='third'?.4:.55;ctx.lineWidth=hz?2.2:1;rr(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0,8*V.k);ctx.stroke();ctx.setLineDash([]);if(hz){ctx.fillStyle=hexA(colors.accent,.05);ctx.fill()}
   zoneHits.push({z,...b,lw:ctx.measureText(zoneLabel(z)).width+20*V.k});
-  ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.fillText(zoneLabel(z),b.x0+8*V.k,b.y0+13*V.k);ctx.globalAlpha=1;
+  ctx.globalAlpha=.85;ctx.fillStyle=z==='internet'?colors.crit:z==='platform'?colors.accent:colors.muted;ctx.save();ctx.beginPath();ctx.rect(b.x0,b.y0,b.x1-b.x0-4,18*V.k);ctx.clip();ctx.fillText(zoneLabel(z),b.x0+8*V.k,b.y0+13*V.k);ctx.restore();ctx.globalAlpha=1;
  });
+ if(V.mode!=='iso'){const g=zoneHits.find(b=>b.z===V.hoverZ||b.z===V.selZone||(V.zresize&&b.z===V.zresize.z));if(g){ctx.save();ctx.strokeStyle=colors.accent;ctx.globalAlpha=.9;ctx.lineWidth=1.5;for(const d of [5,9,13]){ctx.beginPath();ctx.moveTo(g.x1-d,g.y1-2);ctx.lineTo(g.x1-2,g.y1-d);ctx.stroke()}ctx.restore()}}
  if(V.mode==='iso')drawIsoZones(ns);
  drawGroups(ns);
  const VW=S.settings.view,focus=id=>V.sel===id||V.hover===id;
@@ -3122,6 +3141,7 @@ function openMenu(id,sx,sy){
  <button data-m="props" class="mprops">Properties</button>
  <button data-m="pick">Pick target on canvas</button>
  <button data-m="insp">Inspect and scaling options</button>
+ ${MSG_T.includes(n.type)?`<button data-m="topics">${isKafka(n)?'Topics and consumer groups…':'Channels and subscribers…'}</button>`:''}
  ${EXTERNAL.includes(n.type)||PLATFORM.includes(n.type)||n.type==='part'?'':`<button data-m="open">Open sub-design${kids(id).length?` (${kids(id).length})`:''}</button><button data-m="inst">${n.expanded?'Hide':'Show'} instances (${ic})</button>`}
  ${md.length?`<button data-m="deps">Add ${md.map(d=>pk().svc[d]).join(', ')}</button>`:''}
  <button data-m="del" class="del">Remove ${id}…</button>`;
@@ -3131,7 +3151,7 @@ function openMenu(id,sx,sy){
  renderAdvisor();renderTree();
 }
 menu.addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b)return;const id=menu.dataset.id;closeMenu();
- ({props:()=>openProps(id),pick:()=>startConnect(id),insp:()=>focusNode(id),open:()=>drill(id),inst:()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()},deps:()=>act(`${id}: add platform dependencies`,()=>addDeps([id]),{tradeoffs:['+ '+id+' can be built, deployed, keyed and observed','− Shared services become tier-0 for '+id]}),del:()=>{V.sel=id;deleteSelected()}})[b.dataset.m]()});
+ ({topics:()=>{if(isKafka(S.nodes[id]))V.spTab={...(V.spTab||{}),kafka:'topics'};focusNode(id);setTimeout(()=>{const t=document.querySelector('#kfTName')||document.querySelector('#chNew');t&&t.focus()},60)},props:()=>openProps(id),pick:()=>startConnect(id),insp:()=>focusNode(id),open:()=>drill(id),inst:()=>{S.nodes[id].expanded=!S.nodes[id].expanded;persist();renderAdvisor()},deps:()=>act(`${id}: add platform dependencies`,()=>addDeps([id]),{tradeoffs:['+ '+id+' can be built, deployed, keyed and observed','− Shared services become tier-0 for '+id]}),del:()=>{V.sel=id;deleteSelected()}})[b.dataset.m]()});
 document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target))closeMenu()},true);
 
 /* ---------- pointer ---------- */
@@ -3167,6 +3187,10 @@ cv.addEventListener('pointerdown',ev=>{
  const {sx,sy}=local(ev);
  if(ev.button===2)return;
  {const h=rewireHandle(sx,sy);if(h){const e=selEdge();V.rewire={from:e.from,to:e.to,end:h,t:null};cv.setPointerCapture(ev.pointerId);return}}
+ if(V.mode!=='iso'&&!V.connectFrom){const g=zGripAt(sx,sy);if(g){const e=zExtra(g.z)||{w:0,h:0};pushUndo(`Resize ${zName(g.z)}`);const mine=new Set((g.z.startsWith('__outer')?[]:zoneMembers(g.z)).map(m=>m.id)),ns=Object.values(S.nodes).filter(n=>n.parent===V.scope&&!mine.has(n.id)),hw=(NW/2)*V.k,hh=(NH/2)*V.k;
+ // a column or band moves as one: if any of its components is to the right (same rows) or below (same columns), all of it moves
+ const pick=f=>{const zs=new Set(ns.filter(f).map(n=>drawZone(n)));return ns.filter(n=>zs.has(drawZone(n))).map(n=>n.id)},q=n=>P(n.x,n.y);
+ V.zresize={z:g.z,sx,sy,w0:e.w,h0:e.h,w:e.w,h:e.h,right:pick(n=>q(n).x-hw>g.x1-4&&q(n).y+hh>g.y0&&q(n).y-hh<g.y1),below:pick(n=>q(n).y-hh>g.y1-4&&q(n).x+hw>g.x0&&q(n).x-hw<g.x1)};cv.setPointerCapture(ev.pointerId);return}}
  if(V.connectFrom){const t=nodeAt(sx,sy);const from=V.connectFrom;endConnect();if(t&&t.id!==from)guardedConnect(from,t.id);return}
  const ch=chipHits.find(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h);
  if(ch){openMenu(ch.node,sx,sy+10);return}
@@ -3190,6 +3214,10 @@ cv.addEventListener('contextmenu',ev=>{const {sx,sy}=local(ev);const n=nodeAt(sx
 cv.addEventListener('pointermove',ev=>{
  const {sx,sy}=local(ev);mouse={x:sx,y:sy};
  if(V.rewire){const t=nodeAt(sx,sy),e=S.edges.find(x=>x.from===V.rewire.from&&x.to===V.rewire.to);V.rewire.t=t&&e?{id:t.id,...rewireCheck(e,V.rewire.end,t.id)}:null;cv.style.cursor=V.rewire.t?(V.rewire.t.ok?'copy':'not-allowed'):'grabbing';return}
+ if(V.zresize){const r=V.zresize,w=Math.max(0,Math.round(r.w0+(sx-r.sx)/V.k)),h=Math.max(0,Math.round(r.h0+(sy-r.sy)/V.k));S.view=S.view||{};S.view.zsize={...(S.view.zsize||{}),[r.z]:{w,h}};
+  // make room: what is to the right moves right, what is below (in the same column) moves down
+  r.right.forEach(id=>{const n=S.nodes[id];if(n)n.x+=w-r.w});r.below.forEach(id=>{const n=S.nodes[id];if(n)n.y+=h-r.h});r.w=w;r.h=h;cv.style.cursor='nwse-resize';return}
+ if(!drag&&!connecting&&V.mode!=='iso'&&zGripAt(sx,sy)){cv.style.cursor='nwse-resize';cv.title='Drag to resize · double-click to fit its components again';return}
  if(!drag&&!connecting&&rewireHandle(sx,sy)){cv.style.cursor='grab';cv.title='Drag this end to another component to reconnect the flow';return}
  if(V.marquee){V.marquee.x1=sx;V.marquee.y1=sy;return}
  if(!drag&&!connecting){const n=nodeAt(sx,sy);V.hover=n?n.id:null;V.hoverE=n?null:edgeAt(sx,sy);V.hoverZ=n||V.hoverE||V.mode==='iso'?null:zoneAt(sx,sy);cv.style.cursor=V.connectFrom?'crosshair':V.hoverZ?'move':chipHits.some(h=>sx>=h.x&&sx<=h.x+h.w&&sy>=h.y&&sy<=h.y+h.h)||n||V.hoverE?'pointer':'grab';cv.title=V.hoverZ?`Drag to move the whole group (${groupLabel(V.hoverZ)})`:'';return}
@@ -3211,6 +3239,7 @@ function dropTarget(n,sx,sy){if(V.mode==='iso'||n.parent!=='root')return null;co
 cv.addEventListener('pointerup',ev=>{
  const {sx,sy}=local(ev);
  if(V.rewire){const rw=V.rewire;V.rewire=null;cv.style.cursor='';if(rw.t)setTimeout(()=>finishRewire(rw),0);return}
+ if(V.zresize){V.zresize=null;cv.style.cursor='';cv.title='';persist();return}
  if(connecting){const t=nodeAt(sx,sy),from=connecting.id;connecting=null;if(t&&t.id!==from)guardedConnect(from,t.id);return}
  if(V.marquee){const q=V.marquee;V.marquee=null;const x0=Math.min(q.x0,q.x1),x1=Math.max(q.x0,q.x1),y0=Math.min(q.y0,q.y1),y1=Math.max(q.y0,q.y1);
   kids(V.scope).forEach(n=>{const c=P(n.x,n.y);if(c.x>=x0&&c.x<=x1&&c.y>=y0&&c.y<=y1)V.multi.add(n.id)});setMode(V.multi.size?`${V.multi.size} selected: drag any of them to move together · Esc to clear`:'');renderTree();return}
@@ -3224,7 +3253,7 @@ cv.addEventListener('pointerup',ev=>{
  if(drag&&drag.pan&&Math.abs(sx-drag.sx)<3&&Math.abs(sy-drag.sy)<3){if(V.selZone){V.selZone=null;setMode('')}V.sel=null;V.selE=null;V.selInst=null;if(V.multi.size){V.multi.clear();setMode('')}renderAdvisor();renderTree()}
  drag=null;
 });
-cv.addEventListener('dblclick',ev=>{const {sx,sy}=local(ev),n=nodeAt(sx,sy);if(n)drill(n.id)});
+cv.addEventListener('dblclick',ev=>{const {sx,sy}=local(ev);if(V.mode!=='iso'){const g=zGripAt(sx,sy);if(g&&zExtra(g.z)){pushUndo(`Fit ${zName(g.z)}`);delete S.view.zsize[g.z];persist();return}}const n=nodeAt(sx,sy);if(n)drill(n.id)});
 cv.addEventListener('wheel',ev=>{ev.preventDefault();const {sx,sy}=local(ev),z=Math.exp(-ev.deltaY*.0015),nk=Math.min(3,Math.max(.25,V.k*z));V.x=sx-(sx-V.x)*nk/V.k;V.y=sy-(sy-V.y)*nk/V.k;V.k=nk},{passive:false});
 function deleteSelected(){
  if(V.selE){const {from,to}=V.selE;V.selE=null;act(`Remove flow ${from} → ${to}`,()=>removeEdge(from,to),{remove:true});return}
@@ -3659,6 +3688,7 @@ if(regionCmd(c,l))return;
   const [A,B]=pub?[who,mid]:[mid,who];
   act(`${pub?'Publish':'Subscribe'} ${who} ${pub?'to':'to'} ${mid}/${ch}`,()=>{if(!findEdge(A,B))connect(A,B);const e=findEdge(A,B);if(e)Object.assign(e,set)},{after:()=>say(`${pub?`${who} publishes to ${mid}/${ch}${set.key?' with key '+set.key:''}`:`${who} ${chKind(N)==='notif'||chKind(N)==='bus'?'subscribes to':'consumes'} ${mid}/${ch}${set.group?' in group '+set.group:''}`}. Select the connection to see its delivery, acknowledgement, retries and dead-letter settings.`,'s')});return}}
  if(/^(new\s+)?blank(\s+(canvas|design))?$|^start\s+(over|from\s+(a\s+)?blank(\s+canvas)?)$|^clear\s+(the\s+)?canvas$/.test(l)){blankCanvas();return}
+ if(/^(reset|fit)\s+(the\s+)?(sizes?|regions?|subnets?|boxes)(\s+sizes?)?$/.test(l)){resetZoneSizes();return}
  if(/^(zones|azs?)\s+(side by side|side|merged|stack(ed)?)$/.test(l)){const v=/side/.test(l)?'side':'merged';S.settings.view.azLayout=v;persist();if(mr()&&expanded()&&regionView()==='side')setRegionView('side');fit();renderLayers();say(v==='side'?'Zones side by side.':'Zones merged.','s');return}
  if(/^(add |create )?(standard )?subnets$/.test(l)){act('Add standard subnets in every zone',()=>{standardSubnets('A');if(expanded())standardSubnets('B')},{after:()=>renderLayers()});return}
  if(/^(help|\?)$/.test(l)){say('Design: add redis cache between SVC2 and DB1 · use aws managed kafka for microservice to microservice communication · add saas named "Stripe" · add egress gateway · add platform dependencies · connect SVC2 to SAAS1 via privatelink · disconnect SVC2 from OS1 · remove OS1 · rename SVC2 to Search API\nScale: options SVC2 · scale SVC2 to 3 · autoscale SVC2 2-10 · rate limit GW1 2000 · partitions Q1 12 · consumers Q1 6 · brokers Q1 3\nDatabase: decide DB1 · replicas DB1 2 · shard DB1 4 · size DB1 large\nIdentity: federate IDP1 with Okta · idp IDP1 workforce\nView: instances all · expand DB1 · collapse DB1 · open SVC1 · up\nWhat-if: what if load 3x · what if DB1 fails · reset · load 4000\nDescribe a system: "design a claims portal for 200k customers on azure with payments via stripe, document uploads, services: claims, policies, payments"\nGovernance: validate compliance · why GW1\nConversation: the model remembers the last turns · new conversation · revise PL-03: <what to change>\nPatterns: patterns · apply cqrs to SVC1 · apply zero-trust · apply event-driven\nQuality: eval console (scores your model on a fixed set of requests)\nRedesign: redesign · redesign: <goal> · fix the weak points · apply the second opinion\nModels: escalate (re-run the last request on the escalation model) · escalate: <request> · 2nd opinion (review the whole design) · 2nd opinion: <focus>\nStrategy: import strategy (from NEXUS Strategy) · Other: undo · redo · discover · guard enforce|advise|off · target azure · save "note" · versions · restore v1 · principle: … · truth: … · capability: …','s');return}
@@ -5016,7 +5046,7 @@ function importStrategy(){const h=strategyHandoff();
 {const h=strategyHandoff();if(h&&S.strategyImported!==h.id)setTimeout(()=>say(`A strategy hand-off from NEXUS Strategy (${h.org||''}) is waiting: ${(h.principles||[]).length} principles, ${(h.guardrails||[]).length} guardrails, ${(h.capabilities||[]).length} capabilities. Type "import strategy" to apply it.`,'s'),400)}
 // Test hook for the browser checks in poc/tests (only with ?test in the address).
 if(/[?&]test\b/.test(location.search))try{setupWhatIf()}catch(e){console.warn('what-if panel',e)}
-window.__nx={whatIfs:()=>whatIfs(),ensureSettings:()=>ensureSettings(),outerLabel:()=>outerLabel(),outerLabelB:()=>outerLabelB(),regionAZs:()=>regionAZs(),drawZone:n=>drawZone(n),zoneMembers:z=>zoneMembers(z),spOn,kDlqs:id=>kDlqs(S.nodes[id]),scaleState,spFindings,kafkaOf,mskTf,genTF:()=>genTF(),SIM:()=>SIM,refresh:()=>changed(),inspect:id=>focusNode(id),get S(){return S},get F(){return F},get findings(){return findings},NP,packDesign,placeVerdict,V,P,run:t=>run(t),zoneHits:()=>zoneHits,laneHits:()=>V.azLanes||[]};
+window.__nx={whatIfs:()=>whatIfs(),openMenu:(id,x,y)=>openMenu(id,x,y),ensureSettings:()=>ensureSettings(),outerLabel:()=>outerLabel(),outerLabelB:()=>outerLabelB(),regionAZs:()=>regionAZs(),drawZone:n=>drawZone(n),zoneMembers:z=>zoneMembers(z),spOn,kDlqs:id=>kDlqs(S.nodes[id]),scaleState,spFindings,kafkaOf,mskTf,genTF:()=>genTF(),SIM:()=>SIM,refresh:()=>changed(),inspect:id=>focusNode(id),get S(){return S},get F(){return F},get findings(){return findings},NP,packDesign,placeVerdict,V,P,run:t=>run(t),zoneHits:()=>zoneHits,laneHits:()=>V.azLanes||[]};
 say('Click ▾ on any component for actions. Every change is reviewed by the Action Guard and can be undone (Ctrl+Z). "help" lists console commands.','s');
 if(layoutLater){setLayout(S.settings.view.layout||'focus');fit()}
 requestAnimationFrame(frame);
