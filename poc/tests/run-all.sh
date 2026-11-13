@@ -26,6 +26,12 @@ if ! node -e "require('playwright')" >/dev/null 2>&1; then
   npm install --no-save --no-audit --no-fund --loglevel=error --prefix "$PW" "playwright@$PW_VERSION" || { echo "could not install playwright"; exit 1; }
 fi
 fail=0
+echo "== version labels match VERSION"
+v="$(cat VERSION)"
+for f in frontend/package.json backend/app/main.py frontend/app/page.tsx poc/prototype/index.html; do
+  grep -q "$v" "$f" || { echo "$f does not say $v"; fail=1; }
+done
+grep -o 'Architecture Workbench · v[0-9.]*' poc/prototype/index.html | grep -qx "Architecture Workbench · v$v" || { echo "canvas label is not v$v"; fail=1; }
 echo "== packs: build check and unit tests"
 node packs/build.mjs --check || fail=1
 out="$(node --test packs/tests/*.test.mjs 2>&1)" || fail=1
