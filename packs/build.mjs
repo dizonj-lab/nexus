@@ -49,6 +49,8 @@ export function loadCatalog() {
   for (const prov of ["aws", "azure", "gcp"]) {
     let d; try { d = JSON.parse(readFileSync(join(here, "catalog", prov + ".nexus.json"), "utf8")); } catch { continue; }
     out[prov] = { fetched: d.fetched, products: d.products.filter((p) => p.kind === "service" || p.onProductsPage).map((p) => ({ i: p.id, n: p.name, s: (p.summary || "").slice(0, 160), c: (p.categories && p.categories[0]) || p.directoryCategory || "", t: p.nexus.type, f: p.nexus.flavor, sc: p.nexus.scope, cv: p.nexus.coverage, fam: p.nexus.family, u: p.url, pg: !!p.onProductsPage, r: p.nexus.retired || null, rep: p.nexus.represented || null })) };
+    // availability zones per region (packs/catalog/<provider>-regions.json, from the provider's regions page)
+    try { const r = JSON.parse(readFileSync(join(here, "catalog", prov + "-regions.json"), "utf8")); out[prov].regions = Object.fromEntries(Object.entries(r.regions).map(([k, v]) => [k, v.azs])); out[prov].regionsSource = r.source; } catch {}
   }
   return out;
 }

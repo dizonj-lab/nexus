@@ -9,6 +9,14 @@ const run = async (t) => { await p.evaluate((t) => __nx.run(t), t); await apply(
 const F = () => p.evaluate(() => __nx.findings.map((f) => ({ id: f.id, key: f.key, title: f.title })));
 const has = async (re) => (await F()).filter((f) => re.test(f.key + " " + f.title));
 
+// availability zones come from the AWS regions page: Singapore has 3
+ok(await p.evaluate(() => __nx.NP.regionAZs("aws", "ap-southeast-1") === 3), "the catalogue knows ap-southeast-1 has 3 AZs");
+ok(/2 of 3 AZs/.test(await p.evaluate(() => __nx.outerLabel())), "the VPC label says the design uses 2 of Singapore's 3 AZs");
+await p.evaluate(() => { const c = document.querySelector("#zCount"); c.value = "3"; c.dispatchEvent(new Event("change")); }); await p.waitForTimeout(150);
+ok(/3 of 3 AZs/.test(await p.evaluate(() => __nx.outerLabel())), "the design can use all 3 AZs");
+ok(await p.evaluate(() => !document.querySelector('#zCount option[value="3"]').disabled), "3 AZs can be chosen in Singapore");
+await p.evaluate(() => { const c = document.querySelector("#zCount"); c.value = "2"; c.dispatchEvent(new Event("change")); }); await p.waitForTimeout(150);
+
 // users → CDN → WAF (on the CDN) → GW1 → internal LB → services → their databases
 await run("add cloudfront"); await run("add load balancer");
 const ids = await p.evaluate(() => { const S = __nx.S, of = (t) => Object.values(S.nodes).filter((n) => n.type === t && n.parent === "root").map((n) => n.id);
@@ -28,6 +36,7 @@ ok(/now replicate.*Aurora DSQL/s.test(await p.textContent("#conOut")), "the cons
 ok((await has(/^dr:GW/)).length === 0, "the API gateway gets no 'cross-region DR plan' once region B exists");
 
 await run("regions side by side");
+ok(/ap-southeast-3 \(Jakarta\) · 2 of 3 AZs/.test(await p.evaluate(() => __nx.outerLabelB())), "region B (Jakarta) shows its 3 AZs too");
 const f = await F();
 ok(f.every((x) => /^F\d+$/.test(x.id)), "every finding has a number (none 'undefined')");
 ok((await has(/^zone:/)).length === 0, "region B raises no trust-zone findings");

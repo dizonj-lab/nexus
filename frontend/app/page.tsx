@@ -96,7 +96,7 @@ export default function Landing() {
 
       <footer className="l-foot inner">
         <span className="brand"><Logo size={20} />NEXUS</span>
-        <span className="note"><Link href="/about">About</Link> · local SLM, LLM second opinion · v0.3.10 · development in progress</span>
+        <span className="note"><Link href="/about">About</Link> · local SLM, LLM second opinion · v0.3.11 · development in progress</span>
       </footer>
     </div>
   );

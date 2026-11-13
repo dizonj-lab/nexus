@@ -5,6 +5,17 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.11] — 2026-11-13
+
+### Fixed
+- **Availability zones per region.** The VPC label read "ap-southeast-1 Singapore · 2 AZs", as if the
+  region had two; Singapore has three. The label now says how many the design uses out of the
+  region's zones ("2 of 3 AZs"), for region B too, and Zones / sites offers only as many as the region
+  has (the smaller region, with two). The counts come from the AWS regions page
+  (`packs/catalog/aws-regions.json`, 37 regions, checked 2026-11-13). Two-region designs still default
+  to 2 AZs; choose 3 under Layers → Zones / sites.
+- The canvas version label is checked against `VERSION` by `run-all.sh`.
+
 ## [0.3.10] — 2026-11-13
 
 ### Fixed

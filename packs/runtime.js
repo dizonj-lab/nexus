@@ -14,6 +14,8 @@
   api.bundle = () => B;
   api.version = () => B.built || "dev";
   // provider product catalogue (from packs/catalog): find products by name for the palette and the console
+  // availability zones in a region, from the provider's regions page; null when unknown
+  api.regionAZs = (prov, id) => { const r = B.catalog && B.catalog[prov] && B.catalog[prov].regions; return (r && r[id]) || null; };
   api.catalog = (prov) => (B.catalog && B.catalog[prov] && B.catalog[prov].products) || [];
   const norm = (t) => String(t || "").toLowerCase().replace(/\(.*?\)/g, " ").replace(/\b(amazon|aws|for|the|service|managed)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
   api.matchProduct = (prov, q, min = 80) => { const n = norm(q); if (!n) return null; let best = null, bs = 0;
