@@ -28,7 +28,7 @@ ok(/Where do they come in\?/.test(await p.textContent("#guide .gstep.now")), "ne
 await step("DNS + WAF + API gateway");
 ok(await p.evaluate(() => { const S = __nx.S, t = (k) => Object.values(S.nodes).find((n) => n.type === k); const u = t("user"), d = t("dns"), w = t("waf"), g = t("gw"); return u && d && w && g && S.edges.some((e) => e.from === u.id && e.to === d.id) && S.edges.some((e) => e.from === d.id && e.to === w.id) && S.edges.some((e) => e.from === w.id && e.to === g.id); }), "users → DNS → WAF → API gateway");
 await step("Add a service");
-await p.screenshot({ path: "/work/poc/tests/_guide.png" });
+
 ok(await p.evaluate(() => (__nx.S.nets || []).length >= 3 && Object.values(__nx.S.nodes).some((n) => n.type === "svc")), "the first service brings the region network (subnets)");
 await step("Database for");
 ok(await p.evaluate(() => __nx.S.edges.some((e) => __nx.S.nodes[e.from]?.type === "svc" && __nx.S.nodes[e.to]?.type === "db")), "the service gets its own database");
@@ -53,7 +53,7 @@ const file = await dl.path(); ok(/customer-portal\.nexus\.json$/.test(dl.suggest
 await p.setInputFiles("#stFile", file); await p.waitForTimeout(500);
 ok(await p.evaluate(() => __nx.S.project === "Customer Portal (imported)" && JSON.parse(localStorage.getItem("nexus.library.v1")).some((x) => x.name === "Customer Portal")), "Import opens the file as its own design, next to the original");
 // 5. delete, launch switch
-await p.click("#docsBtn"); await p.waitForTimeout(150); await p.screenshot({ path: "/work/poc/tests/_start.png" }); await p.click("#stClose");
+await p.click("#docsBtn"); await p.waitForTimeout(150); await p.click("#stClose");
 await p.click("#docsBtn"); const del = p.locator("#stList .del").first(); await del.click(); await del.click(); await p.waitForTimeout(150);
 ok((await lib()).length === 2, "× twice deletes a design from this browser");
 await p.uncheck("#stLaunch"); await p.click("#stClose"); await p.reload(); await p.waitForTimeout(500);

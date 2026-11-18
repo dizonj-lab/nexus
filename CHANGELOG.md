@@ -5,6 +5,27 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.17] — 2026-11-18
+
+### Added
+- **Designs: a library of your designs.** Every design is kept in this browser under its own name;
+  starting a new one (Blank, the New design wizard, or describing it in the console) files the open design
+  under Recent designs instead of replacing it. **Designs** (top bar, or `designs` in the console) lists
+  them by last opened: open one, delete one (× twice), **Export the open design** (`.nexus.json`) or
+  **Import design file…** (a copy with a name in use is marked "(imported)"). Undo starts afresh in each design.
+- **Launch dialog.** NEXUS opens with "Open or start a design": recent designs on the left (the open one
+  first, "Continue with the open design" to go straight in), and Blank, Guided new design and Describe it
+  on the right. "Show this when NEXUS opens" turns it off.
+- **Blank design with a guide.** A blank design opens with a Guide on the canvas: who uses it, where they
+  come in, what does the work, where the data is kept, who is allowed in, what it depends on. The current
+  step says why and offers buttons that add and wire what is missing (DNS + WAF + load balancer or API
+  gateway; a service, which also brings the region network; a database per service; an identity
+  provider; platform services), through the Action Guard. Components by category sit under the steps,
+  with a search of all AWS products. `guide` in the console opens it again.
+
+### Changed
+- Starting something new no longer asks to save the open design: it is kept under Recent designs.
+
 ## [0.3.16] — 2026-11-18
 
 ### Fixed
