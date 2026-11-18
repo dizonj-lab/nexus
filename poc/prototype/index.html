@@ -289,6 +289,48 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .rsk{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:8px;background:var(--surface-2);border-radius:6px;min-height:52px}.rb{display:grid;justify-items:center;border:1.5px solid var(--line);border-radius:6px;padding:4px 7px;font:600 11px var(--f-mono);background:var(--surface)}.rb small{font:400 9.5px var(--f-body);color:var(--muted)}.rb.act{border-color:var(--ok)}.rb.stb{border-color:var(--warn);border-style:dashed}.rb.dc{border-color:var(--muted)}.rb.cl{border-color:var(--accent)}.rl{font:500 10px var(--f-mono);color:var(--muted)}.rl.sy{color:var(--ok)}.rl.dx{color:var(--accent)}
 .simban{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:10px;align-items:center;max-width:calc(100% - 40px);background:var(--crit);color:#fff;border-radius:8px;padding:6px 8px 6px 12px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.18)}.simban .btn{background:#fff;color:var(--crit);border-color:#fff;padding:2px 9px;font-size:12px;white-space:nowrap}
 .scrim{pointer-events:none}.scrim>.modal{pointer-events:auto}
+#startDlg{pointer-events:auto;background:rgba(10,15,25,.38)}
+.modal.start{width:min(980px,100%);padding:0;gap:0;resize:none}
+.sthead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sthead h2{margin:0;font:700 18px var(--f-display)}
+.stbody{display:grid;grid-template-columns:320px 1fr;min-height:0}
+@media (max-width:820px){.stbody{grid-template-columns:1fr}}
+.strecent{display:grid;gap:8px;align-content:start;padding:14px 16px;background:var(--surface-2);border-right:1px solid var(--line)}
+.stnew{display:grid;gap:10px;align-content:start;padding:14px 16px}
+.start h3{margin:0;font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+#stList{display:grid;gap:6px}
+.stdoc{display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.stdoc.cur{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.stdoc .ico{width:36px;height:36px;border-radius:7px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font:600 10px var(--f-mono)}
+.stdoc button.open{all:unset;cursor:pointer;display:grid;min-width:0}
+.stdoc button.open:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stdoc b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stdoc small{color:var(--muted);font-size:11.5px}
+.stdoc .del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px}
+.stdoc .del:hover{color:var(--crit);background:var(--surface-2)}
+.stacts{display:flex;flex-wrap:wrap;gap:6px}
+.sttpls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.sttpl{display:grid;gap:4px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.sttpl:hover,.sttpl[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.sttpl b{font:600 14px var(--f-display)}.sttpl small{color:var(--muted);font-size:12px}
+.strow{display:flex;flex-wrap:wrap;gap:8px;align-items:end;padding-top:10px;border-top:1px solid var(--line)}
+.strow label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.guide{position:absolute;left:12px;top:12px;z-index:6;width:300px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);overflow:auto;display:grid;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 10px 30px -14px rgba(0,0,0,.35);font-size:12.5px}
+.guide header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.guide h4{margin:0;font:600 14px var(--f-display)}
+.gstep{display:grid;grid-template-columns:20px 1fr;gap:6px;align-items:start}
+.gstep>i{font:500 10px/20px var(--f-mono);font-style:normal;text-align:center;border-radius:50%;background:var(--accent-soft);color:var(--accent)}
+.gstep.now>i{background:var(--accent);color:var(--surface)}
+.gstep.done{color:var(--muted)}.gstep.done b{text-decoration:line-through;font-weight:500}
+.gstep b{display:block;font-weight:600}.gstep small{display:block;color:var(--muted)}
+.gbtns{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.gbtn{font:600 11.5px var(--f-body);padding:3px 9px;border-radius:6px;border:1px solid var(--accent);color:var(--accent);background:var(--surface);cursor:pointer}
+.gbtn:hover{background:var(--accent-soft)}
+.gcomp{display:grid;gap:4px;padding-top:8px;border-top:1px solid var(--line)}
+.gcomp .cat{font:500 10px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.gcomp .chips{display:flex;flex-wrap:wrap;gap:4px}
+.gchip{font:inherit;font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.gchip:hover{border-color:var(--accent)}
 .scrim{position:fixed;inset:0;background:rgba(10,15,25,.18);z-index:50;display:grid;place-items:center;padding:16px}
 .modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(520px,100%);max-height:90%;overflow:auto;padding:16px;display:grid;gap:12px}
 .modal h2{margin:0;font-family:var(--f-display);font-size:17px;text-wrap:balance}
@@ -419,8 +461,8 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.16">NEXUS<small>Architecture Workbench · v0.3.16</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
-    <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.17">NEXUS<small>Architecture Workbench · v0.3.17</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="docsBtn" title="Open a recent design, import or export, or start new">Designs</button><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
     <nav class="crumb" id="crumb" aria-label="Where you are in the design"></nav>
@@ -441,6 +483,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
     <canvas id="cv" aria-label="System design canvas"></canvas>
     <div class="nmenu" id="nmenu" hidden></div>
     <div class="simban" id="simBan" hidden role="status"><span id="simTxt"></span><button class="btn" id="simEnd" type="button">End simulation</button></div>
+    <aside class="guide" id="guide" hidden aria-label="Guide"></aside>
     <div class="hint" id="hint">Click ▾ (or right-click) for actions · Drag a group by its label or border · Ctrl/⌘-click or Shift-drag to select several · Scroll to zoom</div>
 
     <section class="panel" id="pAdv" data-k="adv">
@@ -559,6 +602,25 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
     <h2 id="unsTitle" style="margin:0 0 6px;font-size:16px">Save the current design first?</h2>
     <p id="unsText" class="why" style="margin:0 0 12px"></p>
     <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn" id="unsCancel">Cancel</button><button type="button" class="btn danger" id="unsDiscard">Don't save</button><button type="button" class="btn primary" id="unsSave">Save as a version, then continue</button></div>
+  </div>
+</div>
+<div class="scrim" id="startDlg" hidden style="z-index:110">
+  <div class="modal wide start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+    <div class="sthead"><div><h2 id="startTitle">Open or start a design</h2><p class="why" style="margin:0">Pick up a recent design, or start a new one.</p></div><button type="button" class="btn" id="stClose">Continue with the open design ✕</button></div>
+    <div class="stbody">
+      <aside class="strecent"><h3>Recent designs</h3><div id="stList"></div>
+        <div class="stacts"><button type="button" class="btn" id="stImport">Import design file…</button><button type="button" class="btn" id="stExport">Export the open design</button><input type="file" id="stFile" accept=".json,application/json" hidden></div>
+        <label class="chkrow"><input type="checkbox" id="stLaunch"> Show this when NEXUS opens</label>
+        <p class="why" style="margin:0">Designs are kept in this browser. Export one to share it or keep a copy.</p></aside>
+      <div class="stnew"><h3>Start new</h3>
+        <div class="sttpls">
+          <button type="button" class="sttpl" data-st="blank"><b>Blank</b><small>An empty canvas with the components at hand and a guide that suggests the next step.</small></button>
+          <button type="button" class="sttpl" data-st="wizard"><b>Guided new design</b><small>Describe the requirement, set availability, RTO and RPO, then pick resilience and platform.</small></button>
+          <button type="button" class="sttpl" data-st="describe"><b>Describe it</b><small>Write what the system does in the console; NEXUS drafts a baseline you review.</small></button>
+        </div>
+        <div class="strow" id="stBlank"><label>Platform <select id="stDeploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">Google Cloud</option><option value="vmware">Data centre</option></select></label><label style="flex:1">Name <input id="stName" value="Untitled design"></label><button type="button" class="btn primary" id="stCreate">Create blank design</button></div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="scrim" id="ndDlg" hidden>
@@ -1250,7 +1312,7 @@ function ensureGT67(){if(!S.gt)return;let b=false;
  if(b&&S.ver)S.ver.gt++;
  if(S.caps&&!S.caps.some(c=>(c.types||[]).includes('dns'))){S.caps.push({id:'TC'+(S.caps.length+1),name:'DNS traffic steering (Route 53, Traffic Manager, Cloud DNS, GSLB)',types:['dns'],on:true});if(S.ver)S.ver.caps++}}
 const hasGT=id=>(S.gt||[]).some(g=>g.id===id);
-function ensureSettings(){ensureGT67();const d=defaultSettings();S.settings=S.settings||{};if(+S.settings.zones===2&&!S.settings.zonesSet&&prov()!=='vmware'){try{if(regionAZs()>2)S.settings.zones=regionZonesDefault()}catch(e){}}S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.sp={...d.sp,...(S.settings.sp||{})};S.settings.price=S.settings.price||{}}
+function ensureSettings(){ensureGT67();const d=defaultSettings();S.settings=S.settings||{};if(!S.docId)S.docId=newDocId();if(+S.settings.zones===2&&!S.settings.zonesSet&&prov()!=='vmware'){try{if(regionAZs()>2)S.settings.zones=regionZonesDefault()}catch(e){}}S.settings.view={...d.view,...(S.settings.view||{})};if(S.settings&&S.settings.escalation&&/^claude-/.test(S.settings.escalation.model||'')&&!S.settings.escalation.base)S.settings.escalation.model='gpt-oss:latest';if(!S.history)S.history=[];S.settings={...d,...S.settings};S.settings.llmApi={...d.llmApi,...(S.settings.llmApi||{})};S.settings.autoscale={...d.autoscale,...(S.settings.autoscale||{})};S.settings.sp={...d.sp,...(S.settings.sp||{})};S.settings.price=S.settings.price||{}}
 function defaultCaps(){return [
  {id:'TC1',name:'Kubernetes 1.30 (EKS / AKS / GKE / Tanzu)',types:['svc','api','adp','part'],on:true},
  {id:'TC2',name:'PostgreSQL 16, managed or on vSphere',types:['db'],on:true},
@@ -1297,8 +1359,37 @@ function ensureP8(){if(!S.ea.some(g=>g.id==='P8')){S.ea.push({id:'P8',t:'Each se
 const KEY='nexus.workbench.v1';
 const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
 if(EMBED)document.documentElement.classList.add('embedded');
+/* ---------- design library: the open design lives in KEY; every other design in its own slot, listed in LIB ---------- */
+const LIB='nexus.library.v1',SLOT=id=>'nexus.design.'+id,LAUNCH='nexus.launch';
+const newDocId=()=>'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const libOn=()=>!EMBED;
+function libRead(){try{const a=JSON.parse(localStorage.getItem(LIB)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+function libWrite(a){try{localStorage.setItem(LIB,JSON.stringify(a))}catch(e){}}
+function docMeta(){let z=1;try{z=zoneCount()}catch(e){}const ns=Object.values(S.nodes||{}).filter(n=>n.parent==='root');return {id:S.docId,name:S.project||'Untitled design',deploy:S.deploy||'aws',count:ns.length,regions:S.multi&&S.multi.on?2:1,zones:z,updated:Date.now()}}
+// Keep the open design's line in the list current (name, size, when it changed); its body stays in KEY.
+function libTouch(){if(!libOn()||!S||!S.docId)return;const a=libRead(),i=a.findIndex(x=>x.id===S.docId),m=docMeta();if(!m.count&&!(S.versions||[]).length&&i<0)return;if(i>=0)a[i]={...a[i],...m};else a.unshift({...m,opened:Date.now()});libWrite(a)}
+// File the open design under Recent designs (its own slot); an empty one is not kept.
+function stashCurrent(){if(!libOn()||!S||!S.docId)return true;const empty=!Object.keys(S.nodes||{}).length&&!(S.versions||[]).length;
+ if(empty){libWrite(libRead().filter(x=>x.id!==S.docId));return true}
+ try{localStorage.setItem(SLOT(S.docId),JSON.stringify(S));libTouch();return true}catch(e){say(`"${S.project}" could not be kept: the browser's storage for NEXUS is full. Export it first (Designs → Export).`,'s');return false}}
+// A new design: the open one is filed under Recent designs, and undo starts afresh.
+function startNewDoc(){stashCurrent();S.docId=newDocId();S.versions=[];S.history=[];S.savedSig=undefined;S.guide=false;UNDO.length=0;REDO.length=0}
+function openDoc(id){if(id===S.docId){closeStart();return}const raw=(()=>{try{return localStorage.getItem(SLOT(id))}catch(e){return null}})();
+ if(!raw){libWrite(libRead().filter(x=>x.id!==id));renderStart();say('That design is no longer in this browser.','s');return}
+ let d;try{d=JSON.parse(raw)}catch(e){say('That design could not be read.','s');return}
+ if(!stashCurrent())return;
+ S=d;S.docId=id;migrate();ensureP8();ensureP2();ensureSettings();normalizeParts();try{localStorage.removeItem(SLOT(id))}catch(e){}
+ const a=libRead(),e=a.find(x=>x.id===id);if(e)e.opened=Date.now();libWrite(a);
+ UNDO.length=0;REDO.length=0;V.sel=null;V.selE=null;V.scope='root';V.multi.clear();closeStart();fit();changed();say(`Opened "${S.project}". The previous design is under Designs → Recent designs.`,'s')}
+function deleteDoc(id){if(id===S.docId)return;try{localStorage.removeItem(SLOT(id))}catch(e){}libWrite(libRead().filter(x=>x.id!==id));renderStart()}
+function exportDoc(){const b=new Blob([JSON.stringify({nexus:'design',version:1,design:S},null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(String(S.project||'design').replace(/[^\w.-]+/g,'-').toLowerCase()||'design')+'.nexus.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);say(`Exported "${S.project}" as ${a.download}.`,'s')}
+function importDoc(file){const r=new FileReader();r.onload=()=>{let d;try{const j=JSON.parse(r.result);d=j&&j.design?j.design:j}catch(e){say('That file is not a NEXUS design (not JSON).','s');return}
+ if(!d||typeof d.nodes!=='object'||!Array.isArray(d.edges)){say('That file is not a NEXUS design (no components or flows).','s');return}
+ if(!stashCurrent())return;S=d;S.docId=newDocId();if(libRead().some(x=>x.name===S.project))S.project=String(S.project||'Design').slice(0,29)+' (imported)';migrate();ensureP8();ensureP2();ensureSettings();normalizeParts();UNDO.length=0;REDO.length=0;V.sel=null;V.selE=null;V.scope='root';V.multi.clear();
+ const a=libRead().filter(x=>x.id!==S.docId);a.unshift({...docMeta(),opened:Date.now()});libWrite(a);closeStart();fit();changed();say(`Imported "${S.project}" (${Object.keys(S.nodes).length} components).`,'s')};r.readAsText(file)}
+const launchOn=()=>{try{return localStorage.getItem(LAUNCH)!=='off'}catch(e){return true}};
 let persistWarned=false;
-function persist(){if(EMBED){embedChanged();return}try{localStorage.setItem(KEY,JSON.stringify(S));persistWarned=false}catch(e){if(!persistWarned){persistWarned=true;try{say(`Not saved: the browser's storage for this page is full (${Math.round(JSON.stringify(S).length/1024)} KB). Saved versions take most of it (History tab).`,'s')}catch(x){}}}}
+function persist(){if(EMBED){embedChanged();return}try{localStorage.setItem(KEY,JSON.stringify(S));persistWarned=false;libTouch()}catch(e){if(!persistWarned){persistWarned=true;try{say(`Not saved: the browser's storage for this page is full (${Math.round(JSON.stringify(S).length/1024)} KB). Saved versions take most of it (History tab).`,'s')}catch(x){}}}}
 let normalized=[];
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);migrate();ensureP8();ensureP2();ensureSettings();normalized=normalizeParts();return true}}catch(e){}return false}
 const UNDO=[],REDO=[];
@@ -2527,7 +2618,7 @@ function act(desc,fn,opts={}){
 const designSig=()=>JSON.stringify({n:S.nodes,e:S.edges.map(({_pts,_rpts,_wsep,_g,_drawn,_acc,_racc,...e})=>e),nets:S.nets||[],req:S.req||null});
 const isDirty=()=>Object.keys(S.nodes).length>0&&designSig()!==S.savedSig;
 // Ask before replacing work that is not saved: save it as a version, discard it, or cancel.
-function confirmUnsaved(what,go){if(!isDirty()){go();return}
+function confirmUnsaved(what,go){if(!isDirty()||libOn()){go();return}
  const d=$('#unsDlg');$('#unsText').textContent=`"${S.project}" has changes that are not saved as a version. ${what} replaces it on the canvas.`;d.hidden=false;
  const done=()=>{d.hidden=true;$('#unsSave').onclick=$('#unsDiscard').onclick=$('#unsCancel').onclick=null};
  $('#unsSave').onclick=()=>{done();saveVersion(`before: ${what.toLowerCase()}`);go()};
@@ -2535,13 +2626,67 @@ function confirmUnsaved(what,go){if(!isDirty()){go();return}
  $('#unsCancel').onclick=()=>{done();say(`${what} cancelled; nothing changed.`,'s')};$('#unsSave').focus()}
 // A blank canvas: no components, flows, subnets or targets. Principles, ground truth, capabilities, settings and
 // saved versions stay. Starting over is not a change to the design, so the Action Guard does not review it; Ctrl+Z undoes it.
-function blankCanvas(){confirmUnsaved('Starting a blank canvas',()=>{pushUndo('Start a blank canvas');
- Object.assign(S,{nodes:{},edges:[],nets:[],groups:[],req:null,outage:null,routage:null,project:'Untitled design',multi:{...(S.multi||{}),on:false,expanded:false}});
+/* ---------- launch dialog: recent designs, import/export, start new ---------- */
+const DEP_ICO={aws:'AWS',azure:'AZ',gcp:'GCP',vmware:'DC',hybrid:'HYB',local:'LOC'};
+const whenText=t=>{const d=new Date(t),n=new Date();return d.toDateString()===n.toDateString()?'today '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString([],{day:'numeric',month:'short'})};
+function renderStart(){libTouch();const a=libRead().sort((x,y)=>(x.id===S.docId?-1:y.id===S.docId?1:(y.opened||0)-(x.opened||0)));
+ $('#stList').innerHTML=a.length?a.map(d=>`<div class="stdoc${d.id===S.docId?' cur':''}"><span class="ico">${DEP_ICO[d.deploy]||'—'}</span><button type="button" class="open" data-doc="${esc(d.id)}" title="${d.id===S.docId?'Continue with this design':'Open this design'}"><b>${esc(d.name)}</b><small>${d.id===S.docId?'Open now · ':''}${d.count} component${d.count===1?'':'s'} · ${d.regions>1?'2 regions':d.zones+' zone'+(d.zones>1?'s':'')} · ${d.id===S.docId?'changed '+whenText(d.updated):'opened '+whenText(d.opened||d.updated)}</small></button>${d.id===S.docId?'<span></span>':`<button type="button" class="del" data-sdel="${esc(d.id)}" aria-label="Delete ${esc(d.name)}" title="Delete from this browser">×</button>`}</div>`).join(''):'<p class="why" style="margin:0">No saved designs yet.</p>';
+ $('#stLaunch').checked=launchOn()}
+function openStart(){if(!libOn())return;renderStart();$('#startDlg').hidden=false;$('#stBlank').hidden=true;document.querySelectorAll('.sttpl').forEach(b=>b.setAttribute('aria-pressed','false'));setTimeout(()=>{const f=$('#stList .open');(f||$('#stClose')).focus()},30)}
+function closeStart(){$('#startDlg').hidden=true}
+$('#docsBtn').onclick=openStart;$('#stClose').onclick=closeStart;
+$('#startDlg').addEventListener('keydown',e=>{if(e.key==='Escape')closeStart()});
+$('#stList').addEventListener('click',e=>{const o=e.target.closest('[data-doc]'),d=e.target.closest('[data-sdel]');
+ if(o){openDoc(o.dataset.doc);return}
+ if(d){e.stopPropagation();if(d.dataset.confirm){deleteDoc(d.dataset.sdel);return}d.dataset.confirm='1';d.textContent='Delete?';d.style.fontSize='12px';setTimeout(()=>{if(d.isConnected){delete d.dataset.confirm;d.textContent='×';d.style.fontSize=''}},3000)}});
+$('#stExport').onclick=exportDoc;$('#stImport').onclick=()=>$('#stFile').click();$('#stFile').onchange=e=>{const f=e.target.files[0];if(f)importDoc(f);e.target.value=''};
+$('#stLaunch').onchange=e=>{try{localStorage.setItem(LAUNCH,e.target.checked?'on':'off')}catch(x){}};
+document.querySelectorAll('.sttpl').forEach(b=>b.onclick=()=>{const k=b.dataset.st;document.querySelectorAll('.sttpl').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
+ if(k==='blank'){$('#stBlank').hidden=false;$('#stDeploy').value=['aws','azure','gcp','vmware'].includes(S.deploy)?S.deploy:'aws';$('#stName').focus();$('#stName').select();return}
+ closeStart();if(k==='wizard')$('#ndBtn').click();else{$('#conIn').focus();say('Describe the system in your own words, for example: "design a point of sale system on AWS for 2,000 stores, card payments through Adyen, services: orders, payments, products". NEXUS reads it and drafts a baseline for you to review.','s')}});
+$('#stCreate').onclick=()=>{closeStart();blankCanvas({deploy:$('#stDeploy').value,name:$('#stName').value.trim()||'Untitled design'})};
+$('#stName').addEventListener('keydown',e=>{if(e.key==='Enter')$('#stCreate').click()});
+
+/* ---------- guide: on a design started blank, the next gap and why, with buttons that add what is missing ---------- */
+const G_ENTRY=['dns','cdn','waf','lb','gw'],G_COMP=['svc','vm','fn','api'];
+function gAdd(desc,fn){act(desc,fn,{src:{by:'you',note:'Guide'},after:()=>fit()})}
+const gTry=(a,b,p,v)=>{try{connect(a,b,p,v)}catch(e){}};
+function guideSteps(){const R=kids('root'),has=t=>R.some(n=>t.includes(n.type)),users=R.filter(n=>n.type==='user'),inet=users.filter(n=>n.origin!=='corp');
+ const entry=()=>R.find(n=>n.type==='gw')||R.find(n=>n.type==='lb'),comp=R.filter(n=>G_COMP.includes(n.type)),noDb=comp.filter(c=>!S.edges.some(e=>e.from===c.id&&isFlow(e)&&S.nodes[e.to]&&['db','obj'].includes(S.nodes[e.to].type)));
+ const deps=R.filter(n=>missingDeps(n).length);
+ return [
+  {done:users.length>0,t:'Who uses it?',why:'Users set the load and decide how traffic enters.',acts:[['Internet users',()=>gAdd('Add internet users',()=>{const u=addNode('user','Customers','root');u.rps=1000})],['Company network',()=>gAdd('Add employees on the company network',()=>{const u=addNode('user','Employees','root');u.origin='corp';u.audience='workforce';u.rps=200})]]},
+  {done:has(['lb','gw']),t:'Where do they come in?',why:'Internet users enter through DNS and a WAF to one entry point (GT7, GT3).',acts:[['DNS + WAF + load balancer',()=>gAdd('Add DNS, a WAF and a load balancer',()=>gEdge('lb'))],['DNS + WAF + API gateway',()=>gAdd('Add DNS, a WAF and an API gateway',()=>gEdge('gw'))]]},
+  {done:comp.length>0,t:'What does the work?',why:'Services run the logic; the region network (zones and subnets) is added with the first one.',acts:[['Add a service',()=>gAdd('Add a service',()=>gService())]]},
+  {done:comp.length>0&&!noDb.length,t:'Where is the data kept?',why:noDb.length?`${noDb.map(n=>n.id).join(', ')} ${noDb.length>1?'have':'has'} no data store. Each service owns its own database (P8).`:'Each service owns its own database (P8).',acts:noDb.slice(0,3).map(c=>[`Database for ${c.id}`,()=>gAdd(`Add a database for ${c.id}`,()=>{const d=addNode('db',`${c.name} DB`,'root');gTry(c.id,d.id)})])},
+  {done:!inet.length||has(['idp']),t:'Who is allowed in?',why:'Zero trust needs a token issuer for every hop (EA-P1).',acts:[['Add an identity provider',()=>gAdd('Add an identity provider',()=>{const i=addNode('idp',null,'root');const e=entry();if(e)gTry(e.id,i.id)})]]},
+  {done:R.length>0&&!deps.length&&comp.length>0,t:'What does it depend on?',why:deps.length?`${deps.length} component${deps.length>1?'s need':' needs'} observability, secrets or keys.`:'Observability, secrets and keys for every component.',acts:deps.length?[['Add platform services',()=>gAdd('Add platform dependencies',()=>addDeps())]]:[]}]}
+function gEdge(kind){const w=addNode('waf',null,'root'),e=addNode(kind,null,'root');gTry(w.id,e.id);
+ kids('root').filter(n=>n.type==='user').forEach(u=>{if(u.origin==='corp')gTry(u.id,e.id,'HTTPS','vpn');else gTry(u.id,w.id,'HTTPS','internet')});
+ if(!kids('root').some(n=>n.type==='dns'))addNode('dns',null,'root')}
+function gService(){if(!(S.nets||[]).length)try{standardSubnets('A')}catch(e){}const k=kids('root').filter(n=>G_COMP.includes(n.type)).length+1,sv=addNode('svc',`Service ${k}`,'root');const e=kids('root').find(n=>n.type==='gw')||kids('root').find(n=>n.type==='lb');if(e)gTry(e.id,sv.id)}
+const G_PAL=[['Users',[['user','Internet users'],['user:corp','Company network']]],['Edge',[['dns','DNS'],['cdn','CDN'],['waf','WAF'],['lb','Load balancer'],['gw','API gateway']]],['Compute',[['svc','Service'],['fn','Function'],['vm','Virtual machine']]],['Data',[['db','Database'],['cache','Cache'],['obj','Object store']]],['Integration',[['queue','Queue / Kafka'],['notify','Notifications'],['saas','SaaS']]]];
+function renderGuide(){const g=$('#guide');if(!g)return;if(!S.guide||V.guideOff){g.hidden=true;return}g.hidden=false;
+ const st=guideSteps(),now=st.findIndex(x=>!x.done);
+ g.innerHTML=`<header><h4>Guide${now<0?' · basics in place':' · next step'}</h4><button type="button" class="ib" id="gClose" aria-label="Close the guide" title="Close (type 'guide' in the console to open it again)">×</button></header>`+
+  st.map((x,i)=>`<div class="gstep${x.done?' done':i===now?' now':''}"><i>${x.done?'✓':i+1}</i><div><b>${esc(x.t)}</b>${i===now?`<small>${esc(x.why)}</small><div class="gbtns">${x.acts.map((a,j)=>`<button type="button" class="gbtn" data-g="${i}|${j}">${esc(a[0])}</button>`).join('')}</div>`:''}</div></div>`).join('')+
+  (now<0?'<p class="why" style="margin:0">The basics are in place. Findings shows what NEXUS still flags; the What-if panel tests outages and load.</p>':'')+
+  `<div class="gcomp"><b style="font-size:12px">Components</b>${G_PAL.map(([c,xs])=>`<span class="cat">${c}</span><div class="chips">${xs.map(([t,l])=>`<button type="button" class="gchip" data-gt="${t}">${esc(l)}</button>`).join('')}</div>`).join('')}<button type="button" class="gbtn" data-gp="1" style="justify-self:start;margin-top:4px">Search all ${prov()==='aws'?'AWS products':'components'}…</button></div>`;
+ g._st=st}
+$('#guide').addEventListener('click',e=>{const g=$('#guide'),b=e.target.closest('[data-g]'),c=e.target.closest('[data-gt]');
+ if(e.target.closest('#gClose')){V.guideOff=true;renderGuide();say('Guide closed. Type "guide" in the console to open it again.','s');return}
+ if(b){const [i,j]=b.dataset.g.split('|').map(Number);const a=g._st&&g._st[i]&&g._st[i].acts[j];if(a)a[1]();return}
+ if(c){const [t,o]=c.dataset.gt.split(':');gAdd(`Add ${T[t].label.toLowerCase()}`,()=>{if(t==='svc'&&!(S.nets||[]).length)try{standardSubnets('A')}catch(x){}const n=addNode(t,o==='corp'?'Employees':null,'root');if(o==='corp'){n.origin='corp';n.audience='workforce';n.rps=200}if(t==='user'&&!o)n.rps=n.rps||1000;V.sel=n.id});return}
+ if(e.target.closest('[data-gp]'))openPal(true)});
+
+function blankCanvas(o={}){confirmUnsaved('Starting a blank canvas',()=>{pushUndo('Start a blank canvas');if(libOn())startNewDoc();
+ Object.assign(S,{nodes:{},edges:[],nets:[],groups:[],req:null,outage:null,routage:null,project:String(o.name||'Untitled design').slice(0,40),multi:{...(S.multi||{}),on:false,expanded:false},guide:true});if(o.deploy)S.deploy=o.deploy;V.guideOff=false;
  V.sel=null;V.selE=null;V.scope='root';V.multi.clear();$('#ndDlg').hidden=true;fit();changed();
  logAI('Workbench','Blank canvas','Started a new, empty design; principles, ground truth and capabilities kept',1);
- say('Blank canvas. Add components with ＋ Add component (or the console: "add load balancer", "add service named Orders"), or describe the system in the console. Ctrl+Z brings back the previous design.','s')})}
+ say(`Blank canvas${libOn()?'; the previous design is under Designs → Recent designs':''}. The Guide (left) suggests the next step; its buttons and the components under it add to the canvas. You can also describe the system in the console.`,'s')})}
 function commit(desc,fn,opts,r,just){
  pushUndo(desc);if(LEDGER_PENDING)LEDGER_PENDING.verdict=r?r.verdict:'guard off';
+ if(opts.newDoc&&libOn())startNewDoc();
  const _before=JSON.stringify(S.nodes);
  fn();
  markProv(_before,opts.src||{by:'you'},desc);
@@ -3822,6 +3967,9 @@ if(regionCmd(c,l))return;
   act(`${pub?'Publish':'Subscribe'} ${who} ${pub?'to':'to'} ${mid}/${ch}`,()=>{const had=findEdge(A,B);if(!had)connect(A,B);const e=findEdge(A,B);if(!e)return;const cur=had&&e.ch&&chans(N).some(x=>x.id===e.ch)?chsOf(N,e):[];if(cur.length&&!cur.includes(ch)){const {ch:_c,...rest}=set;Object.assign(e,rest);e.chs=[...(e.chs||[]),ch]}else Object.assign(e,set)},{after:()=>say(`${pub?`${who} publishes to ${mid}/${ch}${set.key?' with key '+set.key:''}`:`${who} ${chKind(N)==='notif'||chKind(N)==='bus'?'subscribes to':'consumes'} ${mid}/${ch}${set.group?' in group '+set.group:''}`}. Select the connection to see its delivery, acknowledgement, retries and dead-letter settings.`,'s')});return}}
  if(/^(new\s+)?blank(\s+(canvas|design))?$|^start\s+(over|from\s+(a\s+)?blank(\s+canvas)?)$|^clear\s+(the\s+)?canvas$/.test(l)){blankCanvas();return}
  if(/^(reset|fit)\s+(the\s+)?(sizes?|regions?|subnets?|boxes)(\s+sizes?)?$/.test(l)){resetZoneSizes();return}
+ if(/^(show\s+|open\s+)?(the\s+)?guide$/.test(l)){S.guide=true;V.guideOff=false;renderGuide();persist();say('Guide open: it suggests the next gap in the design, with the reason.','s');return}
+ if(/^(hide|close)\s+(the\s+)?guide$/.test(l)){V.guideOff=true;renderGuide();say('Guide closed.','s');return}
+ if(/^(open\s+|recent\s+)?designs?$|^open\s+recent$|^recent$/.test(l)){openStart();return}
  {const m=c.trim().match(/^(?:use\s+|make\s+)?aurora(?:\s+for)?\s+([A-Za-z]+\d+)$/i)||c.trim().match(/^([A-Za-z]+\d+)\s+(?:to|as|on)\s+aurora$/i);if(m){const id=m[1].toUpperCase(),n=S.nodes[id];if(!n||n.type!=='db'){say(`${id} is not a database.`,'s');return}if(prov()!=='aws'){say('Aurora is an AWS engine: deploy to AWS first.','s');return}
   act(`${id}: engine → Aurora PostgreSQL`,()=>{const x=S.nodes[id];x.engine='aurora';x.standby=false;if(!x.readReplicas)x.readReplicas=1},{after:()=>{V.sel=id;V.spTab={...(V.spTab||{}),aurora:'acluster'};say(`${id} is an Aurora cluster: a writer and ${S.nodes[id].readReplicas} reader${S.nodes[id].readReplicas>1?'s':''}. Every connection uses the cluster endpoint until you choose otherwise (Connections tab, or: endpoint SVC1 ${id} both).`,'s')}});return}}
  {const m=c.trim().match(/^endpoint\s+([A-Za-z]+\d+)\s+(?:to\s+|on\s+)?([A-Za-z]+\d+)\s+(cluster|writer|reader|both|split)$/i);if(m){const f=m[1].toUpperCase(),t=m[2].toUpperCase(),v={writer:'cluster',split:'both'}[m[3].toLowerCase()]||m[3].toLowerCase();if(!isAurora(S.nodes[t])){say(`${t} is not an Aurora cluster (try: aurora ${t}).`,'s');return}if(!findEdge(f,t)){say(`${f} is not connected to ${t}.`,'s');return}
@@ -4203,7 +4351,7 @@ function applySelected(id){
  const replaces=design.some(a=>a.op==='baseline'),meta=P.meta,skipped=P.plan.actions.map((a,i)=>i).filter(i=>!P.sel.has(i));
  const finish=()=>{P.done=`applied steps ${[...P.sel].map(i=>i+1).join(', ')}`;renderPlan(id);remember('user',`[I applied ${id} steps ${[...P.sel].map(i=>i+1).join(', ')}${skipped.length?'; skipped '+skipped.map(i=>i+1).join(', '):''}]`)};
  if(!design.length){if(wi)setMult(+wi.mult);finish();return}
- act(`${replaces?'Replace the design with a baseline':'Apply '+id+' ('+design.length+' step'+(design.length>1?'s':'')+')'} · ${P.source}`,r.fn,{src:/model/.test(P.source)?{by:'ai',model:String(P.source).replace(/^model · /,'').split(' · ')[0],conf:.75}:{by:'rules',conf:1},tradeoffs:[...(meta.notes||[]).map(n=>'Assumption · '+n),...(replaces?['Replaces the current design. Undo (Ctrl+Z) brings it back.']:[]),...skipped.map(i=>'Not applied · step '+(i+1)+': '+describeAction(P.plan.actions[i])),...design.filter(a=>a.op==='pattern').map(a=>{const k=patKey(a.pattern);return k?`Pattern ${k}: + ${PATTERNS[k].pro} · − ${PATTERNS[k].con}`:''}).filter(Boolean)],
+ act(`${replaces?'Replace the design with a baseline':'Apply '+id+' ('+design.length+' step'+(design.length>1?'s':'')+')'} · ${P.source}`,r.fn,{newDoc:replaces,src:/model/.test(P.source)?{by:'ai',model:String(P.source).replace(/^model · /,'').split(' · ')[0],conf:.75}:{by:'rules',conf:1},tradeoffs:[...(meta.notes||[]).map(n=>'Assumption · '+n),...(replaces?['Replaces the current design. Undo (Ctrl+Z) brings it back.']:[]),...skipped.map(i=>'Not applied · step '+(i+1)+': '+describeAction(P.plan.actions[i])),...design.filter(a=>a.op==='pattern').map(a=>{const k=patKey(a.pattern);return k?`Pattern ${k}: + ${PATTERNS[k].pro} · − ${PATTERNS[k].con}`:''}).filter(Boolean)],
   adr:{title:`Console plan ${id}: ${String(meta.prompt||'').slice(0,60)}`,context:`Prompt: ${meta.prompt||''}\nEngine: ${P.source}`,decision:acts.map(a=>describeAction(a)).join('\n'),tradeoffs:(meta.notes||[]).join('\n')||'See Action Guard review.',basis:['Console']},
   after:()=>{finish();fit();if(wi)setMult(+wi.mult);if(REDESIGN){const b=REDESIGN.before;REDESIGN=null;setTimeout(()=>{const a=complianceReport();ENG='rules · compliance check';say(`Redesign applied. Compliance ${b.verdict} → ${a.verdict}\n  ground-truth violations ${b.gtFail} → ${a.gtFail} · principle gaps ${b.eaFail} → ${a.eaFail} · critical findings ${b.crit} → ${a.crit}\n  ATT&CK exposure ${Object.keys(b.tq).join(', ')||'none'} → ${Object.keys(a.tq).join(', ')||'none'}\nType "validate compliance" for the full report, "2nd opinion" for a review, or Ctrl+Z to undo the whole redesign.`,a.verdict==='COMPLIANT'?'s':'g');ENG=null},50)}}});
 }
@@ -4489,7 +4637,7 @@ function changed(){
  flushLedger();
  renderLegendCtl();simulate();analyze();if(document.body.classList.contains('focus'))renderRail();renderKPI();renderAdvisor();renderTree();renderCode();renderLists();renderCrumb();renderUR();if(!SIM.on)renderDem();
  $('#deploy').value=S.deploy;$('#projName').value=S.project;$('#mult').value=Math.log10(S.mult);
-  renderWL();renderSimBan();renderWhatIf();if(typeof renderLayers==='function'&&$('#pLay')&&$('#pLay').classList.contains('on'))renderLayers();
+  renderWL();renderSimBan();renderWhatIf();renderGuide();if(typeof renderLayers==='function'&&$('#pLay')&&$('#pLay').classList.contains('on'))renderLayers();
  persist();
 }
 
@@ -4970,7 +5118,7 @@ function ndCreate(){const s=NDW,res=s.res||ndRec(),R=RESIL.find(x=>x.k===res),re
   standardSubnets('A');
   S.req={text:String(s.text).slice(0,4000),avail:s.avail,rto:Math.round(+s.rto*60),rpo:Math.round(+s.rpo*60),rtoH:+s.rto,rpoH:+s.rpo,src:s.src,regionLoss:!!s.regionLoss,res,layers:{...s.layers},plat:pl,at:new Date().toISOString()};
   S.view=S.view||{};S.view.layers={...s.layers};
- },{src:s.readBy==='model'?{by:'ai',model:(S.settings.llmApi||{}).model,conf:.7,note:'built from the requirement read by the model'}:{by:'you',note:'New design wizard'},tradeoffs:[...R.pros.map(x=>'+ '+x),...R.cons.map(x=>'− '+x),...['compute','database'].concat(s.events?['messaging']:[]).flatMap(c=>{const o=pick(c);return ['+ '+o.name+': '+o.pros[0],'− '+o.name+': '+o.cons[0]]})],
+ },{newDoc:true,src:s.readBy==='model'?{by:'ai',model:(S.settings.llmApi||{}).model,conf:.7,note:'built from the requirement read by the model'}:{by:'you',note:'New design wizard'},tradeoffs:[...R.pros.map(x=>'+ '+x),...R.cons.map(x=>'− '+x),...['compute','database'].concat(s.events?['messaging']:[]).flatMap(c=>{const o=pick(c);return ['+ '+o.name+': '+o.pros[0],'− '+o.name+': '+o.cons[0]]})],
   adr:{title:`${name}: resilience and platform`,context:`Requirement: ${String(s.text).slice(0,300)||'(not written)'}\nTargets: ${s.avail}% availability (downtime ${downtime(s.avail).year} a year), RTO ${fh(s.rto)}, RPO ${fh(s.rpo)}${s.regionLoss?', must survive a region loss':''}.`,
    decision:dec.join('. ')+'.',tradeoffs:`${R.name}: ${R.pros.join('; ')} / ${R.cons.join('; ')}. Estimated cost ≈ ×${R.cost} of a single zone.`,basis:['WAF-reliability','EA-P2']},
   newDesign:true,after:()=>{fit();openSide('pLay',true);say(`Created ${name}: ${R.name} on ${pk().name}${R.region?` (regions ${regNames().a} and ${regNames().b})`:''}, ${pick('compute').name.toLowerCase()}, ${pick('database').name.toLowerCase()}. Downtime budget at ${s.avail}%: ${downtime(s.avail).year} a year. The Layers view shows the network, security, integration and platform overlays. Test it: "fail zone a"${R.region?' or "fail region a"':''}.`,'s')}}));
@@ -5179,9 +5327,10 @@ function importStrategy(){const h=strategyHandoff();
 {const h=strategyHandoff();if(h&&S.strategyImported!==h.id)setTimeout(()=>say(`A strategy hand-off from NEXUS Strategy (${h.org||''}) is waiting: ${(h.principles||[]).length} principles, ${(h.guardrails||[]).length} guardrails, ${(h.capabilities||[]).length} capabilities. Type "import strategy" to apply it.`,'s'),400)}
 // Test hook for the browser checks in poc/tests (only with ?test in the address).
 if(/[?&]test\b/.test(location.search))try{setupWhatIf()}catch(e){console.warn('what-if panel',e)}
-window.__nx={whatIfs:()=>whatIfs(),openMenu:(id,x,y)=>openMenu(id,x,y),ensureSettings:()=>ensureSettings(),outerLabel:()=>outerLabel(),outerLabelB:()=>outerLabelB(),regionAZs:()=>regionAZs(),drawZone:n=>drawZone(n),zoneMembers:z=>zoneMembers(z),spOn,kDlqs:id=>kDlqs(S.nodes[id]),scaleState,spFindings,kafkaOf,mskTf,genTF:()=>genTF(),SIM:()=>SIM,refresh:()=>changed(),inspect:id=>focusNode(id),get S(){return S},get F(){return F},get findings(){return findings},NP,packDesign,placeVerdict,V,P,run:t=>run(t),zoneHits:()=>zoneHits,laneHits:()=>V.azLanes||[]};
+window.__nx={whatIfs:()=>whatIfs(),openDoc:id=>openDoc(id),openMenu:(id,x,y)=>openMenu(id,x,y),ensureSettings:()=>ensureSettings(),outerLabel:()=>outerLabel(),outerLabelB:()=>outerLabelB(),regionAZs:()=>regionAZs(),drawZone:n=>drawZone(n),zoneMembers:z=>zoneMembers(z),spOn,kDlqs:id=>kDlqs(S.nodes[id]),scaleState,spFindings,kafkaOf,mskTf,genTF:()=>genTF(),SIM:()=>SIM,refresh:()=>changed(),inspect:id=>focusNode(id),get S(){return S},get F(){return F},get findings(){return findings},NP,packDesign,placeVerdict,V,P,run:t=>run(t),zoneHits:()=>zoneHits,laneHits:()=>V.azLanes||[]};
 say('Click ▾ on any component for actions. Every change is reviewed by the Action Guard and can be undone (Ctrl+Z). "help" lists console commands.','s');
 if(layoutLater){setLayout(S.settings.view.layout||'focus');fit()}
+if(libOn()&&(!/[?&]test\b/.test(location.search)||/[?&]launch\b/.test(location.search))&&launchOn())openStart();
 requestAnimationFrame(frame);
 })();
 </script>

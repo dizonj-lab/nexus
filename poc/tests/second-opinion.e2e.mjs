@@ -19,7 +19,7 @@ async function newDesign() {
   if (await p.isVisible("#unsDlg")) { await p.click("#unsDiscard"); await p.waitForSelector("#guard:not([hidden])"); }
 }
 async function ask() { const t = Date.now(); await p.click("#gSecond"); return t; }
-await p.goto(BASE); await p.evaluate(() => localStorage.clear()); await p.reload();
+await p.goto(BASE); await p.evaluate(() => { localStorage.clear(); localStorage.setItem("nexus.launch", "off"); }); await p.reload();
 await p.waitForTimeout(500);
 // 1. streaming answer arrives, with token progress
 await setModel("sim-stream", 60); await newDesign();

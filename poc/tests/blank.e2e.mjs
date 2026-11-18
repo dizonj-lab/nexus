@@ -1,21 +1,19 @@
-// Browser check: New design → Start from a blank canvas; unsaved work is confirmed first; the Action Guard
+// Browser check: New design → Start from a blank canvas; the open design is kept under Recent designs; the Action Guard
 // does not block starting over or creating a new design.  Run: node poc/tests/blank.e2e.mjs
 import { open, newDesign, ok, summary, consoleText } from "./lib.mjs";
 const { b, p } = await open();
 const count = () => p.evaluate(() => Object.keys(__nx.S.nodes).length);
 const n0 = await count(); ok(n0 > 5, `the sample design is loaded (${n0} components, not saved as a version)`);
 await p.click("#ndBtn"); await p.click('#ndDlg [data-nd="blank"]');
-ok(await p.isVisible("#unsDlg"), "Start from a blank canvas asks first: the current design is not saved");
-ok(/not saved as a version/.test(await p.textContent("#unsText")), "the prompt says why: " + (await p.textContent("#unsText")));
-await p.click("#unsCancel"); ok(await count() === n0, "Cancel keeps the design as it is");
-await p.click("#ndBtn"); await p.click('#ndDlg [data-nd="blank"]'); await p.click("#unsSave"); await p.waitForTimeout(300);
+await p.waitForTimeout(300);
+ok(!(await p.isVisible("#unsDlg")), "Start from a blank canvas does not ask to save: the open design is kept under Recent designs");
 const st = await p.evaluate(() => ({ n: Object.keys(__nx.S.nodes).length, e: __nx.S.edges.length, v: __nx.S.versions.length, name: __nx.S.project, gt: __nx.S.gt.length }));
-ok(st.v === 1, "Save as a version, then continue: the old design is saved as v1");
-ok(st.n === 0 && st.e === 0 && st.name === "Untitled design", "the canvas is blank (no components, no flows), named Untitled design");
+ok(st.n === 0 && st.e === 0 && st.name === "Untitled design" && st.v === 0, "the canvas is blank (no components, no flows, no versions), named Untitled design");
 ok(st.gt > 0, "principles and ground truth are kept");
 ok(!(await p.isVisible("#guard")), "the Action Guard does not review (or block) starting over");
-await p.keyboard.press("Control+z"); await p.waitForTimeout(200);
-ok(await count() === n0, "Ctrl+Z brings the previous design back");
+ok(await p.evaluate((n0) => JSON.parse(localStorage.getItem("nexus.library.v1")).some((x) => { const d = localStorage.getItem("nexus.design." + x.id); return d && Object.keys(JSON.parse(d).nodes).length === n0; }), n0), "the previous design is kept with all its components");
+await p.evaluate(() => { const x = JSON.parse(localStorage.getItem("nexus.library.v1")).find((d) => d.count > 0); __nx.openDoc(x.id); }); await p.waitForTimeout(300);
+ok(await count() === n0, "Designs → open brings the previous design back");
 await p.keyboard.press("Control+y").catch(() => {}); await p.evaluate(() => __nx.run("blank canvas")); await p.waitForTimeout(200);
 if (await p.isVisible("#unsDlg")) await p.click("#unsDiscard");
 ok(await count() === 0, 'the console command "blank canvas" does the same');
