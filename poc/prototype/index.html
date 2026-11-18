@@ -419,7 +419,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.15">NEXUS<small>Architecture Workbench · v0.3.15</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.16">NEXUS<small>Architecture Workbench · v0.3.16</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -1793,10 +1793,23 @@ function addNode(type,name,parent,pos={}){
  if(typeof expanded==='function'&&expanded()&&parent==='root'&&!GLOBAL_T.includes(type)){n.region=V.selZone==='__outerB'?'B':'A';if(n.region==='B'&&pos.y==null)n.y+=regionOffset()}
  S.nodes[id]=n;
  logAI('SLM enrichment',`Enriched ${id} (${t.label})`,'Filled '+Object.keys(n.enrich).join(', ')+' from catalog defaults and zone policy',.88);
+ // The design's first DNS goes in front of the internet users (GT7), in one region as in two.
+ if(type==='dns'&&parent==='root'&&!kids('root').some(m=>m.type==='dns'&&m.id!==id))wireUsersViaDns(n);
  return n;
 }
+const dnsNote=id=>{const n=S.nodes[id];if(!n||n.type!=='dns')return '';const to=S.edges.filter(e=>e.from===id&&isFlow(e)).map(e=>e.to);return to.length?`Internet users now reach ${to.join(', ')} through ${id}.`:''};
+// Internet users (not the company network) reach their entry points through DNS d: user → d → entry.
+function wireUsersViaDns(d){const moved=[];const users=kids('root').filter(n=>n.type==='user'&&n.origin!=='corp');
+ users.forEach(u=>S.edges.filter(e=>e.from===u.id&&isFlow(e)).forEach(e=>{const t=S.nodes[e.to];if(!t||['dns','user'].includes(t.type))return;
+  if(!findEdge(d.id,t.id))S.edges.push({from:d.id,to:t.id,proto:e.proto||'HTTPS',via:'net'});e.to=d.id;moved.push(t.id)}));
+ S.edges=S.edges.filter((e,i,a)=>a.findIndex(x=>x.from===e.from&&x.to===e.to&&x.kind===e.kind)===i);
+ users.forEach(u=>{if(!findEdge(u.id,d.id))S.edges.push({from:u.id,to:d.id,proto:'HTTPS',via:'internet'})});
+ return [...new Set(moved)]}
 function insertServiceBetween(a,b){const A=S.nodes[a],B=S.nodes[b];removeEdge(a,b);const t=prov()==='aws'&&A.type==='gw'?'fn':'svc';const s=addNode(t,`${B.name} ${t==='fn'?'function':'service'}`,A.parent,{x:ZX.app,y:(A.y+B.y)/2+120});connect(a,s.id);connect(s.id,b);return s}
-function removeNode(id){const all=[id];for(let i=0;i<all.length;i++)kids(all[i]).forEach(k=>all.push(k.id));all.forEach(x=>delete S.nodes[x]);S.edges=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to])}
+function removeNode(id){const n0=S.nodes[id];
+ // removing the design's DNS hands its users back to the entry points it routed to (region A's, when regions are drawn)
+ if(n0&&n0.type==='dns'&&n0.parent==='root'&&!kids('root').some(m=>m.type==='dns'&&m.id!==id)){const ins=S.edges.filter(e=>e.to===id&&isFlow(e)&&S.nodes[e.from]&&S.nodes[e.from].type==='user'),outs=S.edges.filter(e=>e.from===id&&isFlow(e)&&S.nodes[e.to]&&S.nodes[e.to].region!=='B');ins.forEach(i=>outs.forEach(o=>{if(!findEdge(i.from,o.to))S.edges.push({from:i.from,to:o.to,proto:o.proto||'HTTPS',via:'internet'})}))}
+ const all=[id];for(let i=0;i<all.length;i++)kids(all[i]).forEach(k=>all.push(k.id));all.forEach(x=>delete S.nodes[x]);S.edges=S.edges.filter(e=>S.nodes[e.from]&&S.nodes[e.to])}
 const findEdge=(a,b)=>S.edges.find(e=>e.from===a&&e.to===b&&isFlow(e));
 function removeEdge(a,b){S.edges=S.edges.filter(e=>!(e.from===a&&e.to===b))}
 function connect(a,b,proto,via){const A=S.nodes[a],B=S.nodes[b];if(!A||!B||a===b||A.parent!==B.parent)return false;if(via&&!extViaOk(A,B,via))throw new Error(extViaWhy(B));if(!PLATFORM.includes(B.type)){const cc=canConnect(A,B);if(!cc.ok){const er=new Error(`${a} → ${b} is not technically possible. ${cc.why}`);er.alt=cc.alt?{from:a,to:b}:null;throw er}}if(PLATFORM.includes(B.type)){connectDep(a,b);return true}const ex=findEdge(a,b);if(ex){if(proto)ex.proto=proto;if(via)ex.via=via;return true}S.edges.push({from:a,to:b,proto:proto||protoFor(A,B),via:via||(A.type==='user'&&A.origin==='corp'?'dedicated':defVia(A.type,B.type))});return true}
@@ -2127,7 +2140,7 @@ function shortProd(p){const ab=(/\(([^)]+)\)/.exec(p.n)||[])[1];return ab&&ab.le
 const CV_WORD={'service-pack':'Service Pack','component-pack':'sourced facts (component pack)','canvas-type':'planning assumptions only','not-modelled':'not modelled yet'};
 function notModelled(p){return `${p.r?'⚠ '+p.r+'. ':''}${p.n} is in AWS's catalogue but ${p.fam==='Specialised'?'not planned as a NEXUS block':'not modelled in NEXUS yet (planned in '+p.fam+')'}${p.rep?'; today it is represented as '+p.rep:''}. AWS page: ${p.u}`}
 function addProduct(p,nm,after){if(!p.t||!T[p.t]){say(notModelled(p),'s');return false}
- const id=nextId(p.t);act(`Add ${id} (${shortProd(p)})`,()=>{const n=addNode(p.t,nm||shortProd(p));n.product=p.i;if(p.f)n.flavor=p.f;toColumn(n)},{tradeoffs:T[p.t].pro?[`+ ${T[p.t].pro}`,`− ${T[p.t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}: ${p.n} (${CV_WORD[p.cv]}).${p.r?' ⚠ '+p.r+'.':''} ${after||'Use ▾ → Connect to wire it.'}`,'s')}});return true}
+ const id=nextId(p.t);act(`Add ${id} (${shortProd(p)})`,()=>{const n=addNode(p.t,nm||shortProd(p));n.product=p.i;if(p.f)n.flavor=p.f;toColumn(n)},{tradeoffs:T[p.t].pro?[`+ ${T[p.t].pro}`,`− ${T[p.t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}: ${p.n} (${CV_WORD[p.cv]}).${p.r?' ⚠ '+p.r+'.':''} ${dnsNote(id)||after||'Use ▾ → Connect to wire it.'}`,'s')}});return true}
 function spPack(id){return NP&&NP.sp?NP.sp(id):null}
 function spOn(id){return !!(spPack(id)&&S&&S.settings&&S.settings.sp&&S.settings.sp[id]!==false)}
 const spPol=id=>NP&&NP.policy?NP.policy({sp:{}},id):{};
@@ -3427,7 +3440,7 @@ document.addEventListener('pointerdown',e=>{if(!$('#palette').hidden&&!e.target.
 $('#palette').addEventListener('click',e=>{const bc=e.target.closest('button[data-cat]');if(bc){openPal(false);const p=catProduct(bc.dataset.cat);if(p){if(who().role==='reviewer'){say('Reviewers cannot change the design.','g');return}addProduct(p)}return}const b=e.target.closest('button[data-t]');if(!b)return;openPal(false);const t=b.dataset.t;if(t==='__aadb'){const id=nextId('db'),I=MRINFO.aa;act(`Add ${id} (${mrdbName('aa')})`,()=>{const n=addNode('db',mrdbName('aa').replace(/ \(.*\)$/,''));n.multi='aa'},{tradeoffs:[...I.pros.map(x=>'+ '+x),...I.cons.map(x=>'− '+x)],adr:{title:`${id}: ${mrdbName('aa')} (active-active)`,context:`Writes: ${I.write}. RPO: ${I.rpo}. RTO: ${I.rto}. Source: ${I.doc[0]} (${I.doc[1]}); confirm current limits before approval.`,decision:`Use ${mrdbName('aa')} for ${id}.`,tradeoffs:`Strengths: ${I.pros.join('; ')}\nConstraints: ${I.cons.join('; ')}\nChoose when: ${I.when}`,basis:['EA-P2','WAF-reliability']},after:()=>{V.sel=id;say(`Added ${id}, ${mrdbName('aa')}. Its constraints are under Compare multi-region options in the Inspector; the decision waits for a lead architect.${mr()?'':' Turn on two regions (Load panel → Resilience) to use it across regions.'}`,'s')}});return}
  if(t==='__corp'){const id=nextId('user');act(`Add ${id} (Internal users)`,()=>{const n=addNode('user','Employees');n.origin='corp';n.audience='workforce';n.rps=200},{after:()=>{V.sel=id;say(`Added ${id}, internal users on the company network. Connect it to an internal load balancer or API gateway; new flows use ${pk().dedicated} by default (GT6).`,'s')}});return}
  if(t.startsWith('__')){if(who().role==='reviewer'){say('Reviewers cannot change the design.','g');return}openNetDlg({__subnet:'subnet',__sg:'sg',__ag:'ag'}[t]);return}const id=nextId(t);
- act(`Add ${id} (${T[t].label})`,()=>addNode(t),{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}. Use ▾ → Connect to wire it.`,'s')}})});
+ act(`Add ${id} (${T[t].label})`,()=>addNode(t),{tradeoffs:T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:null,after:()=>{V.sel=id;say(`Added ${id}. ${dnsNote(id)||'Use ▾ → Connect to wire it.'}`,'s')}})});
 function renderCrumb(){
  const path=[];let c=S.nodes[V.scope];while(c){path.unshift(c);c=S.nodes[c.parent]}
  $('#crumb').innerHTML=`<button data-s="root" title="Top level of the design">⌂ ${esc(S.project)}</button>`+path.map(n=>`<span>/</span><button data-s="${n.id}">${n.id} ${esc(n.name)}</button>`).join('');
@@ -3899,7 +3912,7 @@ if(regionCmd(c,l))return;
    if(/between/.test(l)&&B){const a=S.nodes[A],b=S.nodes[B];n.parent=a.parent;n.x=(a.x+b.x)/2;n.y=(a.y+b.y)/2+(t==='cache'?-120:100);if(canConnect(n,b).ok){removeEdge(A,B);connect(A,n.id);connect(n.id,B)}else{connect(A,n.id)}}
    else if(/after|from|behind/.test(l)&&A){n.parent=S.nodes[A].parent;connect(A,n.id)}
    else if(/\bto\b|before|in front/.test(l)&&A){n.parent=S.nodes[A].parent;connect(n.id,A)}
-  },{tradeoffs:[...(T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:[]),...(/between/.test(l)&&B&&!canConnect({type:t},S.nodes[B]).ok?[`Placed as ${t==='cache'?'cache-aside':'a side component'}: ${A} talks to both ${id} and ${B}, because a ${T[t].label.toLowerCase()} cannot call a ${T[S.nodes[B].type].label.toLowerCase()}`]:[])],after:()=>{V.sel=id}});return}
+  },{tradeoffs:[...(T[t].pro?[`+ ${T[t].pro}`,`− ${T[t].con}`]:[]),...(/between/.test(l)&&B&&!canConnect({type:t},S.nodes[B]).ok?[`Placed as ${t==='cache'?'cache-aside':'a side component'}: ${A} talks to both ${id} and ${B}, because a ${T[t].label.toLowerCase()} cannot call a ${T[S.nodes[B].type].label.toLowerCase()}`]:[])],after:()=>{V.sel=id;if(dnsNote(id))say(dnsNote(id),'s')}});return}
  if(ids.length&&/faster|slow|scale|bottleneck|perform|capacity|overload|throughput|latency|hot|busy/.test(l)){focusNode(ids[0]);say(`Scaling and protection options for ${ids[0]} "${S.nodes[ids[0]].name}" are in the Inspector.`,'s');return}
  if(!opt.noModel&&S.settings.engine!=='rules')return visionOrModel(c,l);
  if(handleUse(l,ids))return;
@@ -4599,11 +4612,7 @@ function setRegions(on,a,b,mode){if(!on&&expanded())collapseRegions();mode=mode|
 function ensureDnsSteering(mode){const out=[];let d=dnsNode();const pol=mode==='ap'?'failover':'latency';
  if(!d){d=addNode('dns',null,'root');d.policy=pol;out.push(`Added ${d.id} (${pk().svc.dns||'DNS'}, ${pol} routing) so users are steered between the regions.`)}
  else if(!d.policy||d.policy==='geolocation'){d.policy=pol}
- const users=kids('root').filter(n=>n.type==='user'&&n.origin!=='corp'),moved=[];
- users.forEach(u=>S.edges.filter(e=>e.from===u.id&&isFlow(e)).forEach(e=>{const t=S.nodes[e.to];if(!t||['dns','user'].includes(t.type))return;
-  if(!findEdge(d.id,t.id))S.edges.push({from:d.id,to:t.id,proto:e.proto||'HTTPS',via:'net'});e.to=d.id;moved.push(t.id)}));
- S.edges=S.edges.filter((e,i,a)=>a.findIndex(x=>x.from===e.from&&x.to===e.to&&x.kind===e.kind)===i);
- users.forEach(u=>{if(!findEdge(u.id,d.id))S.edges.push({from:u.id,to:d.id,proto:'HTTPS',via:'internet'})});
+ const moved=wireUsersViaDns(d);
  // region B entries (when the regions are drawn separately)
  S.edges.filter(e=>e.from===d.id&&isFlow(e)).forEach(e=>{const tw=Object.values(S.nodes).find(n=>n.twin===e.to&&n.region==='B');if(tw&&!findEdge(d.id,tw.id))S.edges.push({...e,to:tw.id})});
  if(moved.length)out.push(`Users now reach ${[...new Set(moved)].join(', ')} through ${d.id}.`);return out}

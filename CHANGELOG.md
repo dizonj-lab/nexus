@@ -5,6 +5,15 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.16] — 2026-11-18
+
+### Fixed
+- **DNS in a one-region design.** Adding DNS (`add route 53`, the palette, or Add component) now puts it in
+  front of the internet users: user → DNS → their entry point, as two regions already did. Before, DNS was
+  added unconnected, so "Internet users reach WAF1 without DNS steering" stayed and a new "DNS1 is
+  unreachable" appeared. Users on the company network keep their route. The console says where users now go.
+- **Removing DNS** hands its users back to the entry points it routed to, instead of leaving them unconnected.
+
 ## [0.3.15] — 2026-11-13
 
 ### Added

@@ -9,6 +9,14 @@ const run = async (t) => { await p.evaluate((t) => __nx.run(t), t); await apply(
 const F = () => p.evaluate(() => __nx.findings.map((f) => ({ id: f.id, key: f.key, title: f.title })));
 const has = async (re) => (await F()).filter((f) => re.test(f.key + " " + f.title));
 
+// one region: adding DNS puts it in front of the internet users (GT7)
+await run("add route 53");
+ok(await p.evaluate(() => { const S = __nx.S, d = Object.values(S.nodes).find((n) => n.type === "dns"); return d && S.edges.some((e) => e.from === "U1" && e.to === d.id) && S.edges.some((e) => e.from === d.id && e.to === "WAF1") && !S.edges.some((e) => e.from === "U1" && e.to === "WAF1"); }), "one region: add route 53 routes users through DNS to the WAF");
+ok(!(await p.evaluate(() => __nx.findings.some((f) => /^dnsentry:|unreachable/.test(f.key + " " + f.title) && /DNS|WAF1/.test(f.title)))), "no 'without DNS steering' or 'DNS unreachable' finding");
+ok(/Internet users now reach WAF1 through DNS\d/.test(await p.textContent("#conOut")), "the console says where users now go");
+await run("remove " + (await p.evaluate(() => Object.values(__nx.S.nodes).find((n) => n.type === "dns").id)));
+ok(await p.evaluate(() => __nx.S.edges.some((e) => e.from === "U1" && e.to === "WAF1")), "removing DNS hands the users back to the WAF");
+
 // a saved design comes back after a reload (v0.3.9–v0.3.11 stopped at start-up when the Layers panel was open)
 await p.click("#saveBtn"); await p.waitForTimeout(300);
 const before = await p.evaluate(() => [Object.keys(__nx.S.nodes).length, __nx.S.versions.length]);
