@@ -478,7 +478,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.18">NEXUS<small>Architecture Workbench · v0.3.18</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.19">NEXUS<small>Architecture Workbench · v0.3.19</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="docsBtn" title="Open a recent design, import or export, or start new">Designs</button><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -722,9 +722,9 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
   </div>
 </div>
 <div class="scrim" id="netDlg" hidden>
-  <div class="modal" role="dialog" aria-modal="false" aria-labelledby="ndTitle">
-    <h2 id="ndTitle">New subnet</h2><div id="ndBody" class="ndbody"></div><p class="why" id="ndNote"></p>
-    <div style="display:flex;gap:8px"><button class="btn danger" id="ndDel" type="button" hidden>Delete</button><span style="flex:1"></span><button class="btn" id="ndCancel" type="button">Cancel</button><button class="btn primary" id="ndOk" type="button">Create</button></div>
+  <div class="modal" role="dialog" aria-modal="false" aria-labelledby="ntTitle">
+    <h2 id="ntTitle">New subnet</h2><div id="ntBody" class="ndbody"></div><p class="why" id="ntNote"></p>
+    <div style="display:flex;gap:8px"><button class="btn danger" id="ntDel" type="button" hidden>Delete</button><span style="flex:1"></span><button class="btn" id="ntCancel" type="button">Cancel</button><button class="btn primary" id="ntOk" type="button">Create</button></div>
   </div>
 </div>
 <div class="scrim" id="guard" hidden>
@@ -2499,29 +2499,29 @@ function openNetDlg(kind,id){
  const comps=kids('root').filter(n=>!['user','ext','saas'].includes(n.type));
  const pre=new Set(ex?(kind==='subnet'?comps.filter(n=>n.net===id).map(n=>n.id):ex.members):[...(V.multi.size?V.multi:V.sel?[V.sel]:[])]);
  const title={subnet:'subnet',sg:'security group',ag:'application group'}[kind];
- $('#ndTitle').textContent=(ex?'Edit ':'New ')+title;
- let h=`<label>Name <input id="ndName" value="${esc(ex?ex.name:'')}" placeholder="${kind==='subnet'?'e.g. app-a':kind==='sg'?'e.g. sg-orders':'e.g. Payments'}"></label>`;
- if(kind==='subnet')h+=`<div class="row3"><label>Tier <select id="ndTier">${TIERS_NET.map(t=>`<option value="${t}" ${(ex?ex.tier:'app')===t?'selected':''}>${esc(pk().zone[t]||t)}</option>`).join('')}</select></label><label>CIDR <input id="ndCidr" value="${esc(ex?ex.cidr||'':'')}" placeholder="10.0.1.0/24"></label><label>Zone <input id="ndAz" value="${esc(ex?ex.az||'':'')}" placeholder="a"></label></div>`;
- if(kind==='sg')h+=`<label>Port(s) <input id="ndPort" value="${esc(ex?ex.port||'443':'443')}"></label><div><b style="font-size:12px">Allow inbound from</b> <span class="why">everything else is denied</span><div class="ndlist">${[['internet','Internet (users)'],['any','Anywhere (not recommended)'],...(S.groups||[]).filter(g=>g.kind==='sg'&&g.id!==id).map(g=>[g.id,g.name])].map(([v,l])=>`<label><input type="checkbox" data-allow="${v}" ${ex&&(ex.allow||[]).includes(v)?'checked':''}> ${esc(l)}</label>`).join('')}</div></div>`;
- if(kind==='ag')h+=`<label>Owning team <input id="ndTeam" value="${esc(ex?ex.team||'':'')}" placeholder="e.g. Payments squad"></label>`;
+ $('#ntTitle').textContent=(ex?'Edit ':'New ')+title;
+ let h=`<label>Name <input id="ntName" value="${esc(ex?ex.name:'')}" placeholder="${kind==='subnet'?'e.g. app-a':kind==='sg'?'e.g. sg-orders':'e.g. Payments'}"></label>`;
+ if(kind==='subnet')h+=`<div class="row3"><label>Tier <select id="ntTier">${TIERS_NET.map(t=>`<option value="${t}" ${(ex?ex.tier:'app')===t?'selected':''}>${esc(pk().zone[t]||t)}</option>`).join('')}</select></label><label>CIDR <input id="ntCidr" value="${esc(ex?ex.cidr||'':'')}" placeholder="10.0.1.0/24"></label><label>Zone <input id="ntAz" value="${esc(ex?ex.az||'':'')}" placeholder="a"></label></div>`;
+ if(kind==='sg')h+=`<label>Port(s) <input id="ntPort" value="${esc(ex?ex.port||'443':'443')}"></label><div><b style="font-size:12px">Allow inbound from</b> <span class="why">everything else is denied</span><div class="ndlist">${[['internet','Internet (users)'],['any','Anywhere (not recommended)'],...(S.groups||[]).filter(g=>g.kind==='sg'&&g.id!==id).map(g=>[g.id,g.name])].map(([v,l])=>`<label><input type="checkbox" data-allow="${v}" ${ex&&(ex.allow||[]).includes(v)?'checked':''}> ${esc(l)}</label>`).join('')}</div></div>`;
+ if(kind==='ag')h+=`<label>Owning team <input id="ntTeam" value="${esc(ex?ex.team||'':'')}" placeholder="e.g. Payments squad"></label>`;
  h+=`<div><b style="font-size:12px">Components</b><div class="ndlist">${comps.map(n=>`<label><input type="checkbox" data-mem="${n.id}" ${pre.has(n.id)?'checked':''}> ${n.id} · ${esc(n.name)}${kind==='subnet'&&n.net&&n.net!==id?` <span class="why">(in ${esc((netById(n.net)||{}).name||'')})</span>`:''}</label>`).join('')}</div></div>`;
- $('#ndBody').innerHTML=h;
- $('#ndNote').textContent={subnet:'Components keep their positions; use Tidy on the outer network to line the subnets up. Placement is checked against tiers (EA-P5).',sg:'Security groups are default-deny: flows into a member from outside the allowed sources become findings (EA-P5, EA-P1).',ag:'Application groups show which components make up one business application, for reviews and cost.'}[kind];
- $('#ndDel').hidden=!ex;$('#ndOk').textContent=ex?'Save':'Create';$('#netDlg').hidden=false;setTimeout(()=>$('#ndName').focus(),0)}
+ $('#ntBody').innerHTML=h;
+ $('#ntNote').textContent={subnet:'Components keep their positions; use Tidy on the outer network to line the subnets up. Placement is checked against tiers (EA-P5).',sg:'Security groups are default-deny: flows into a member from outside the allowed sources become findings (EA-P5, EA-P1).',ag:'Application groups show which components make up one business application, for reviews and cost.'}[kind];
+ $('#ntDel').hidden=!ex;$('#ntOk').textContent=ex?'Save':'Create';$('#netDlg').hidden=false;setTimeout(()=>$('#ntName').focus(),0)}
 function closeNetDlg(){$('#netDlg').hidden=true;ND=null}
-function saveNetDlg(){if(!ND)return;const {kind,id}=ND;const name=$('#ndName').value.trim().slice(0,40);if(!name){$('#ndName').focus();return}
- const mem=[...document.querySelectorAll('#ndBody [data-mem]:checked')].map(i=>i.dataset.mem);
- if(kind==='subnet'){const cidr=$('#ndCidr').value.trim();if(cidr&&!/^\d{1,3}(\.\d{1,3}){3}\/\d{1,2}$/.test(cidr)){$('#ndNote').textContent='CIDR must look like 10.0.1.0/24.';return}
-  const rec={id:id||nextGid('NET',S.nets||[]),name,tier:$('#ndTier').value,cidr,az:$('#ndAz').value.trim().slice(0,12)};closeNetDlg();
+function saveNetDlg(){if(!ND)return;const {kind,id}=ND;const name=$('#ntName').value.trim().slice(0,40);if(!name){$('#ntName').focus();return}
+ const mem=[...document.querySelectorAll('#ntBody [data-mem]:checked')].map(i=>i.dataset.mem);
+ if(kind==='subnet'){const cidr=$('#ntCidr').value.trim();if(cidr&&!/^\d{1,3}(\.\d{1,3}){3}\/\d{1,2}$/.test(cidr)){$('#ntNote').textContent='CIDR must look like 10.0.1.0/24.';return}
+  const rec={id:id||nextGid('NET',S.nets||[]),name,tier:$('#ntTier').value,cidr,az:$('#ntAz').value.trim().slice(0,12)};closeNetDlg();
   act(`${id?'Update':'Create'} subnet ${name}`,()=>{S.nets=(S.nets||[]).filter(x=>x.id!==rec.id);S.nets.push(rec);Object.values(S.nodes).forEach(n=>{if(n.net===rec.id&&!mem.includes(n.id))n.net=null});mem.forEach(m=>{if(S.nodes[m])S.nodes[m].net=rec.id})},{after:()=>say(`Subnet ${name}: ${mem.join(', ')||'no components yet'}. Select the outer network and press Tidy to line it up.`,'s')});return}
  const rec={id:id||nextGid(kind==='sg'?'SG':'AG',S.groups||[]),kind,name,members:mem};
- if(kind==='sg'){rec.allow=[...document.querySelectorAll('#ndBody [data-allow]:checked')].map(i=>i.dataset.allow);rec.port=$('#ndPort').value.trim().slice(0,30)}
- if(kind==='ag')rec.team=$('#ndTeam').value.trim().slice(0,40);
+ if(kind==='sg'){rec.allow=[...document.querySelectorAll('#ntBody [data-allow]:checked')].map(i=>i.dataset.allow);rec.port=$('#ntPort').value.trim().slice(0,30)}
+ if(kind==='ag')rec.team=$('#ntTeam').value.trim().slice(0,40);
  closeNetDlg();act(`${id?'Update':'Create'} ${kind==='sg'?'security group':'application group'} ${name}`,()=>{S.groups=(S.groups||[]).filter(x=>x.id!==rec.id);S.groups.push(rec)})}
 function deleteNetDlg(){if(!ND||!ND.id)return;const {kind,id}=ND;closeNetDlg();
  if(kind==='subnet')act(`Delete subnet ${(netById(id)||{}).name}`,()=>{S.nets=(S.nets||[]).filter(x=>x.id!==id);Object.values(S.nodes).forEach(n=>{if(n.net===id)n.net=null})});
  else act(`Delete group ${(grpById(id)||{}).name}`,()=>{S.groups=(S.groups||[]).filter(x=>x.id!==id);(S.groups||[]).forEach(g=>{if(g.allow)g.allow=g.allow.filter(a=>a!==id)})})}
-$('#ndOk').onclick=saveNetDlg;$('#ndCancel').onclick=closeNetDlg;$('#ndDel').onclick=deleteNetDlg;
+$('#ntOk').onclick=saveNetDlg;$('#ntCancel').onclick=closeNetDlg;$('#ntDel').onclick=deleteNetDlg;
 $('#netDlg').addEventListener('keydown',e=>{if(e.key==='Escape')closeNetDlg();if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='checkbox')saveNetDlg()});
 function netInspHTML(n){if(['user','ext','saas','part'].includes(n.type)||n.parent!=='root')return '';
  const gs=(S.groups||[]).filter(g=>g.members.includes(n.id));

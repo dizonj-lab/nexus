@@ -5,6 +5,14 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.19] — 2026-11-18
+
+### Fixed
+- **New subnet, security group and application group did nothing.** The network dialog shared its element
+  IDs with the New design dialog (since v0.3.1), so its form was written into the hidden New design dialog:
+  it opened empty and Create added nothing. The dialog now has its own IDs: subnets, security groups and
+  application groups are created, edited and deleted again, and the title says which one it is.
+
 ## [0.3.18] — 2026-11-18
 
 ### Added
