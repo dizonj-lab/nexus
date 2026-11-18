@@ -5,6 +5,33 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.18] — 2026-11-18
+
+### Added
+- **Five starters** in Designs → Start new, each with a "Created for you" list (untick anything to leave it
+  out) and, where two places connect, a choice of connectivity with *Use it for · Why · Trade-offs · Example*:
+  - **3-tier app**: users → DNS → WAF → load balancer → web tier → app tier → database (Aurora writer +
+    reader, or RDS primary + standby), cache, identity provider; containers or virtual machines.
+  - **Microservices**: a service per name behind the API gateway, a database each (orders and payments on
+    Aurora), Kafka event bus, identity provider.
+  - **Hybrid: data centre → cloud**: site-to-site VPN, dedicated connection, dedicated + VPN backup
+    (recommended), or two dedicated connections at two locations; employees on the company network.
+  - **Cloud to cloud**: for **AWS ↔ Google Cloud**, IPsec VPN (Google HA VPN to two AWS Site-to-Site VPN
+    connections), **AWS Interconnect – multicloud / Partner Cross-Cloud Interconnect** (recommended: managed,
+    minutes to provision, 1–100 Gbps, MACsec, at least two facilities; ⚠ check your regions are paired),
+    Cross-Cloud Interconnect with dedicated ports (10/100/400 Gbps, 1–4 weeks), private APIs over TLS, or
+    Kafka event replication; for other pairs, a cloud exchange interconnect. Facts link to AWS and Google
+    Cloud documentation (checked 2026-11-18).
+  - **Cloud to SaaS**: public API through an egress firewall (recommended), private connectivity offered by
+    the SaaS, a managed connector, or inbound webhooks to the API gateway.
+  Every starter also gets DNS in front of the users, the region network (all of the region's zones,
+  subnets), observability, secrets, keys and a registry, and services that autoscale from one task per
+  zone. The connectivity choice is recorded as a decision (ADR) with its sources.
+- A link chosen in a starter shows its service on the canvas (for example "AWS Interconnect").
+
+### Fixed
+- A new design no longer carries the previous design's decision records.
+
 ## [0.3.17] — 2026-11-18
 
 ### Added

@@ -314,6 +314,23 @@ table.opt tr.rec td{background:var(--accent-soft)}
 .sttpl:hover,.sttpl[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .sttpl b{font:600 14px var(--f-display)}.sttpl small{color:var(--muted);font-size:12px}
 .strow{display:flex;flex-wrap:wrap;gap:8px;align-items:end;padding-top:10px;border-top:1px solid var(--line)}
+.stopts{display:grid;gap:10px;padding-top:10px;border-top:1px solid var(--line)}
+.stopts select,.stopts input[type=text]{min-width:0}
+.stconn{display:grid;gap:6px}
+.stc{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface)}
+.stc:hover{border-color:var(--accent)}.stc.on{border-color:var(--accent);background:var(--accent-soft)}
+.stc input{margin-top:3px;accent-color:var(--accent)}
+.stc b{font:600 13.5px var(--f-display)}
+.stc .bd{font:500 10px var(--f-mono);padding:0 5px;border-radius:4px;border:1px solid currentColor;margin-left:6px}
+.stc .bd.rec{color:var(--ok)}.stc .bd.w{color:var(--warn)}
+.stc .use{color:var(--muted);font-size:12px}
+.stc .g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:2px 12px;font-size:12px;margin-top:4px}
+.stc .g3 i{display:block;font:500 10px var(--f-mono);font-style:normal;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stc .src{font-size:11px;color:var(--muted);margin-top:3px}.stc .src a{color:var(--accent)}
+.stwant{display:grid;gap:6px;padding:10px;border:1px dashed var(--line);border-radius:8px;background:var(--surface-2)}
+.stwant .chips{display:flex;flex-wrap:wrap;gap:5px}
+.stwant label{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 9px 2px 6px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.stwant label.fixed{border-style:dashed;color:var(--muted)}
 .strow label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
 .guide{position:absolute;left:12px;top:12px;z-index:6;width:300px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);overflow:auto;display:grid;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 10px 30px -14px rgba(0,0,0,.35);font-size:12.5px}
 .guide header{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -461,7 +478,7 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
 </style>
 <div class="app">
   <div class="top">
-    <span class="brand" title="NEXUS Architecture Workbench v0.3.17">NEXUS<small>Architecture Workbench · v0.3.17</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
+    <span class="brand" title="NEXUS Architecture Workbench v0.3.18">NEXUS<small>Architecture Workbench · v0.3.18</small></span><a class="modlink" href="../strategy/index.html" title="Open NEXUS Strategy: the Chief Technology Architect's workbench">Strategy ↗</a>
     <input id="projName" aria-label="Project name" value="Customer Portal"><button class="btn" id="docsBtn" title="Open a recent design, import or export, or start new">Designs</button><button class="btn" id="ndBtn" title="New design: explain the requirement, set availability, RTO and RPO, then choose resilience, layers and platform">＋ New design</button>
     <span class="ribbon" role="toolbar" aria-label="Edit"><button class="btn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button><button class="btn icon" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button><select id="roleSel" aria-label="Acting role" title="Acting role (simulated until sign-in exists)" style="font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 4px"><option value="architect">Architect</option><option value="lead">Lead architect (approver)</option><option value="security">Security architect</option><option value="reviewer">Reviewer (read-only)</option></select><button class="btn" id="tidyBtn" title="Arrange the selected network segment: click its label or border first (undoable)">Tidy</button><button class="btn" id="legBtn" aria-pressed="true" title="Show or hide the legend">Legend</button><button class="btn" id="instBtn" aria-pressed="false" title="Show every instance of every scaled component (I)">Instances</button></span>
     <span class="addmenu"><button class="btn" id="addBtn" aria-haspopup="menu" aria-expanded="false" title="Add a component to the design">＋ Add component ▾</button><div class="addpop" id="palette" role="menu" hidden></div></span>
@@ -617,7 +634,13 @@ table.price input{width:90px;font-family:var(--f-mono);font-size:11px}
           <button type="button" class="sttpl" data-st="blank"><b>Blank</b><small>An empty canvas with the components at hand and a guide that suggests the next step.</small></button>
           <button type="button" class="sttpl" data-st="wizard"><b>Guided new design</b><small>Describe the requirement, set availability, RTO and RPO, then pick resilience and platform.</small></button>
           <button type="button" class="sttpl" data-st="describe"><b>Describe it</b><small>Write what the system does in the console; NEXUS drafts a baseline you review.</small></button>
+          <button type="button" class="sttpl" data-st="tier"><b>3-tier app</b><small>Web, application and data tiers behind a load balancer.</small></button>
+          <button type="button" class="sttpl" data-st="micro"><b>Microservices</b><small>Services behind an API gateway, each with its own database, and an event bus.</small></button>
+          <button type="button" class="sttpl" data-st="hybrid"><b>Hybrid: data centre → cloud</b><small>Your data centre connected to a cloud region.</small></button>
+          <button type="button" class="sttpl" data-st="c2c"><b>Cloud to cloud</b><small>Workloads in two clouds that call or replicate to each other.</small></button>
+          <button type="button" class="sttpl" data-st="saas"><b>Cloud to SaaS</b><small>Your cloud workload integrated with SaaS providers.</small></button>
         </div>
+        <div class="stopts" id="stOpts" hidden></div>
         <div class="strow" id="stBlank"><label>Platform <select id="stDeploy"><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">Google Cloud</option><option value="vmware">Data centre</option></select></label><label style="flex:1">Name <input id="stName" value="Untitled design"></label><button type="button" class="btn primary" id="stCreate">Create blank design</button></div>
       </div>
     </div>
@@ -1219,6 +1242,7 @@ const outerLabel=()=>{const zc=zoneCount(),r=regNames(),m=mr()?((S.multi.mode===
 const pk=()=>{const p=PACK[prov()];if(p!==PACK.vmware||!S.dcStack)return p;const k=JSON.stringify(S.dcStack);if(k!==DCK){DCK=k;DCV={...p,svc:{...p.svc,...(S.dcStack.svc||{})},q:{...p.q,...(S.dcStack.q||{})}}}return DCV};
 const VIAS=['net','internet','privatelink','vpn','dedicated','xregion'];
 const viaName=v=>({xregion:'Cross-region (peering / transit gateway)',net:'In-network',internet:'Public internet',privatelink:pk().pl,vpn:pk().vpn,dedicated:pk().dedicated}[v]||v);
+const linkShort=e=>{if(!e||!e.link)return viaShort(e&&e.via);let t=String(e.link).replace(/\s*\(.*\)$/,'').replace(/^AWS Interconnect – multicloud$/,'AWS Interconnect').replace(/^IPsec VPN between the clouds$/,'VPN').replace(/^Dedicated \+ VPN backup$/,pk().dedicated+' + VPN backup').replace(/^Two dedicated connections, two locations$/,'2× '+pk().dedicated);return t.length>34?viaShort(e.via):t};
 const viaShort=v=>({xregion:'cross-region',net:'',internet:'internet',privatelink:pk().pl,vpn:'VPN',dedicated:pk().dedicated}[v]);
 const idpKey=n=>n.audience==='workforce'?'work':(n.idpMode||'native');
 function svcName(n){if(n&&n.product&&prov()==='aws'){const c=catProduct(n.product);if(c)return shortProd(c)}
@@ -1373,7 +1397,7 @@ function stashCurrent(){if(!libOn()||!S||!S.docId)return true;const empty=!Objec
  if(empty){libWrite(libRead().filter(x=>x.id!==S.docId));return true}
  try{localStorage.setItem(SLOT(S.docId),JSON.stringify(S));libTouch();return true}catch(e){say(`"${S.project}" could not be kept: the browser's storage for NEXUS is full. Export it first (Designs → Export).`,'s');return false}}
 // A new design: the open one is filed under Recent designs, and undo starts afresh.
-function startNewDoc(){stashCurrent();S.docId=newDocId();S.versions=[];S.history=[];S.savedSig=undefined;S.guide=false;UNDO.length=0;REDO.length=0}
+function startNewDoc(){stashCurrent();S.docId=newDocId();S.versions=[];S.history=[];S.adrs=[];S.savedSig=undefined;S.guide=false;UNDO.length=0;REDO.length=0}
 function openDoc(id){if(id===S.docId){closeStart();return}const raw=(()=>{try{return localStorage.getItem(SLOT(id))}catch(e){return null}})();
  if(!raw){libWrite(libRead().filter(x=>x.id!==id));renderStart();say('That design is no longer in this browser.','s');return}
  let d;try{d=JSON.parse(raw)}catch(e){say('That design could not be read.','s');return}
@@ -2632,7 +2656,7 @@ const whenText=t=>{const d=new Date(t),n=new Date();return d.toDateString()===n.
 function renderStart(){libTouch();const a=libRead().sort((x,y)=>(x.id===S.docId?-1:y.id===S.docId?1:(y.opened||0)-(x.opened||0)));
  $('#stList').innerHTML=a.length?a.map(d=>`<div class="stdoc${d.id===S.docId?' cur':''}"><span class="ico">${DEP_ICO[d.deploy]||'—'}</span><button type="button" class="open" data-doc="${esc(d.id)}" title="${d.id===S.docId?'Continue with this design':'Open this design'}"><b>${esc(d.name)}</b><small>${d.id===S.docId?'Open now · ':''}${d.count} component${d.count===1?'':'s'} · ${d.regions>1?'2 regions':d.zones+' zone'+(d.zones>1?'s':'')} · ${d.id===S.docId?'changed '+whenText(d.updated):'opened '+whenText(d.opened||d.updated)}</small></button>${d.id===S.docId?'<span></span>':`<button type="button" class="del" data-sdel="${esc(d.id)}" aria-label="Delete ${esc(d.name)}" title="Delete from this browser">×</button>`}</div>`).join(''):'<p class="why" style="margin:0">No saved designs yet.</p>';
  $('#stLaunch').checked=launchOn()}
-function openStart(){if(!libOn())return;renderStart();$('#startDlg').hidden=false;$('#stBlank').hidden=true;document.querySelectorAll('.sttpl').forEach(b=>b.setAttribute('aria-pressed','false'));setTimeout(()=>{const f=$('#stList .open');(f||$('#stClose')).focus()},30)}
+function openStart(){if(!libOn())return;renderStart();$('#startDlg').hidden=false;$('#stBlank').hidden=true;$('#stOpts').hidden=true;document.querySelectorAll('.sttpl').forEach(b=>b.setAttribute('aria-pressed','false'));setTimeout(()=>{const f=$('#stList .open');(f||$('#stClose')).focus()},30)}
 function closeStart(){$('#startDlg').hidden=true}
 $('#docsBtn').onclick=openStart;$('#stClose').onclick=closeStart;
 $('#startDlg').addEventListener('keydown',e=>{if(e.key==='Escape')closeStart()});
@@ -2642,7 +2666,8 @@ $('#stList').addEventListener('click',e=>{const o=e.target.closest('[data-doc]')
 $('#stExport').onclick=exportDoc;$('#stImport').onclick=()=>$('#stFile').click();$('#stFile').onchange=e=>{const f=e.target.files[0];if(f)importDoc(f);e.target.value=''};
 $('#stLaunch').onchange=e=>{try{localStorage.setItem(LAUNCH,e.target.checked?'on':'off')}catch(x){}};
 document.querySelectorAll('.sttpl').forEach(b=>b.onclick=()=>{const k=b.dataset.st;document.querySelectorAll('.sttpl').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
- if(k==='blank'){$('#stBlank').hidden=false;$('#stDeploy').value=['aws','azure','gcp','vmware'].includes(S.deploy)?S.deploy:'aws';$('#stName').focus();$('#stName').select();return}
+ if(ST_NAME[k]){openStarter(k);return}
+ if(k==='blank'){$('#stOpts').hidden=true;$('#stBlank').hidden=false;$('#stDeploy').value=['aws','azure','gcp','vmware'].includes(S.deploy)?S.deploy:'aws';$('#stName').focus();$('#stName').select();return}
  closeStart();if(k==='wizard')$('#ndBtn').click();else{$('#conIn').focus();say('Describe the system in your own words, for example: "design a point of sale system on AWS for 2,000 stores, card payments through Adyen, services: orders, payments, products". NEXUS reads it and drafts a baseline for you to review.','s')}});
 $('#stCreate').onclick=()=>{closeStart();blankCanvas({deploy:$('#stDeploy').value,name:$('#stName').value.trim()||'Untitled design'})};
 $('#stName').addEventListener('keydown',e=>{if(e.key==='Enter')$('#stCreate').click()});
@@ -2678,6 +2703,97 @@ $('#guide').addEventListener('click',e=>{const g=$('#guide'),b=e.target.closest(
  if(b){const [i,j]=b.dataset.g.split('|').map(Number);const a=g._st&&g._st[i]&&g._st[i].acts[j];if(a)a[1]();return}
  if(c){const [t,o]=c.dataset.gt.split(':');gAdd(`Add ${T[t].label.toLowerCase()}`,()=>{if(t==='svc'&&!(S.nets||[]).length)try{standardSubnets('A')}catch(x){}const n=addNode(t,o==='corp'?'Employees':null,'root');if(o==='corp'){n.origin='corp';n.audience='workforce';n.rps=200}if(t==='user'&&!o)n.rps=n.rps||1000;V.sel=n.id});return}
  if(e.target.closest('[data-gp]'))openPal(true)});
+
+/* ---------- starters: 3-tier, microservices, hybrid, cloud to cloud, cloud to SaaS ---------- */
+const DOCS={vpnAws:'https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html',haVpnAws:'https://cloud.google.com/network-connectivity/docs/vpn/tutorials/create-ha-vpn-connections-google-cloud-aws',
+ cci:'https://cloud.google.com/network-connectivity/docs/interconnect/concepts/cci-overview',awsIc:'https://docs.aws.amazon.com/interconnect/latest/userguide/what-is.html'};
+const CLOUD={aws:'AWS',azure:'Azure',gcp:'Google Cloud'};
+// Each option: k, n(ame), use, why, tr(ade-offs), ex(ample), via (how NEXUS draws the link), src (facts checked 2026-11-18), rec, warn
+function connOpts(kind,a,b){const pair=[a,b].sort().join('-'),awsGcp=pair==='aws-gcp';
+ if(kind==='hybrid')return [
+  {k:'vpn',n:'Site-to-site VPN',use:'Getting started, low or bursty traffic, or a backup path.',why:'Encrypted over the internet; set up in hours, no circuit to order.',tr:'Internet latency varies; throughput per tunnel is limited (AWS: up to 1.25 Gbps per standard tunnel).',ex:'A branch system that syncs to the cloud overnight.',via:'vpn',src:[['AWS Site-to-Site VPN quotas',DOCS.vpnAws]]},
+  {k:'dedicated',n:'Dedicated connection',use:'Production traffic, steady high volume, predictable latency.',why:`A private path that skips the internet (${pk().dedicated||'Direct Connect, ExpressRoute or Cloud Interconnect'}).`,tr:'Weeks to provision; monthly port cost; one circuit is a single point of failure.',ex:'Core banking stays in the data centre; digital channels run in the cloud.',via:'dedicated'},
+  {k:'dedvpn',n:'Dedicated + VPN backup',rec:1,use:'Production that must survive a circuit failure at moderate cost.',why:'The dedicated link carries the traffic; the VPN takes over if it fails.',tr:'The backup is slower; failover depends on routing (BGP) being set up and tested.',ex:'Store POS back office reaching the ERP in the data centre.',via:'dedicated',backup:'vpn'},
+  {k:'two',n:'Two dedicated connections, two locations',use:'Critical systems that need the highest resilience.',why:'No single circuit, device or location takes the connection down.',tr:'Highest cost; two sets of circuits and routers to run.',ex:'Payment switching between the data centre and the cloud.',via:'dedicated',links:2}];
+ if(kind==='c2c')return [
+  {k:'vpn',n:'IPsec VPN between the clouds',use:'Dev and test, low volume, or a backup path.',why:awsGcp?'Google Cloud HA VPN to two AWS Site-to-Site VPN connections: four tunnels, 99.99% availability on the Google side when set up as documented.':'Each cloud\'s VPN gateway, encrypted over the internet; quick to set up.',tr:awsGcp?'Internet path; AWS: up to 1.25 Gbps per standard tunnel (5 Gbps large bandwidth); Google: about 1–3 Gbps per tunnel.':'Internet latency; limited throughput per tunnel.',ex:'Analytics pulling a daily extract from the other cloud.',via:'vpn',src:awsGcp?[['Google: HA VPN to AWS',DOCS.haVpnAws],['AWS: VPN quotas',DOCS.vpnAws]]:[]},
+  ...(awsGcp?[{k:'managed',n:'AWS Interconnect – multicloud (Partner Cross-Cloud Interconnect)',rec:1,use:'Production traffic between AWS and Google Cloud without your own routers or circuits.',why:'A managed private link, provisioned in minutes, 1–100 Gbps in steps; four connections across at least two buildings, MACsec-encrypted; attaches to a Direct Connect gateway (Transit Gateway, Cloud WAN or VPC) on AWS.',tr:'Only in paired locations: check that your AWS and Google regions are offered.',warn:'check your regions',ex:'Order events on AWS feeding BigQuery analytics on Google Cloud.',via:'dedicated',src:[['AWS Interconnect',DOCS.awsIc],['Google Cross-Cloud Interconnect',DOCS.cci]]},
+   {k:'cci',n:'Cross-Cloud Interconnect (dedicated ports)',use:'Very high volume, or a location the managed service does not cover.',why:'Your own dedicated ports between Google Cloud and AWS (10, 100 or 400 Gbps); 99.9% with one pair, 99.99% with the redundant topology; MACsec available.',tr:'1–4 weeks to provision; you pay ports and attachments in both clouds and Google data transfer out.',ex:'Replicating large data sets between the clouds every hour.',via:'dedicated',src:[['Google Cross-Cloud Interconnect',DOCS.cci]]}]:
+   [{k:'exchange',n:'Interconnect through a cloud exchange',rec:1,use:'Production replication, steady high volume, predictable latency.',why:'Each cloud\'s dedicated connection meets at a colocation facility or exchange partner, privately.',tr:'Weeks to set up; port and partner fees; a router or virtual router in the middle.',ex:'An app on one cloud keeping a data platform on the other in sync.',via:'dedicated'}]),
+  {k:'api',n:'Private APIs over TLS (no network join)',use:'A few well-defined calls between separate teams or companies.',why:'Each side exposes an API gateway with mutual TLS or OAuth; no shared network and no IP-range clashes.',tr:'Internet path; more latency per call; each API must be secured and versioned.',ex:'A CRM on one cloud calling an orders API on the other.',via:'internet'},
+  {k:'events',n:'Event streaming across the clouds',use:'Asynchronous integration and data sync.',why:'A replicator copies Kafka topics between the clouds (for example MirrorMaker 2); producers and consumers stay decoupled.',tr:'Eventual consistency; a replicator to run and watch; it still needs one of the network links above.',ex:'Order events feeding an analytics pipeline on the other cloud.',via:'dedicated',events:1}];
+ return [
+  {k:'api',n:'Public API through the egress firewall',rec:1,use:'The default for most SaaS APIs.',why:'TLS over the internet, leaving through a firewall that allows only the SaaS hosts.',tr:'Internet path; keep the allow-list and API keys current.',ex:'Card payments through Adyen or Stripe.',via:'internet',egw:1},
+  {k:'pl',n:'Private connectivity offered by the SaaS',use:'Regulated or personal data that must not cross the internet.',why:'PrivateLink, Azure Private Link or Private Service Connect, where the SaaS offers an endpoint service.',tr:'Only some SaaS providers and regions offer it, often on a paid tier.',ex:'A data warehouse SaaS reached privately.',via:'privatelink'},
+  {k:'conn',n:'Managed connector',use:'Scheduled bulk sync without writing code.',why:'Amazon AppFlow, Azure Logic Apps or Google Integration Connectors move records on a schedule.',tr:'Limited to the connector\'s objects and limits; batch, not real time.',ex:'Nightly CRM opportunities into the data lake.',via:'internet',adp:1},
+  {k:'hook',n:'Inbound webhooks',use:'The SaaS calls you when something happens.',why:'Your API gateway, behind the WAF, receives the event; check its signature before acting on it.',tr:'A public endpoint to protect; handle retries and duplicates.',ex:'Payment-succeeded events from the payment provider.',via:'internet',hook:1}]}
+// What each starter creates; 'fixed' items are always built (the starter needs them).
+const WANT={tier:[['dns','DNS'],['waf','WAF'],['subnets','Region network: zones and subnets'],['cache','Cache'],['idp','Identity provider'],['platform','Observability, secrets, keys, registry']],
+ micro:[['dns','DNS'],['waf','WAF'],['subnets','Region network: zones and subnets'],['idp','Identity provider'],['events','Event bus (Kafka)'],['aurora','Aurora for orders and payments'],['platform','Observability, secrets, keys, registry']],
+ hybrid:[['dns','DNS'],['subnets','Region network: zones and subnets'],['corp','Employees on the company network'],['platform','Observability, secrets, keys']],
+ c2c:[['dns','DNS'],['subnets','Region network: zones and subnets'],['platform','Observability, secrets, keys']],
+ saas:[['dns','DNS'],['subnets','Region network: zones and subnets'],['platform','Observability, secrets, keys']]};
+const ST_FIXED={tier:['Users','Load balancer','Web tier','App tier','Database'],micro:['Users','API gateway','A service per name','A database per service'],hybrid:['Data centre: core system','Link (your choice below)','Service + database'],c2c:['Service + database on the first cloud','Workload on the second cloud','Link (your choice below)'],saas:['Service + database','A SaaS per name','Link (your choice below)']};
+const ST_NAME={tier:'3-tier app',micro:'Microservices',hybrid:'Hybrid',c2c:'Cloud to cloud',saas:'Cloud to SaaS'};
+function stOptsHTML(k){const cloud=(id,v)=>`<label>${id==='stB'?'Second cloud':'Cloud'} <select id="${id}">${Object.entries(CLOUD).map(([c,n])=>`<option value="${c}" ${c===v?'selected':''}>${n}</option>`).join('')}</select></label>`;
+ const cur=['aws','azure','gcp'].includes(S.deploy)?S.deploy:'aws';let h='<div class="strow" style="border:0;padding:0">';
+ if(k==='tier')h+=cloud('stA',cur)+'<label>Web and app tiers <select id="stComp"><option value="svc">Containers (autoscaling)</option><option value="vm">Virtual machines</option></select></label><label>Database <select id="stDb"><option value="aurora">Aurora PostgreSQL (writer + reader)</option><option value="rds">RDS PostgreSQL (primary + standby)</option></select></label>';
+ if(k==='micro')h+=cloud('stA',cur)+'<label style="flex:1 1 240px">Services <input type="text" id="stSvcs" value="orders, payments, products, inventory"></label>';
+ if(k==='hybrid')h+=cloud('stA',cur)+'<label>In the data centre <input type="text" id="stDc" value="Core system"></label>';
+ if(k==='c2c')h+=cloud('stA','aws')+cloud('stB','gcp');
+ if(k==='saas')h+=cloud('stA',cur)+'<label style="flex:1 1 220px">SaaS <input type="text" id="stSaas" value="Salesforce, Stripe"></label>';
+ h+=`<label style="flex:1 1 160px">Name <input type="text" id="stNm" value="${ST_NAME[k]} design"></label></div>`;
+ if(['hybrid','c2c','saas'].includes(k))h+=`<h3>${k==='hybrid'?'How does the data centre connect?':k==='c2c'?'How do the two clouds connect?':'How does the cloud reach the SaaS?'}</h3><div class="stconn" id="stConn"></div>`;
+ h+=`<h3>Created for you <span style="text-transform:none;letter-spacing:0;font-family:var(--f-body)">· untick anything to leave it out</span></h3><div class="stwant"><div class="chips">${ST_FIXED[k].map(x=>`<label class="fixed">${esc(x)}</label>`).join('')}${WANT[k].map(([w,l])=>`<label><input type="checkbox" data-want="${w}" checked>${esc(l)}</label>`).join('')}</div></div>`;
+ h+=`<div class="strow"><span class="why" style="flex:1">Every component can be changed afterwards; findings and the simulator work from the start.</span><button type="button" class="btn primary" id="stGo">Create design</button></div>`;return h}
+function stConnRender(k){const el=$('#stConn');if(!el)return;const a=($('#stA')||{}).value||'aws',b=($('#stB')||{}).value||'gcp',os=connOpts(k,a,b),pick=os.findIndex(o=>o.rec);
+ el.innerHTML=os.map((o,i)=>`<label class="stc${i===(pick<0?0:pick)?' on':''}"><input type="radio" name="stc" value="${o.k}" ${i===(pick<0?0:pick)?'checked':''}><span><b>${esc(o.n)}</b>${o.rec?'<span class="bd rec">recommended</span>':''}${o.warn?`<span class="bd w">⚠ ${esc(o.warn)}</span>`:''}<div class="use">Use it for: ${esc(o.use)}</div><div class="g3"><div><i>Why</i>${esc(o.why)}</div><div><i>Trade-offs</i>${esc(o.tr)}</div><div><i>Example</i>${esc(o.ex)}</div></div>${o.src&&o.src.length?`<div class="src">Source: ${o.src.map(([t,u])=>`<a href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join(' · ')} (checked 18 Nov 2026)</div>`:''}</span></label>`).join('');
+ el.querySelectorAll('input').forEach(r=>r.onchange=()=>el.querySelectorAll('.stc').forEach(c=>c.classList.toggle('on',c.contains(r))))}
+function openStarter(k){const o=$('#stOpts');o.hidden=false;$('#stBlank').hidden=true;o.innerHTML=stOptsHTML(k);o.dataset.k=k;stConnRender(k);
+ ['#stA','#stB'].forEach(id=>{const e=$(id);if(e)e.onchange=()=>stConnRender(k)});$('#stGo').onclick=()=>createStarter(k);$('#stNm').focus()}
+function stRead(k){const a=($('#stA')||{}).value||'aws',b=($('#stB')||{}).value||'gcp',want={};document.querySelectorAll('#stOpts [data-want]').forEach(c=>want[c.dataset.want]=c.checked);
+ const ck=(document.querySelector('#stOpts input[name=stc]:checked')||{}).value,conn=['hybrid','c2c','saas'].includes(k)?connOpts(k,a,b).find(o=>o.k===ck):null;
+ return {k,a,b,want,conn,name:(($('#stNm')||{}).value||ST_NAME[k]).trim().slice(0,40),svcs:(($('#stSvcs')||{}).value||'').split(',').map(x=>x.trim()).filter(Boolean).slice(0,5),saas:(($('#stSaas')||{}).value||'').split(',').map(x=>x.trim()).filter(Boolean).slice(0,4),dc:(($('#stDc')||{}).value||'Core system').trim().slice(0,30),comp:($('#stComp')||{}).value||'svc',db:($('#stDb')||{}).value||'aurora'}}
+const stTry=(a,b,p,v)=>{try{return connect(a,b,p,v)!==false}catch(e){return false}};
+const rmType=t=>kids('root').filter(n=>n.type===t).forEach(n=>removeNode(n.id));
+// Finish any starter: DNS in front of the users, the region network, platform services, zones from the region.
+function stFinish(o){const w=o.want;if(w.dns!==false&&!kids('root').some(n=>n.type==='dns'))addNode('dns',null,'root');
+ if(w.waf===false)kids('root').filter(n=>n.type==='waf').forEach(n=>{const ins=S.edges.filter(e=>e.to===n.id&&isFlow(e)),outs=S.edges.filter(e=>e.from===n.id&&isFlow(e));ins.forEach(i=>outs.forEach(x=>{if(!findEdge(i.from,x.to))S.edges.push({...x,from:i.from})}));removeNode(n.id)});
+ if(w.idp===false)rmType('idp');if(w.cache===false)rmType('cache');
+ S.settings.zones=regionZonesDefault();S.multi={...(S.multi||{}),on:false,expanded:false};S.outage=null;S.routage=null;
+ if(w.subnets!==false)try{standardSubnets('A')}catch(e){}
+ if(w.platform===false)kids('root').filter(n=>PLATFORM.includes(n.type)).forEach(n=>removeNode(n.id));else addDeps();
+ kids('root').filter(n=>['svc','vm'].includes(n.type)).forEach(n=>{if(!n.auto)n.auto={min:Math.max(3,S.settings.zones||3),max:12}});
+ try{columnize()}catch(e){}}
+const stAurora=db=>{db.engine='aurora';db.standby=false;db.readReplicas=Math.max(1,db.readReplicas||0)};
+function stBuild(o){const w=o.want;S.deploy=o.a;
+ if(o.k==='tier'){S.nodes={};S.edges=[];S.nets=[];S.groups=[];S.project=o.name;
+  const u=addNode('user','Customers','root');u.rps=1000;const waf=addNode('waf','Perimeter WAF','root'),lb=addNode('lb','Load balancer','root');stTry(u.id,waf.id,'HTTPS','internet');stTry(waf.id,lb.id,'HTTPS');
+  const web=addNode(o.comp,'Web tier','root'),app=addNode(o.comp,'App tier','root'),db=addNode('db','App database','root');db.rw=.7;stTry(lb.id,web.id,'HTTPS');stTry(web.id,app.id,'HTTPS');stTry(app.id,db.id);
+  if(o.db==='aurora')stAurora(db);else db.standby=true;
+  if(w.cache!==false){const c=addNode('cache','Session cache','root');stTry(web.id,c.id)}
+  if(w.idp!==false){const i=addNode('idp','Identity','root');stTry(lb.id,i.id,'HTTPS')}}
+ else if(o.k==='micro'){buildBaselineCore({name:o.name,where:o.a,rps:1000,pii:true,events:w.events!==false,services:o.svcs.length?o.svcs:['orders','payments'],who:'customers'});
+  if(w.events===false)rmType('queue');
+  if(w.aurora!==false)kids('root').filter(n=>n.type==='db'&&/orders|payments/i.test(n.name)).forEach(stAurora)}
+ else{const svc=o.k==='saas'?(o.svcs.length?o.svcs:['integration']):['core'];
+  buildBaselineCore({name:o.name,where:o.a,rps:o.k==='hybrid'?500:800,pii:true,services:svc,saas:o.k==='saas'?o.saas:[],who:'customers'});
+  const sv=kids('root').find(n=>n.type==='svc'),c=o.conn||{};
+  if(o.k==='hybrid'){const dc=addNode('ext',`${o.dc} (data centre)`,'root');dc.onprem=true;dc.pl=false;S.edges.push({from:sv.id,to:dc.id,proto:'HTTPS',via:c.via||'dedicated',...(c.backup?{backup:c.backup}:{}),...(c.links?{links:c.links}:{}),link:c.n});
+   if(w.corp!==false){const gw=kids('root').find(n=>n.type==='gw'),e=addNode('user','Employees','root');e.origin='corp';e.audience='workforce';e.rps=150;if(gw)S.edges.push({from:e.id,to:gw.id,proto:'HTTPS',via:c.via==='vpn'?'vpn':'dedicated'})}}
+  if(o.k==='c2c'){const x=addNode('ext',`Workload on ${CLOUD[o.b]}`,'root');x.pl=false;x.cloud=o.b;
+   if(c.events){const q=addNode('queue','Event bus','root');q.flavor='kafka';stTry(sv.id,q.id);const r=addNode('adp','Topic replicator (MirrorMaker 2)','root');stTry(q.id,r.id);S.edges.push({from:r.id,to:x.id,proto:'Kafka/TLS',via:'dedicated',link:c.n})}
+   else S.edges.push({from:sv.id,to:x.id,proto:c.k==='api'?'mTLS':'HTTPS',via:c.via||'dedicated',link:c.n})}
+  if(o.k==='saas'){const sx=kids('root').filter(n=>n.type==='saas');
+   sx.forEach(x=>{const e=S.edges.find(q=>q.from===sv.id&&q.to===x.id);
+    if(c.egw){if(e)removeEdge(sv.id,x.id);let g=kids('root').find(n=>n.type==='egw');if(!g)g=addNode('egw','Egress firewall','root');stTry(sv.id,g.id);S.edges.push({from:g.id,to:x.id,proto:'HTTPS',via:'internet'})}
+    else if(c.k==='pl'){x.pl=true;if(e)e.via='privatelink'}
+    else if(c.adp){if(e)removeEdge(sv.id,x.id);const a=addNode('adp','Managed connector','root');stTry(sv.id,a.id);S.edges.push({from:a.id,to:x.id,proto:'HTTPS',via:'internet'})}
+    else if(c.hook){const gw=kids('root').find(n=>n.type==='gw');if(gw)stTry(x.id,gw.id,'HTTPS','internet')}})}}
+ S.project=o.name;stFinish(o)}
+function createStarter(k){const o=stRead(k);closeStart();
+ act(`New design: ${o.name} (${ST_NAME[k]}${o.conn?', '+o.conn.n:''})`,()=>stBuild(o),{newDoc:true,src:{by:'you',note:'Starter: '+ST_NAME[k]},after:()=>{fit();say(`Created "${o.name}" from the ${ST_NAME[k]} starter${o.conn?` with ${o.conn.n}`:''}. Findings and the simulator are live; every component can be changed.${o.conn&&o.conn.warn?' ⚠ '+o.conn.warn+'.':''}`,'s')},
+  adr:o.conn?{title:`${o.name}: ${o.conn.n}`,context:`${ST_NAME[k]} starter${k==='c2c'?` between ${CLOUD[o.a]} and ${CLOUD[o.b]}`:''}. Use it for: ${o.conn.use}`,decision:`${o.conn.n}. ${o.conn.why}`,tradeoffs:o.conn.tr+(o.conn.src&&o.conn.src.length?` Sources: ${o.conn.src.map(x=>x[1]).join(' ')}`:''),basis:['GT5','EA-P2']}:undefined})}
 
 function blankCanvas(o={}){confirmUnsaved('Starting a blank canvas',()=>{pushUndo('Start a blank canvas');if(libOn())startNewDoc();
  Object.assign(S,{nodes:{},edges:[],nets:[],groups:[],req:null,outage:null,routage:null,project:String(o.name||'Untitled design').slice(0,40),multi:{...(S.multi||{}),on:false,expanded:false},guide:true});if(o.deploy)S.deploy=o.deploy;V.guideOff=false;
@@ -3167,7 +3283,7 @@ const showInst=n=>(n.expanded||V.allInst)&&!EXTERNAL.includes(n.type)&&!PLATFORM
 function details(n){
  const f=F[n.id]||{},P_=pk(),L=[];
  if(isManaged(n)&&!['lb','cdn','egw'].includes(n.type))L.push(`Managed · ${cfgText(n)} · ${(MQ[n.type]||{}).res} resiliency`);
- const ins=S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>`${e.from} ${e.proto}${e.via!=='net'?' '+viaShort(e.via):''}`),outs=S.edges.filter(e=>e.from===n.id&&isFlow(e)).map(e=>`${e.to} ${e.proto}${e.via!=='net'?' '+viaShort(e.via):''}`);
+ const ins=S.edges.filter(e=>e.to===n.id&&isFlow(e)).map(e=>`${e.from} ${e.proto}${e.via!=='net'?' '+linkShort(e):''}`),outs=S.edges.filter(e=>e.from===n.id&&isFlow(e)).map(e=>`${e.to} ${e.proto}${e.via!=='net'?' '+viaShort(e.via):''}`);
  const deps=S.edges.filter(e=>e.kind==='dep'&&e.from===n.id).map(e=>S.nodes[e.to]).filter(Boolean);
  switch(n.type){
   case 'waf':L.push(`Rules: ${P_.waf}`,`Rate limit: ${n.rateLimit?fmt(n.rateLimit)+' rps':'2,000 req / 5 min per IP'} · block mode`,`Logs → ${P_.svc.mon}`);break;
@@ -3268,7 +3384,7 @@ function frame(now){
  const hit=r=>taken.some(t=>r.x0<t.x1&&r.x1>t.x0&&r.y0<t.y1&&r.y1>t.y0);
  labels.sort((x,y)=>(y.sel?1:0)-(x.sel?1:0)||(y.f-x.f)).forEach(l=>{
   if(V.k<.5&&!l.sel)return;
-  const v=viaShort(l.e.via),mg=msgLabel(l.e),t=`${mg||l.e.proto}${v?' · '+v:''} · ${fmt(l.f)}`,tw=ctx.measureText(t).width+10,th=fs*1.5,p=l.e._pts;
+  const v=linkShort(l.e),mg=msgLabel(l.e),t=`${mg||l.e.proto}${v?' · '+v:''} · ${fmt(l.f)}`,tw=ctx.measureText(t).width+10,th=fs*1.5,p=l.e._pts;
   let bi=0,bl=-1;for(let i=0;i<p.length-1;i++){const L=Math.hypot(p[i+1].x-p[i].x,p[i+1].y-p[i].y);if(L>bl){bl=L;bi=i}}
   let spot=null;for(const u of [.5,.3,.7,.15,.85]){const mx=p[bi].x+(p[bi+1].x-p[bi].x)*u,my=p[bi].y+(p[bi+1].y-p[bi].y)*u,r={x0:mx-tw/2,x1:mx+tw/2,y0:my-th/2,y1:my+th/2};if(!hit(r)){spot={mx,my,r};break}}
   if(!spot&&l.sel){const mx=(p[bi].x+p[bi+1].x)/2,my=(p[bi].y+p[bi+1].y)/2;spot={mx,my,r:{x0:mx-tw/2,x1:mx+tw/2,y0:my-th/2,y1:my+th/2}}}

@@ -52,10 +52,39 @@ await p.click("#docsBtn"); const [dl] = await Promise.all([p.waitForEvent("downl
 const file = await dl.path(); ok(/customer-portal\.nexus\.json$/.test(dl.suggestedFilename()), "Export downloads customer-portal.nexus.json");
 await p.setInputFiles("#stFile", file); await p.waitForTimeout(500);
 ok(await p.evaluate(() => __nx.S.project === "Customer Portal (imported)" && JSON.parse(localStorage.getItem("nexus.library.v1")).some((x) => x.name === "Customer Portal")), "Import opens the file as its own design, next to the original");
+// 4c. starters
+const starter = async (k, set) => { if (await p.isVisible("#startDlg")) await p.click("#stClose"); await p.click("#docsBtn"); await p.click(`[data-st="${k}"]`); await p.waitForTimeout(150); if (set) await set(); await p.click("#stGo"); await apply(); await p.waitForTimeout(300); };
+const has = (t) => p.evaluate((t) => Object.values(__nx.S.nodes).some((n) => n.type === t), t);
+const edge = (f, t) => p.evaluate(([f, t]) => { const N = __nx.S.nodes, find = (x) => Object.values(N).filter((n) => n.type === x || n.name === x).map((n) => n.id); return __nx.S.edges.find((e) => find(f).includes(e.from) && find(t).includes(e.to)) || null; }, [f, t]);
+await starter("tier");
+ok(await p.evaluate(() => __nx.S.project === "3-tier app design") && !!(await edge("Load balancer", "Web tier")) && !!(await edge("Web tier", "App tier")) && !!(await edge("App tier", "App database")), "3-tier: load balancer → web tier → app tier → database");
+ok(await p.evaluate(() => { const d = Object.values(__nx.S.nodes).find((n) => n.type === "db"); return d.engine === "aurora" && __nx.F[d.id].aur; }), "3-tier: the database is Aurora (writer + reader)");
+ok(await has("dns") && await p.evaluate(() => (__nx.S.nets || []).length >= 3 && __nx.S.settings.zones === 3), "3-tier: DNS, the region network and 3 zones are created");
+await starter("micro");
+ok(await p.evaluate(() => Object.values(__nx.S.nodes).filter((n) => n.type === "svc").length === 4 && Object.values(__nx.S.nodes).filter((n) => n.type === "db").length === 4), "Microservices: four services, a database each");
+ok(await p.evaluate(() => Object.values(__nx.S.nodes).filter((n) => n.type === "db" && n.engine === "aurora").map((n) => n.name).join() .match(/Orders|Payments/g).length === 2), "Microservices: orders and payments on Aurora");
+ok(await has("queue") && await has("mon") && await has("sec") && await has("kms"), "Microservices: event bus, observability, secrets and keys");
+await starter("c2c", async () => { await p.screenshot({ path: "/tmp/c2c-opts.png", fullPage: true }); });
+const c2c = await p.evaluate(() => [...document.querySelectorAll("#stConn .stc b")].map((b) => b.textContent));
+ok(c2c.length === 5 && /AWS Interconnect/.test(c2c[1]), "AWS ↔ Google Cloud offers five options: " + c2c.join(" | "));
+await p.screenshot({ path: "/tmp/c2c-design.png" });
+const xe = await edge("svc", "ext");
+ok(xe && xe.via === "dedicated" && /AWS Interconnect/.test(xe.link), "Cloud to cloud AWS ↔ Google Cloud: the recommended AWS Interconnect – multicloud is drawn as a dedicated link to the Google Cloud workload");
+ok(await p.evaluate(() => __nx.S.adrs.length === 1 && /AWS Interconnect/.test(__nx.S.adrs[0].title) && /docs\.aws\.amazon\.com\/interconnect/.test(__nx.S.adrs[0].tradeoffs)), "a decision record (ADR) holds the connectivity choice, why, trade-offs and sources; the new design starts with no older ADRs");
+await starter("hybrid");
+const he = await edge("svc", "ext");
+ok(he && he.via === "dedicated" && he.backup === "vpn", "Hybrid: dedicated connection with a VPN backup (recommended)");
+ok(await p.evaluate(() => Object.values(__nx.S.nodes).some((n) => n.type === "user" && n.origin === "corp")), "Hybrid: employees on the company network");
+await starter("saas", async () => { await p.fill("#stSaas", "Stripe"); });
+ok(!!(await edge("egw", "saas")) && !(await edge("svc", "saas")), "Cloud to SaaS: the API call leaves through the egress firewall");
+await starter("saas", async () => { await p.fill("#stSaas", "Stripe"); await p.check('#stConn input[value="hook"]'); });
+ok(!!(await edge("saas", "gw")), "Cloud to SaaS, inbound webhooks: the SaaS calls the API gateway");
+ok(await p.evaluate(() => JSON.parse(localStorage.getItem("nexus.library.v1")).length >= 7), "every starter design is kept under Recent designs");
+
 // 5. delete, launch switch
 await p.click("#docsBtn"); await p.waitForTimeout(150); await p.click("#stClose");
-await p.click("#docsBtn"); const del = p.locator("#stList .del").first(); await del.click(); await del.click(); await p.waitForTimeout(150);
-ok((await lib()).length === 2, "× twice deletes a design from this browser");
+await p.click("#docsBtn"); const before = (await lib()).length; const del = p.locator("#stList .del").first(); await del.click(); await del.click(); await p.waitForTimeout(150);
+ok((await lib()).length === before - 1, "× twice deletes a design from this browser");
 await p.uncheck("#stLaunch"); await p.click("#stClose"); await p.reload(); await p.waitForTimeout(500);
 ok(!(await p.isVisible("#startDlg")), "Show at launch off: NEXUS opens straight on the design");
 ok(errs.length === 0, "no page errors" + (errs.length ? ": " + errs.join(" | ") : ""));
