@@ -19,3 +19,4 @@ deploy/canvas.env
 
 # Playwright library cached by poc/tests/run-all.sh
 poc/tests/.pw/
+deploy/atlas.env
